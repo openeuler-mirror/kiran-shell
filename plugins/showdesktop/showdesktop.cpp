@@ -1,0 +1,39 @@
+/**
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * kiran-session-manager is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
+ * See the Mulan PSL v2 for more details.  
+ * 
+ * Author:     tangjie02 <tangjie02@kylinos.com.cn>
+ */
+
+#include "plugins/showdesktop/showdesktop.h"
+#include <qt5-log-i.h>
+#include <KWindowSystem/KWindowSystem>
+#include <QMouseEvent>
+
+namespace Kiran
+{
+Showdesktop::Showdesktop()
+{
+}
+
+void Showdesktop::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        auto isShowing = KWindowSystem::showingDesktop();
+        KWindowSystem::setShowingDesktop(!isShowing);
+    }
+}
+
+// void Showdesktop::resizeEvent(QResizeEvent *event)
+// {
+//     KLOG_DEBUG() << "pushbutton: " << event->size();
+// }
+}  // namespace Kiran

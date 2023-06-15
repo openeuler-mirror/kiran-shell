@@ -1,0 +1,40 @@
+[Panel top]
+expand=true
+orientation=top
+size=40
+monitor=-1
+applets=startmenu,taskbar,systemtray,clock,showdesktop
+
+[Applet startmenu]
+type=plugin
+id=startmenu
+panel=top
+
+[Applet taskbar]
+type=plugin
+id=taskbar
+panel=top
+
+[Applet systemtray]
+type=plugin
+id=systemtray
+panel=top
+panel-right-stick=true
+
+[Applet clock]
+type=plugin
+id=clock
+panel=top
+panel-right-stick=true
+
+[Applet showdesktop]
+type=plugin
+id=showdesktop
+panel=top
+panel-right-stick=true
+
+
+
+
+
+
