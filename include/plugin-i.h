@@ -20,25 +20,35 @@ namespace Kiran
 {
 #define IAPPLET_IID "com.kylinsec.Kiran.Shell.IApplet/2.5"
 
-class IAppletArgs
+class IApplet
 {
 public:
+    // virtual void setup(IAppletArgs *args) = 0;
+    // // 获取Applet对应的控件对象
+    // virtual QWidget *widget() = 0;
 };
 
-// class IApplet
-// {
-// public:
-//     virtual void setup(IAppletArgs *args) = 0;
-//     // 获取Applet对应的控件对象
-//     virtual QWidget *widget() = 0;
-// };
+class IPanel
+{
+public:
+    virtual int getSize() = 0;
+    virtual int getOrientation() = 0;
+};
+
+// 用于给插件内的applet提供插件外的设置参数。
+class IAppletImport
+{
+public:
+    virtual IPanel *getPanel() = 0;
+    virtual IApplet *getApplet() = 0;
+};
 
 class IPlugin
 {
 public:
     virtual ~IPlugin(){};
 
-    virtual QWidget *createApplet(const QString &appletID) = 0;
+    virtual QWidget *createApplet(const QString &appletID, IAppletImport *import) = 0;
 };
 
 }  // namespace Kiran

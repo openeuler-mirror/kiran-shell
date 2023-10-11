@@ -72,6 +72,8 @@ void PluginPool::loadPluginsMeta()
 
     for (auto &entryInfo : dir.entryInfoList())
     {
+        CONTINUE_IF_TRUE(entryInfo.isDir());
+
         if (!entryInfo.fileName().endsWith(".so"))
         {
             KLOG_WARNING() << "Ignore file " << entryInfo.absoluteFilePath() << ", because it doesn't end with so.";

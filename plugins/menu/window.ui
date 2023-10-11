@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Window</class>
+ <widget class="QWidget" name="Window">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>682</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="m_navigations" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="m_overviewLayout">
+        <item>
+         <widget class="QPushButton" name="m_appsOverview">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-apps-list-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_recentFilesOverview">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-recent-files-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_runCommand">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-run-command-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_searchFiles">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-search-files-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_homeDir">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-home-dir-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_settings">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-settings-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_systemMonitor">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-system-monitor-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="m_power">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="ks-menu-power-symbolic">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="m_overviewStack">
+     <widget class="QWidget" name="m_middlePage1" native="true">
+      <layout class="QVBoxLayout"/>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="m_expand" native="true">
+     <layout class="QVBoxLayout" name="m_expandLayout">
+      <item>
+       <widget class="QWidget" name="horizontalWidget" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pushButton">
+           <property name="text">
+            <string>PushButton</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="verticalWidget_2" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="verticalWidget_3" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_4"/>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

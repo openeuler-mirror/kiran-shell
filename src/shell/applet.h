@@ -15,41 +15,47 @@
 #pragma once
 
 #include <plugin-i.h>
-#include <QSharedPointer>
 #include <QWidget>
 
 namespace Kiran
 {
-namespace Model
-{
+class ProfileApplet;
 class Applet;
-}
+class Panel;
 
-class AppletArgs : public IAppletArgs
+class AppletImport : public QObject, public IAppletImport
 {
+    Q_OBJECT
+
+public:
+    AppletImport(Applet *applet, QObject *parent = nullptr);
+
+public:
+    virtual IPanel *getPanel();
+    virtual IApplet *getApplet();
+
+private:
+    Applet *m_applet;
 };
 
-// class Applet : public QObject
-// {
-//     Q_OBJECT
+class Applet : public QWidget, public IApplet
+{
+    Q_OBJECT
 
-// public:
-//     Applet(const QString &uid, QObject *parent = nullptr);
+public:
+    Applet(ProfileApplet *profileApplet, Panel *panel);
 
-//     // 获取插件并构建控件
-//     QWidget *build();
+public:
+    Panel *getPanel();
 
-//     QString getUID() { return this->m_uid; };
-//     QString getID() { return this->m_id; };
-//     Panel *getPanel();
+private:
+    void init();
 
-//     void setID(const QString &id) { this->m_id = id; };
-
-//     // bool isValid() { return this->m_iApplet != nullptr; }
-//     // QWidget *widget() { return this->m_iApplet->widget(); }
-
-// private:
-//     QString m_uid;
-//     QString m_id;
-// };
+private:
+    ProfileApplet *m_profileApplet;
+    Panel *m_panel;
+    // 提供给插件的输入对象
+    AppletImport *m_appletImport;
+    QWidget *m_pluginApplet;
+};
 }  // namespace Kiran

@@ -15,31 +15,40 @@
 #include "src/shell/shell.h"
 #include <QGlobalStatic>
 #include <QScopedPointer>
-#include "src/shell/layout.h"
 #include "src/shell/panel.h"
+#include "src/shell/profile/profile.h"
 
 namespace Kiran
 {
-Q_GLOBAL_STATIC(Shell, gs_shell)
-Shell* Shell::getInstance()
+Shell* Shell::m_instance = nullptr;
+void Shell::globalInit()
 {
-    return gs_shell;
+    m_instance = new Shell();
+    m_instance->init();
+}
+
+void Shell::globalDeinit()
+{
+    delete m_instance;
+}
+
+Panel* Shell::getPanel(const QString& uid)
+{
+    return this->m_panels.value(uid);
 }
 
 Shell::Shell()
 {
-    this->initUI();
 }
 
-void Shell::initUI()
+void Shell::init()
 {
-    auto panelsModel = Model::Layout::getInstance()->getPanels();
+    auto profilePanels = profile::getInstance()->getPanels();
 
-    for (const auto& panelModel : panelsModel)
+    for (const auto& profilePanel : profilePanels)
     {
-        auto panel = QSharedPointer<Panel>(new Panel(panelModel));
-        this->m_panels.push_back(panel);
-        panel->show();
+        auto panel = new Panel(profilePanel);
+        this->m_panels.insert(panel->getUID(), panel);
     }
 }
 

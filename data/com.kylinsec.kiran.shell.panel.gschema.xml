@@ -1,0 +1,28 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <enum id="com.kylinsec.kiran.kiran.panel.orientation">
+        <value nick="top" value="0"/>
+        <value nick="right" value="1"/>
+        <value nick="bottom" value="2"/>
+        <value nick="left" value="3"/>
+    </enum>
+
+    <schema id="com.kylinsec.kiran.shell.panel">
+
+        <key name="orientation" enum="com.kylinsec.kiran.kiran.panel.orientation">
+            <default>'bottom'</default>
+            <description>The orientation of the panel which contains "top", "bottom", "left", "right". </description>
+        </key>
+
+        <key name="size" type="i">
+            <default>40</default>
+            <description>The height (width for a vertical panel) of the panel.</description>
+        </key>
+
+        <key name="monitor" type="i">
+            <default>0</default>
+            <description>Identifies the current monitor the panel is displayed on.</description>
+        </key>
+
+    </schema>
+</schemalist>

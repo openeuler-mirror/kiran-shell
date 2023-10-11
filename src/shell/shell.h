@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include <QSharedPointer>
-#include <QVector>
+#include <QMap>
+#include <QString>
+#include "src/shell/panel.h"
 
 namespace Kiran
 {
@@ -24,13 +25,21 @@ class Panel;
 class Shell
 {
 public:
-    static Shell* getInstance();
+    static Shell* getInstance() { return m_instance; };
 
-    Shell();
+    static void globalInit();
+    static void globalDeinit();
 
-    void initUI();
+public:
+    Panel* getPanel(const QString& uid);
 
 private:
-    QVector<QSharedPointer<Panel>> m_panels;
+    Shell();
+    void init();
+
+private:
+    static Shell* m_instance;
+
+    QMap<QString, Panel*> m_panels;
 };
 }  // namespace Kiran

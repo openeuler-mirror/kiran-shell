@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <g id="箭头">
+    <path id="形状_592" data-name="形状 592" class="cls-1" d="M826,1953l-6-4.95-6,4.95v-2.05l6-4.95,6,4.95V1953Z" transform="translate(-812 -1941)"/>
+  </g>
+</svg>

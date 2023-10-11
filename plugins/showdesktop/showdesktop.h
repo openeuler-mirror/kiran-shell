@@ -12,6 +12,8 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#pragma once
+
 #include <plugin-i.h>
 #include <QPushButton>
 
@@ -44,7 +46,7 @@ class ShowDesktopPlugin : public QObject, public IPlugin
     Q_INTERFACES(Kiran::IPlugin)
 
 public:
-    virtual QWidget *createApplet(const QString &appletID)
+    virtual QWidget *createApplet(const QString &appletID, IAppletImport *import)
     {
         return new Showdesktop();
     }

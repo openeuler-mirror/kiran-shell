@@ -12,25 +12,27 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/model/configuration.h"
-#include <qsettings.h>
-#include <QGlobalStatic>
+#include <QPushButton>
 
 namespace Kiran
 {
-namespace Model
-{
-Q_GLOBAL_STATIC(Configuration, gs_configuration)
+class IAppletImport;
 
-Configuration *getInstance()
+class AppletButton : public QPushButton
 {
-    return gs_configuration;
-}
+    Q_OBJECT
 
-Configuration::Configuration()
-{
-}
+public:
+    AppletButton(IAppletImport *import);
+    virtual ~AppletButton(){};
 
-}  // namespace Model
+protected:
+    // 通过名称设置图标，图标大小会根据按钮大小做调整
+    void setIconByName(const QString &iconName);
+    void setIconFromTheme(const QString &iconName);
+
+private:
+    IAppletImport *m_import;
+};
 
 }  // namespace Kiran

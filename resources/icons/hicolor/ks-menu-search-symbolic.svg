@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <path id="sousuo" class="cls-1" d="M829.95,562.849l-5.194-5.194a6,6,0,1,0-1.1,1.1l5.195,5.192a0.163,0.163,0,0,0,.231,0l0.872-.87a0.164,0.164,0,0,0,0-.232h0Zm-6.784-5.682A4.481,4.481,0,1,1,824.478,554a4.456,4.456,0,0,1-1.312,3.168h0Zm0,0" transform="translate(-814 -548)"/>
+</svg>

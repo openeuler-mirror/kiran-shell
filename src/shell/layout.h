@@ -15,54 +15,42 @@
 #pragma once
 
 #include <QMap>
-#include <QSettings>
-#include <QSharedPointer>
 #include <QVariant>
+
+class QSettings;
 
 namespace Kiran
 {
-namespace Model
-{
-#define LAYOUT_PROPERTY_INT(name, humpName, key) \
-Q_SIGNALS:                                       \
-    void name##Changed(int value);               \
-                                                 \
-public:                                          \
-    int get##humpName()                          \
-    {                                            \
-        return this->value(#key).toInt();        \
-    }                                            \
-    void set##humpName(int value)                \
-    {                                            \
-        if (value != this->get##humpName())      \
-        {                                        \
-            this->setValue(#key, value);         \
-        }                                        \
-    }
+#define LAYOUT_PROPERTY_INT_DECLARATION(name, humpName) \
+Q_SIGNALS:                                              \
+    void name##Changed(int value);                      \
+                                                        \
+public:                                                 \
+    int get##humpName();                                \
+    void set##humpName(int value);
 
-#define LAYOUT_PROPERTY_STRING(name, humpName, key) \
-Q_SIGNALS:                                          \
-    void name##Changed(const QString &value);       \
-                                                    \
-public:                                             \
-    QString get##humpName()                         \
-    {                                               \
-        return this->value(#key).toString();        \
-    }                                               \
-    void set##humpName(const QString &value)        \
-    {                                               \
-        if (value != this->get##humpName())         \
-        {                                           \
-            this->setValue(#key, value);            \
-        }                                           \
-    }
+#define LAYOUT_PROPERTY_BOOLEAN_DECLARATION(name, humpName) \
+Q_SIGNALS:                                                  \
+    void name##Changed(bool value);                         \
+                                                            \
+public:                                                     \
+    bool get##humpName();                                   \
+    void set##humpName(bool value);
+
+#define LAYOUT_PROPERTY_STRING_DECLARATION(name, humpName) \
+Q_SIGNALS:                                                 \
+    void name##Changed(const QString &value);              \
+                                                           \
+public:                                                    \
+    QString get##humpName();                               \
+    void set##humpName(const QString &value);
 
 class Group : public QObject
 {
     Q_OBJECT
 
 public:
-    Group(const QString &groupName, QSettings *settings);
+    Group(const QString &groupName, QSettings *settings, QObject *parent);
 
 protected:
     void setValue(const QString &key, const QVariant &value);
@@ -73,16 +61,16 @@ private:
     QSettings *m_settings;
 };
 
-class Panel : public Group
+class LayoutPanel : public Group
 {
     Q_OBJECT
 
-    LAYOUT_PROPERTY_INT(size, Size, size);
-    LAYOUT_PROPERTY_STRING(orientation, Orientation, orientation);
-    LAYOUT_PROPERTY_INT(monitor, Monitor, monitor);
+    LAYOUT_PROPERTY_INT_DECLARATION(size, Size);
+    LAYOUT_PROPERTY_STRING_DECLARATION(orientation, Orientation);
+    LAYOUT_PROPERTY_INT_DECLARATION(monitor, Monitor);
 
 public:
-    Panel(const QString &panelUID, QSettings *settings);
+    LayoutPanel(const QString &panelUID, QSettings *settings, QObject *parent);
 
     QString getUID()
     {
@@ -93,17 +81,18 @@ private:
     QString m_panelUID;
 };
 
-class Applet : public Group
+class LayoutApplet : public Group
 {
     Q_OBJECT
 
-    LAYOUT_PROPERTY_STRING(type, Type, type);
-    LAYOUT_PROPERTY_STRING(id, ID, id);
-    LAYOUT_PROPERTY_STRING(panel, Panel, panel);
-    LAYOUT_PROPERTY_INT(position, Position, position);
+    LAYOUT_PROPERTY_STRING_DECLARATION(type, Type);
+    LAYOUT_PROPERTY_STRING_DECLARATION(id, ID);
+    LAYOUT_PROPERTY_STRING_DECLARATION(panel, Panel);
+    LAYOUT_PROPERTY_INT_DECLARATION(position, Position);
+    LAYOUT_PROPERTY_BOOLEAN_DECLARATION(panelRightStick, PanelRightStick);
 
 public:
-    Applet(const QString &appletUID, QSettings *settings);
+    LayoutApplet(const QString &appletUID, QSettings *settings, QObject *parent);
 
     QString getUID()
     {
@@ -118,34 +107,22 @@ class Layout : public QObject
 {
     Q_OBJECT
 public:
-    static Layout *getInstance();
-    Layout();
+    Layout(const QString &layoutName);
 
-    QList<QSharedPointer<Panel>> getPanels();
-    // 创建的面板配置信息会直接落地到磁盘
-    // QSharedPointer<Panel> newPanel();
-    // QSharedPointer<Panel> getPanel(const QString &panelUID);
-    // void removePanel(const QString &panelUID);
-
-    // QList<QSharedPointer<Applet>> getApplets();
-    QList<QSharedPointer<Applet>> getAppletsOnPanel(const QString &panelUID);
-    // QSharedPointer<Applet> newApplet();
-    // QSharedPointer<Applet> getApplet(const QString &appletUID);
-    // void removeApplet(const QString &appletUID);
+    QList<LayoutPanel *> getPanels();
+    QList<LayoutApplet *> getApplets();
+    QList<LayoutApplet *> getAppletsOnPanel(const QString &panelUID);
 
 private:
-    void loadLayout();
-    void updateLayoutFile();
-    void resetLayoutFile();
+    void load();
 
 private:
     QSettings *m_settings;
     // 布局文件路径
     QString m_layoutFilePath;
     // panels
-    QMap<QString, QSharedPointer<Panel>> m_panels;
-    QMap<QString, QSharedPointer<Applet>> m_applets;
+    QMap<QString, LayoutPanel *> m_panels;
+    QMap<QString, LayoutApplet *> m_applets;
 };
-}  // namespace Model
 
 }  // namespace Kiran

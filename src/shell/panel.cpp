@@ -13,6 +13,7 @@
  */
 
 #include "src/shell/panel.h"
+#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
 #include <QApplication>
@@ -20,36 +21,46 @@
 #include <QScopedPointer>
 #include <QScreen>
 #include "src/shell/applet.h"
-#include "src/shell/layout.h"
-#include "src/shell/plugin.h"
+#include "src/shell/profile/profile.h"
 #include "src/shell/utils.h"
 
 namespace Kiran
 {
-Panel::Panel(QSharedPointer<Model::Panel> panelModel) : QWidget(nullptr, Qt::FramelessWindowHint),
-                                                        m_panelModel(panelModel)
+Panel::Panel(ProfilePanel* profilePanel) : QWidget(nullptr, Qt::FramelessWindowHint),
+                                           m_profilePanel(profilePanel)
 {
     this->setAttribute(Qt::WA_X11NetWmWindowTypeDock);
-    this->m_orientation = this->orientationStr2Enum(this->m_panelModel->getOrientation());
+    this->m_orientation = this->orientationStr2Enum(this->m_profilePanel->getOrientation());
 
-    this->initUI();
+    this->init();
 }
 
 QString Panel::getUID()
 {
-    return this->m_panelModel->getUID();
+    return this->m_profilePanel->getUID();
 }
 
-void Panel::initUI()
+int Panel::getSize()
+{
+    return this->m_profilePanel->getSize();
+}
+
+int Panel::getOrientation()
+{
+    return int(this->orientationStr2Enum(this->m_profilePanel->getOrientation()));
+}
+
+void Panel::init()
 {
     this->initSelf();
     this->initChildren();
+    this->show();
 }
 
 void Panel::initSelf()
 {
     // 获取所在显示器
-    auto monitorIndex = this->m_panelModel->getMonitor();
+    auto monitorIndex = this->m_profilePanel->getMonitor();
 
     auto primaryScreen = QApplication::primaryScreen();
     auto screens = QGuiApplication::screens();
@@ -69,48 +80,48 @@ void Panel::initSelf()
                  << "x: " << showingScreen->geometry().x()
                  << "y: " << showingScreen->geometry().y()
                  << "width: " << showingScreen->geometry().width()
-                 << "height: " << this->m_panelModel->getSize();
+                 << "height: " << this->m_profilePanel->getSize();
 
     // 计算放置的位置，并且确保该区域不被其他窗口覆盖
     switch (this->m_orientation)
     {
-    case Orientation::ORIENTATION_TOP:
+    case PanelOrientation::PANEL_ORIENTATION_TOP:
         this->setGeometry(QRect(showingScreen->geometry().x(),
                                 showingScreen->geometry().y(),
                                 showingScreen->geometry().width(),
-                                this->m_panelModel->getSize()));
+                                this->m_profilePanel->getSize()));
 
         KWindowSystem::setExtendedStrut(this->winId(),
                                         0, 0, 0,
                                         0, 0, 0,
-                                        this->m_panelModel->getSize(),
+                                        this->m_profilePanel->getSize(),
                                         showingScreen->geometry().x(),
                                         showingScreen->geometry().x() + showingScreen->geometry().width(),
                                         0, 0, 0);
 
         break;
-    case Orientation::ORIENTATION_RIGHT:
-        this->setGeometry(QRect(showingScreen->geometry().right() - this->m_panelModel->getSize(),
+    case PanelOrientation::PANEL_ORIENTATION_RIGHT:
+        this->setGeometry(QRect(showingScreen->geometry().right() - this->m_profilePanel->getSize(),
                                 showingScreen->geometry().y(),
-                                this->m_panelModel->getSize(),
+                                this->m_profilePanel->getSize(),
                                 showingScreen->geometry().height()));
 
         KWindowSystem::setExtendedStrut(this->winId(),
                                         0, 0, 0,
-                                        this->m_panelModel->getSize(),
+                                        this->m_profilePanel->getSize(),
                                         showingScreen->geometry().y(),
                                         showingScreen->geometry().y() + showingScreen->geometry().height(),
                                         0, 0, 0,
                                         0, 0, 0);
         break;
-    case Orientation::ORIENTATION_LEFT:
+    case PanelOrientation::PANEL_ORIENTATION_LEFT:
         this->setGeometry(QRect(showingScreen->geometry().x(),
                                 showingScreen->geometry().y(),
-                                this->m_panelModel->getSize(),
+                                this->m_profilePanel->getSize(),
                                 showingScreen->geometry().height()));
 
         KWindowSystem::setExtendedStrut(this->winId(),
-                                        this->m_panelModel->getSize(),
+                                        this->m_profilePanel->getSize(),
                                         showingScreen->geometry().y(),
                                         showingScreen->geometry().y() + showingScreen->geometry().width(),
                                         0, 0, 0,
@@ -120,77 +131,57 @@ void Panel::initSelf()
     default:
         // 默认放入底部
         this->setGeometry(QRect(showingScreen->geometry().x(),
-                                showingScreen->geometry().bottom() - this->m_panelModel->getSize(),
+                                showingScreen->geometry().bottom() - this->m_profilePanel->getSize(),
                                 showingScreen->geometry().width(),
-                                this->m_panelModel->getSize()));
+                                this->m_profilePanel->getSize()));
 
         KWindowSystem::setExtendedStrut(this->winId(),
                                         0, 0, 0,
                                         0, 0, 0,
                                         0, 0, 0,
-                                        this->m_panelModel->getSize(),
+                                        this->m_profilePanel->getSize(),
                                         showingScreen->geometry().x(),
                                         showingScreen->geometry().x() + showingScreen->geometry().height());
     }
 
-    KLOG_DEBUG() << "Panel " << this->m_panelModel->getUID() << "geometry: " << this->geometry();
+    KLOG_DEBUG() << "Panel " << this->m_profilePanel->getUID() << "geometry: " << this->geometry();
 }
 
 void Panel::initChildren()
 {
-    auto direction = (this->m_orientation == Panel::Orientation::ORIENTATION_BOTTOM ||
-                      this->m_orientation == Panel::Orientation::ORIENTATION_TOP)
+    auto direction = (this->m_orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+                      this->m_orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
                          ? QBoxLayout::Direction::LeftToRight
                          : QBoxLayout::Direction::TopToBottom;
 
     this->m_appletsLayout = new QBoxLayout(direction, this);
     this->m_appletsLayout->setContentsMargins(0, 0, 0, 0);
+    this->m_appletsLayout->setSpacing(0);
 
-    auto appletsModel = Model::Layout::getInstance()->getAppletsOnPanel(this->m_panelModel->getUID());
-    for (const auto& appletModel : appletsModel)
+    auto profileApplets = profile::getInstance()->getAppletsOnPanel(this->m_profilePanel->getUID());
+    for (const auto& profileApplet : profileApplets)
     {
-        auto applet = this->createApplet(appletModel);
-        if (applet)
-        {
-            this->m_appletsLayout->addSpacerItem(new QSpacerItem(500, 0, QSizePolicy::Fixed, QSizePolicy::Fixed));
-            this->m_appletsLayout->addWidget(applet);
-        }
-        else
-        {
-            KLOG_WARNING() << "Cannot create a valid applet for " << appletModel->getUID() << ", so delete the applet.";
-        }
+        auto applet = new Applet(profileApplet, this);
+        this->m_appletsLayout->addWidget(applet);
     }
+    this->m_appletsLayout->addStretch(0);
     KLOG_DEBUG() << this->m_appletsLayout->geometry();
 }
 
-QWidget* Panel::createApplet(QSharedPointer<Model::Applet> appletModel)
-{
-    auto appletID = appletModel->getID();
-    auto plugin = PluginPool::getInstance()->findPluginForApplet(appletID);
-
-    if (!plugin)
-    {
-        KLOG_WARNING() << "Not found plugin for applet id: " << appletID;
-        return nullptr;
-    }
-
-    return plugin->createApplet(appletID);
-}
-
-Panel::Orientation Panel::orientationStr2Enum(const QString& orientation)
+int Panel::orientationStr2Enum(const QString& orientation)
 {
     switch (shash(orientation.toStdString().c_str()))
     {
     case CONNECT("top", _hash):
-        return Panel::Orientation::ORIENTATION_TOP;
+        return PanelOrientation::PANEL_ORIENTATION_TOP;
     case CONNECT("right", _hash):
-        return Panel::Orientation::ORIENTATION_RIGHT;
+        return PanelOrientation::PANEL_ORIENTATION_RIGHT;
     case CONNECT("bottom", _hash):
-        return Panel::Orientation::ORIENTATION_BOTTOM;
+        return PanelOrientation::PANEL_ORIENTATION_BOTTOM;
     case CONNECT("left", _hash):
-        return Panel::Orientation::ORIENTATION_LEFT;
+        return PanelOrientation::PANEL_ORIENTATION_LEFT;
     default:
-        return Panel::Orientation::ORIENTATION_BOTTOM;
+        return PanelOrientation::PANEL_ORIENTATION_BOTTOM;
     }
 }
 }  // namespace Kiran
