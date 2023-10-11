@@ -3,11 +3,11 @@ expand=true
 orientation=top
 size=40
 monitor=-1
-applets=startmenu,taskbar,systemtray,clock,showdesktop
+applets=menu,taskbar,systemtray,clock,showdesktop
 
-[Applet startmenu]
+[Applet menu]
 type=plugin
-id=startmenu
+id=menu
 panel=top
 
 [Applet taskbar]

@@ -18,11 +18,10 @@
 #include <QFileInfo>
 #include <QTranslator>
 #include "ks-config.h"
+#include "src/shell/profile/profile.h"
 #include "src/shell/shell.h"
 
 // using namespace Kiran;
-
-#define DEFAULT_STYLE_FILE ":/styles/kiran-session-window.qss"
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +53,13 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.process(app);
 
-    Kiran::Shell::getInstance()->initUI();
-    return app.exec();
+    Kiran::profile::globalInit();
+    Kiran::Shell::globalInit();
+
+    auto ret = app.exec();
+
+    Kiran::Shell::globalDeinit();
+    Kiran::profile::globalDeinit();
+
+    return ret;
 }

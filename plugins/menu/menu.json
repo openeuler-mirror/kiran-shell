@@ -1,0 +1,8 @@
+{
+    "plugin_id": "menu",
+    "applets": [
+        {
+            "applet_id": "menu"
+        }
+    ]
+}

@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
 # gschema.xml
-install(FILES ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.panel.gschema.xml
-          DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/)
+install(
+  FILES ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.gschema.xml
+        ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.panel.gschema.xml
+        ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.applet.gschema.xml
+  DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/)
 install(
   CODE "execute_process(COMMAND glib-compile-schemas \"${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/\")"
 )

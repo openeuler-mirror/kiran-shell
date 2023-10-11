@@ -1,0 +1,26 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <schema id="com.kylinsec.kiran.shell.applet">
+
+        <key name="id" type="s">
+            <default>''</default>
+            <description>The ID of the applet. For example menu, taskbar, systemtray etc..</description>
+        </key>
+
+        <key name="panel" type="s">
+            <default>''</default>
+            <description>The identifier of the panel which contains this applet.</description>
+        </key>
+
+        <key name="position" type="i">
+            <default>0</default>
+            <description>The position of this applet on panel.</description>
+        </key>
+
+        <key name="panel-right-stick" type="b">
+            <default>false</default>
+            <description>If true, the position of the applet is interpreted relative to the right (or bottom if vertical) edge of the panel.</description>
+        </key>
+
+    </schema>
+</schemalist>

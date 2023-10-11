@@ -11,27 +11,3 @@
  * 
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
-
-#include <QString>
-
-class QGSettings;
-
-namespace Kiran
-{
-namespace Model
-{
-class Configuration
-{
-public:
-    Configuration *getInstance();
-
-    Configuration();
-
-    QString getDefaultLayout();
-
-private:
-    QGSettings *m_settings;
-};
-}  // namespace Model
-
-}  // namespace Kiran

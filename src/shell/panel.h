@@ -14,49 +14,41 @@
 
 #pragma once
 
+#include <plugin-i.h>
 #include <QWidget>
 
 class QBoxLayout;
 
 namespace Kiran
 {
-namespace Model
-{
-class Panel;
-class Applet;
-}  // namespace Model
+class ProfilePanel;
+class ProfileApplet;
 
-class Panel : public QWidget
+class Panel : public QWidget, public IPanel
 {
     Q_OBJECT
 
     Q_PROPERTY(QString uid READ getUID)
-public:
-    enum class Orientation
-    {
-        ORIENTATION_TOP,
-        ORIENTATION_RIGHT,
-        ORIENTATION_BOTTOM,
-        ORIENTATION_LEFT
-    };
 
 public:
-    Panel(QSharedPointer<Model::Panel> panelModel);
+    Panel(ProfilePanel* profilePanel);
+
     QString getUID();
 
+public:
+    virtual int getSize();
+    virtual int getOrientation();
+
 private:
-    void initUI();
+    void init();
     void initSelf();
     void initChildren();
-
-    QWidget* createApplet(QSharedPointer<Model::Applet> appletModel);
-
-    Orientation orientationStr2Enum(const QString& orientation);
+    int orientationStr2Enum(const QString& orientation);
 
 private:
-    QSharedPointer<Model::Panel> m_panelModel;
+    ProfilePanel* m_profilePanel;
     QBoxLayout* m_appletsLayout;
 
-    Orientation m_orientation;
+    int m_orientation;
 };
 }  // namespace Kiran
