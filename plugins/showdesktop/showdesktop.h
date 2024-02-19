@@ -21,21 +21,20 @@ class QMouseEvent;
 
 namespace Kiran
 {
+class IAppletImport;
+
 class Showdesktop : public QPushButton
 {
     Q_OBJECT
 
 public:
-    Showdesktop();
+    Showdesktop(IAppletImport *import);
 
     // virtual void setup(IAppletArgs *args){};
     // // 获取Applet对应的控件对象
     // virtual QWidget *widget() { return this; };
-
-protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-
-    // virtual void resizeEvent(QResizeEvent *event);
+private:
+    IAppletImport *m_import;
 };
 
 class ShowDesktopPlugin : public QObject, public IPlugin
@@ -48,7 +47,7 @@ class ShowDesktopPlugin : public QObject, public IPlugin
 public:
     virtual QWidget *createApplet(const QString &appletID, IAppletImport *import)
     {
-        return new Showdesktop();
+        return new Showdesktop(import);
     }
 };
 }  // namespace Kiran

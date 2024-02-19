@@ -14,7 +14,10 @@
 
 namespace Kiran
 {
-#define KS_ICON_THEME_MENU "ks-menu"
+#define KS_ICON_MENU "ks-menu"
+#define KS_ICON_WORKSPACE_SWITCHER "ks-workspace-switcher"
+#define KS_ICON_WORKSPACE_PLUS_SYMBOLIC "ks-workspace-plus-symbolic"
+#define KS_ICON_MENU_GROUP_SYMBOLIC "ks-menu-group-symbolic"
 
 enum PanelOrientation
 {

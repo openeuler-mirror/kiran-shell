@@ -1,41 +1,41 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
- * Author:     tangjie02 <tangjie02@kylinos.com.cn>
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
 #include <ks-i.h>
+#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
 
-#include "applet.h"
-#include "window.h"
+#include "plugins/workspace/applet.h"
+#include "plugins/workspace/window.h"
 
 namespace Kiran
 {
-namespace Menu
+namespace Workspace
 {
 Applet::Applet(IAppletImport *import)
     : AppletButton(import),
       m_import(import)
 {
     m_window = new Window();
-    connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
     connect(this, &QAbstractButton::clicked, this, &Applet::clickButton);
 
-    setIconFromTheme(KS_ICON_MENU);
-    setToolTip(tr("Start Menu"));
+    setIconFromTheme(KS_ICON_WORKSPACE_SWITCHER);
+    setToolTip(tr("Workspace switcher"));
 }
 
 Applet::~Applet()
@@ -95,6 +95,6 @@ void Applet::updateWindowPosition()
     m_window->move(mapToGlobal(windowPosition));
 }
 
-}  // namespace Menu
+}  // namespace Workspace
 
 }  // namespace Kiran

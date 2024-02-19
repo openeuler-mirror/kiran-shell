@@ -22,8 +22,9 @@
 
 namespace Kiran
 {
-AppletImport::AppletImport(Applet *applet, QObject *parent) : QObject(parent),
-                                                              m_applet(applet)
+AppletImport::AppletImport(Applet *applet, QObject *parent)
+    : QObject(parent),
+      m_applet(applet)
 {
 }
 
@@ -38,11 +39,12 @@ IApplet *AppletImport::getApplet()
 }
 
 Applet::Applet(ProfileApplet *profileApplet,
-               Panel *panel) : QWidget(panel),
-                               m_profileApplet(profileApplet),
-                               m_panel(panel),
-                               m_appletImport(nullptr),
-                               m_pluginApplet(nullptr)
+               Panel *panel)
+    : QWidget(panel),
+      m_profileApplet(profileApplet),
+      m_panel(panel),
+      m_appletImport(nullptr),
+      m_pluginApplet(nullptr)
 {
     this->m_appletImport = new AppletImport(this, this);
     this->init();

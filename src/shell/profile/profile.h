@@ -34,7 +34,10 @@ class profile : public QObject
     GSETTINGS_PROPERTY_STRINGLIST_DECLARATION(appletUIDs, AppletUIDs)
 
 public:
-    static profile* getInstance() { return m_instance; };
+    static profile* getInstance()
+    {
+        return m_instance;
+    };
 
     static void globalInit();
     static void globalDeinit();

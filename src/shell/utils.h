@@ -25,9 +25,13 @@ namespace Kiran
 class KSDefer
 {
 public:
-    KSDefer(std::function<void(const QString &)> func, const QString &funcName) : m_func(func),
-                                                                                  m_funcName(funcName) {}
-    ~KSDefer() { m_func(m_funcName); }
+    KSDefer(std::function<void(const QString &)> func, const QString &funcName)
+        : m_func(func),
+          m_funcName(funcName) {}
+    ~KSDefer()
+    {
+        m_func(m_funcName);
+    }
 
 private:
     std::function<void(const QString &)> m_func;
@@ -48,7 +52,8 @@ private:
 
 #define RETURN_VAL_IF_TRUE(cond, val) \
     {                                 \
-        if (cond) return val;         \
+        if (cond)                     \
+            return val;               \
     }
 
 #define RETURN_IF_FALSE(cond)                      \
@@ -62,17 +67,20 @@ private:
 
 #define RETURN_IF_TRUE(cond) \
     {                        \
-        if (cond) return;    \
+        if (cond)            \
+            return;          \
     }
 
 #define CONTINUE_IF_FALSE(cond) \
     {                           \
-        if (!(cond)) continue;  \
+        if (!(cond))            \
+            continue;           \
     }
 
 #define CONTINUE_IF_TRUE(cond) \
     {                          \
-        if (cond) continue;    \
+        if (cond)              \
+            continue;          \
     }
 
 #define IGNORE_EXCEPTION(expr)          \

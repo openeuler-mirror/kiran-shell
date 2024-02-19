@@ -34,7 +34,10 @@ class ProfilePanel : public QObject
 public:
     ProfilePanel(const QString& uid);
     // 唯一ID
-    QString getUID() { return this->m_uid; };
+    QString getUID()
+    {
+        return this->m_uid;
+    };
 
 private:
     void init();

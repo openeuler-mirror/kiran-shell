@@ -18,7 +18,7 @@
 
 namespace Kiran
 {
-#define IAPPLET_IID "com.kylinsec.Kiran.Shell.IApplet/2.5"
+#define IAPPLET_IID "com.kylinsec.Kiran.Shell.IApplet"
 
 class IApplet
 {
@@ -30,9 +30,13 @@ public:
 
 class IPanel
 {
+
 public:
     virtual int getSize() = 0;
     virtual int getOrientation() = 0;
+
+    //此接口实际作为信号用
+    virtual void panelProfileChanged() = 0;
 };
 
 // 用于给插件内的applet提供插件外的设置参数。

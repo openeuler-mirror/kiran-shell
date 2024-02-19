@@ -12,36 +12,42 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "lib/widgets/applet-button.h"
 #include <plugin-i.h>
+
+#include "applet-button.h"
+#include "common.h"
+#include "define.h"
 
 namespace Kiran
 {
-#define BUTTON_BLANK_SPACE 6
-
-AppletButton::AppletButton(IAppletImport *import) : m_import(import)
+AppletButton::AppletButton(IAppletImport *import)
+    : m_import(import)
 {
     auto size = m_import->getPanel()->getSize();
-    this->setFixedSize(size, size);
+    setFixedSize(size, size);
 
-    this->setCheckable(true);
-    this->setFlat(true);
+    setCheckable(true);
+    setFlat(true);
+}
+
+AppletButton::~AppletButton()
+{
 }
 
 void AppletButton::setIconByName(const QString &iconName)
 {
-    auto buttonSize = this->size();
-    this->setIcon(QIcon(iconName));
-    this->setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
-                            buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+    auto buttonSize = size();
+    setIcon(QIcon(iconName));
+    setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
+                      buttonSize.height() - BUTTON_BLANK_SPACE * 2));
 }
 
 void AppletButton::setIconFromTheme(const QString &iconName)
 {
-    auto buttonSize = this->size();
-    this->setIcon(QIcon::fromTheme(iconName));
-    this->setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
-                            buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+    auto buttonSize = size();
+    setIcon(QIcon::fromTheme(iconName));
+    setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
+                      buttonSize.height() - BUTTON_BLANK_SPACE * 2));
 }
 
 }  // namespace Kiran

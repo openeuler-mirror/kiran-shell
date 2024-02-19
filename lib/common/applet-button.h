@@ -12,6 +12,8 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#pragma once
+
 #include <QPushButton>
 
 namespace Kiran
@@ -24,7 +26,7 @@ class AppletButton : public QPushButton
 
 public:
     AppletButton(IAppletImport *import);
-    virtual ~AppletButton(){};
+    virtual ~AppletButton();
 
 protected:
     // 通过名称设置图标，图标大小会根据按钮大小做调整

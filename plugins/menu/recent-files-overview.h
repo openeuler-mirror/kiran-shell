@@ -14,7 +14,13 @@
 
 #pragma once
 
+#include <QTreeWidgetItem>
 #include <QWidget>
+
+#include <KActivities/Stats/ResultModel>
+#include <KActivities/Stats/ResultSet>
+#include <KActivities/Stats/ResultWatcher>
+#include <KService/KService>
 
 namespace Ui
 {
@@ -33,11 +39,25 @@ public:
     RecentFilesOverview(QWidget* parent = nullptr);
     virtual ~RecentFilesOverview();
 
+private slots:
+    void on_m_treeWidgetShowFiles_itemClicked(QTreeWidgetItem* item, int column);
+
+    void on_m_lineEditSearch_textChanged(const QString& arg1);
+
 private:
     void init();
+    void updateRecentFiles(const QString filter = "");
+
+protected:
+    void showEvent(QShowEvent* event);
+signals:
+    void fileItemClicked(QString filePath);
 
 private:
     Ui::RecentFilesOverview* m_ui;
+
+    //监控常用文档变化
+    KActivities::Stats::ResultWatcher* m_actStatsWatcher;
 };
 }  // namespace Menu
 }  // namespace Kiran
