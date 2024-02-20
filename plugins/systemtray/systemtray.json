@@ -1,0 +1,8 @@
+{
+    "plugin_id": "systemtray",
+    "applets": [
+        {
+            "applet_id": "systemtray"
+        }
+    ]
+}

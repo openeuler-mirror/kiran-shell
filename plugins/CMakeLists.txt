@@ -1,2 +1,5 @@
 add_subdirectory(menu)
+add_subdirectory(workspace)
+#add_subdirectory(taskbar)
+add_subdirectory(systemtray)
 add_subdirectory(showdesktop)

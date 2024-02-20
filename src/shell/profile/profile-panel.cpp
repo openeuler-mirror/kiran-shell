@@ -30,25 +30,10 @@ GSETTINGS_PROPERTY_INT_DEFINITION(ProfilePanel, size, Size, KS_PANEL_SCHEMA_KEY_
 GSETTINGS_PROPERTY_STRING_DEFINITION(ProfilePanel, orientation, Orientation, KS_PANEL_SCHEMA_KEY_ORIENTATION)
 GSETTINGS_PROPERTY_INT_DEFINITION(ProfilePanel, monitor, Monitor, KS_PANEL_SCHEMA_KEY_MONITOR)
 
-// QString ProfilePanel::getOrientation() { return this->m_orientation; }
-// void ProfilePanel::setOrientation(const QString &value)
-// {
-//     KLOG_DEBUG() << "oriyyx: " << value;
-//     if (value != this->m_orientation)
-//     {
-//         this->m_orientation = value;
-//         Q_EMIT this->orientationChanged(value);
-//     }
-//     if (value != this->m_settings->get("orientation").toString())
-//     {
-//         KLOG_DEBUG() << "oriyy: " << value;
-//         this->m_settings->set("orientation", QVariant::fromValue(value));
-//     }
-// }
-
-ProfilePanel::ProfilePanel(const QString &uid) : m_uid(uid),
-                                                 m_size(40),
-                                                 m_monitor(-1)
+ProfilePanel::ProfilePanel(const QString &uid)
+    : m_uid(uid),
+      m_size(40),
+      m_monitor(-1)
 {
     auto schemaPath = QString("%1/%2/").arg(KS_PANEL_SCHEMA_PATH).arg(this->m_uid);
     this->m_settings = new QGSettings(KS_PANEL_SCHEMA_ID, schemaPath.toUtf8(), this);
@@ -83,13 +68,6 @@ void ProfilePanel::updateSettings(const QString &key)
     {
         GSETTINGS_CASE_INT_CHANGE(KS_PANEL_SCHEMA_KEY_SIZE, Size)
         GSETTINGS_CASE_STRING_CHANGE(KS_PANEL_SCHEMA_KEY_ORIENTATION, Orientation)
-        // case CONNECTION("orientation", _hash):
-        // {
-        //     auto value = this->m_settings->get(key).toString();
-        //     KLOG_DEBUG() << "valuezz " << value;
-        //     this->setOrientation(value);
-        //     break;
-        // }
         GSETTINGS_CASE_INT_CHANGE(KS_PANEL_SCHEMA_KEY_MONITOR, Monitor)
         GSETTINGS_CASE_DEFAULT
     }

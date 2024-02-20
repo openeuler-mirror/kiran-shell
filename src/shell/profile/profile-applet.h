@@ -33,7 +33,10 @@ class ProfileApplet : public QObject
 public:
     ProfileApplet(const QString& uid);
     // 唯一ID
-    QString getUID() { return this->m_uid; };
+    QString getUID()
+    {
+        return this->m_uid;
+    };
 
 private:
     void init();

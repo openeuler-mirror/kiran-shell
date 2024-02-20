@@ -6,16 +6,31 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>760</width>
-    <height>682</height>
+    <width>736</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
    <item>
-    <widget class="QWidget" name="m_navigations" native="true">
+    <widget class="QWidget" name="m_widgetNavigations" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -35,6 +50,18 @@
       </size>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
@@ -49,9 +76,27 @@
        </spacer>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="m_overviewLayout">
+       <layout class="QVBoxLayout" name="vboxlayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
-         <widget class="QPushButton" name="m_appsOverview">
+         <widget class="QPushButton" name="m_btnAppsOverview">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>所有应用</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -62,7 +107,22 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_recentFilesOverview">
+         <widget class="QPushButton" name="m_btnRecentFilesOverview">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>最近访问文档</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -75,123 +135,373 @@
        </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="m_runCommand">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-menu-run-command-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="m_searchFiles">
-        <property name="text">
-         <string/>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="spacing">
+         <number>0</number>
         </property>
-        <property name="icon">
-         <iconset theme="ks-menu-search-files-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="m_homeDir">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-menu-home-dir-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="m_settings">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-menu-settings-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="m_systemMonitor">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-menu-system-monitor-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="m_power">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-menu-power-symbolic">
-          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
-        </property>
-       </widget>
+        <item>
+         <widget class="QPushButton" name="m_btnRunCommand">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>运行命令</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-run-command-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnSearchFiles">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>搜索文件</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-search-files-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnHomeDir">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>主目录</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-home-dir-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnSettings">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>控制面板</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-settings-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnSystemMonitor">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>资源管理器</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-system-monitor-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnPower">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>电源选项</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="ks-menu-power-symbolic">
+            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QStackedWidget" name="m_overviewStack">
-     <widget class="QWidget" name="m_middlePage1" native="true">
+    <widget class="QStackedWidget" name="m_widgetOverviewStack">
+     <widget class="QWidget" name="m_middlePage1">
       <layout class="QVBoxLayout"/>
      </widget>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="m_expand" native="true">
-     <layout class="QVBoxLayout" name="m_expandLayout">
+    <widget class="QWidget" name="m_widgetExpand" native="true">
+     <layout class="QVBoxLayout" name="m_expandLayout" stretch="0,1,2">
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
-       <widget class="QWidget" name="horizontalWidget" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QPushButton" name="pushButton">
-           <property name="text">
-            <string>PushButton</string>
-           </property>
-          </widget>
-         </item>
-         <item>
+       <widget class="QWidget" name="m_widgetUserInfo" native="true">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="m_labelUserName">
              <property name="text">
-              <string>TextLabel</string>
+              <string>你好，root</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QPushButton" name="m_btnDate">
              <property name="text">
-              <string>TextLabel</string>
+              <string>111</string>
              </property>
             </widget>
            </item>
           </layout>
          </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="m_btnUserPhoto">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="verticalWidget_2" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       <widget class="QWidget" name="m_widgetPopularApp" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>15</number>
+           </property>
+           <property name="topMargin">
+            <number>15</number>
+           </property>
+           <property name="rightMargin">
+            <number>15</number>
+           </property>
+           <property name="bottomMargin">
+            <number>15</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="m_btnPopularAppIcon">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="m_labelPopularApp">
+             <property name="text">
+              <string>常用应用</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QWidget" name="m_widgetPopular" native="true">
+           <layout class="QGridLayout" name="m_layoutWidgePopular"/>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="verticalWidget_3" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_4"/>
+       <widget class="QWidget" name="m_widgetFavoriteApp" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <property name="leftMargin">
+            <number>15</number>
+           </property>
+           <property name="topMargin">
+            <number>15</number>
+           </property>
+           <property name="rightMargin">
+            <number>15</number>
+           </property>
+           <property name="bottomMargin">
+            <number>15</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="m_btnFavoriteAppIcon">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="m_labelFavoriteApp">
+             <property name="text">
+              <string>收藏夹</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QScrollArea" name="m_scrollAreaFavoriteApp">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>314</width>
+              <height>294</height>
+             </rect>
+            </property>
+            <layout class="QGridLayout" name="m_gridLayoutFavoriteApp">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>6</number>
+             </property>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

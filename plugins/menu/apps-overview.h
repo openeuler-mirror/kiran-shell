@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <KService/KServiceGroup>
+#include <QTreeWidgetItem>
 #include <QWidget>
 
 namespace Ui
@@ -33,8 +35,38 @@ public:
     AppsOverview(QWidget* parent = nullptr);
     virtual ~AppsOverview();
 
+private slots:
+    // 应用项点击
+    void on_m_treeWidgetShowApps_itemClicked(QTreeWidgetItem* item, int column);
+    // 应用项右键
+    void on_m_treeWidgetShowApps_itemPressed(QTreeWidgetItem* item, int column);
+
+    void on_m_lineEditSearch_textChanged(const QString& arg1);
+
 private:
     void init();
+
+    // 加载应用
+    void loadApps();
+    //遍历应用列表
+    void recursiveService(KServiceGroup* serviceGroup, const QString& filter = "", QTreeWidgetItem* parent = nullptr);
+    //增加应用
+    void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+signals:
+    // 查询是否在收藏夹中
+    void isInFavorite(QString appId, bool& checkResult);
+    // 查询是否已固定到任务栏
+    void isInTasklist(QString appId, bool& checkResult);
+
+    // 添加到×/从×移除 桌面、收藏夹、任务栏
+    void addToDesktop(QString appId);
+    void addToFavorite(QString appId);
+    void removeFromFavorite(QString appId);
+    void addToTasklist(QString appId);
+    void removeFromTasklist(QString appId);
+
+    // 运行应用
+    void runApp(QString appId);
 
 private:
     Ui::AppsOverview* m_ui;

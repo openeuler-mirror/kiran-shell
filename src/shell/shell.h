@@ -25,7 +25,10 @@ class Panel;
 class Shell
 {
 public:
-    static Shell* getInstance() { return m_instance; };
+    static Shell* getInstance()
+    {
+        return m_instance;
+    };
 
     static void globalInit();
     static void globalDeinit();

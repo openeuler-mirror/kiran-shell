@@ -60,7 +60,13 @@ IPlugin *PluginPool::findPluginForApplet(const QString &appletID)
     {
         if ((*iter)->metaData.appletsMetaData.find(appletID) != (*iter)->metaData.appletsMetaData.end())
         {
-            return qobject_cast<IPlugin *>((*iter)->loader->instance());
+            auto instance = (*iter)->loader->instance();
+            //            qWarning() << (*iter)->loader->metaData();
+            //            qWarning() << instance;
+
+            IPlugin *ptr = qobject_cast<IPlugin *>(instance);
+
+            return ptr;
         }
     }
     return nullptr;

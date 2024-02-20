@@ -1,5 +1,13 @@
 <RCC>
     <qresource prefix="/images">
-        <file alias="logo">images/logo.svg</file>
+        <file>images/avatar_default.png</file>
+        <file>images/close_active.png</file>
+        <file>images/close_normal.png</file>
+        <file>images/close_prelight.png</file>
     </qresource>
+    <qresource prefix="/theme">
+        <file>themes/black_theme.qss</file>
+        <file>themes/light_theme.qss</file>
+    </qresource>
+    <qresource prefix="/new/prefix1"/>
 </RCC>

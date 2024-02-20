@@ -78,9 +78,10 @@ namespace Kiran
 
 Group::Group(const QString &groupName,
              QSettings *settings,
-             QObject *parent) : QObject(parent),
-                                m_groupName(groupName),
-                                m_settings(settings)
+             QObject *parent)
+    : QObject(parent),
+      m_groupName(groupName),
+      m_settings(settings)
 {
 }
 
@@ -100,8 +101,9 @@ LAYOUT_PROPERTY_INT_DEFINITION(LayoutPanel, monitor, Monitor, KS_PANEL_KEYFILE_K
 
 LayoutPanel::LayoutPanel(const QString &panelUID,
                          QSettings *settings,
-                         QObject *parent) : Group(KS_PANEL_GROUP_NAME_PREFIX + panelUID, settings, parent),
-                                            m_panelUID(panelUID)
+                         QObject *parent)
+    : Group(KS_PANEL_GROUP_NAME_PREFIX + panelUID, settings, parent),
+      m_panelUID(panelUID)
 {
 }
 
@@ -113,12 +115,14 @@ LAYOUT_PROPERTY_BOOLEAN_DEFINITION(LayoutApplet, panelRightStick, PanelRightStic
 
 LayoutApplet::LayoutApplet(const QString &appletUID,
                            QSettings *settings,
-                           QObject *parent) : Group(KS_APPLET_GROUP_NAME_PREFIX + appletUID, settings, parent),
-                                              m_appletUID(appletUID)
+                           QObject *parent)
+    : Group(KS_APPLET_GROUP_NAME_PREFIX + appletUID, settings, parent),
+      m_appletUID(appletUID)
 {
 }
 
-Layout::Layout(const QString &layoutName) : m_settings(nullptr)
+Layout::Layout(const QString &layoutName)
+    : m_settings(nullptr)
 {
     this->m_layoutFilePath = QString("%1/%2.layout").arg(KS_LAYOUTDIR).arg(layoutName);
     if (!QFile::exists(this->m_layoutFilePath))

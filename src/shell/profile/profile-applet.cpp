@@ -12,10 +12,10 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include "src/shell/profile/profile-applet.h"
 #include <ks-definition.h>
 #include <QGSettings>
 #include <QVariant>
-#include "src/shell/profile/profile-applet.h"
 
 namespace Kiran
 {
@@ -31,9 +31,10 @@ GSETTINGS_PROPERTY_STRING_DEFINITION(ProfileApplet, panel, Panel, KS_APPLET_SCHE
 GSETTINGS_PROPERTY_INT_DEFINITION(ProfileApplet, position, Position, KS_APPLET_SCHEMA_KEY_POSITION)
 GSETTINGS_PROPERTY_BOOLEAN_DEFINITION(ProfileApplet, panelRightStick, PanelRightStick, KS_APPLET_SCHEMA_KEY_PRS)
 
-ProfileApplet::ProfileApplet(const QString &uid) : m_uid(uid),
-                                                   m_position(0),
-                                                   m_panelRightStick(false)
+ProfileApplet::ProfileApplet(const QString &uid)
+    : m_uid(uid),
+      m_position(0),
+      m_panelRightStick(false)
 {
     auto schemaPath = QString("%1/%2/").arg(KS_APPLET_SCHEMA_PATH).arg(this->m_uid);
     this->m_settings = new QGSettings(KS_APPLET_SCHEMA_ID, schemaPath.toUtf8(), this);

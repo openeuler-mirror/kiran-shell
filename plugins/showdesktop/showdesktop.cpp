@@ -12,28 +12,24 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "plugins/showdesktop/showdesktop.h"
-#include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
-#include <QMouseEvent>
+
+#include "showdesktop.h"
 
 namespace Kiran
 {
-Showdesktop::Showdesktop()
+Showdesktop::Showdesktop(IAppletImport *import)
+    : m_import(import)
 {
+    connect(this, &QPushButton::clicked, this, [=]()
+            { KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop()); });
+
+    auto size = m_import->getPanel()->getSize();
+    //    setFixedSize(size, size);
+    setMinimumSize(size, size);
+    setMaximumSize(size, size);
+
+    setToolTip(tr("Show desktop"));
 }
 
-void Showdesktop::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::LeftButton)
-    {
-        auto isShowing = KWindowSystem::showingDesktop();
-        KWindowSystem::setShowingDesktop(!isShowing);
-    }
-}
-
-// void Showdesktop::resizeEvent(QResizeEvent *event)
-// {
-//     KLOG_DEBUG() << "pushbutton: " << event->size();
-// }
 }  // namespace Kiran

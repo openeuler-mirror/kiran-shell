@@ -14,7 +14,20 @@
 
 #pragma once
 
+#include <QDBusInterface>
+#include <QDBusMessage>
+#include <QDBusReply>
+#include <QPushButton>
 #include <QWidget>
+
+#include <style-palette.h>
+
+#include <KActivities/KActivities/Consumer>
+#include <KActivities/KActivities/ResourceInstance>
+#include <KActivities/Stats/ResultModel>
+#include <KActivities/Stats/ResultSet>
+#include <KActivities/Stats/ResultWatcher>
+#include <KService/KService>
 
 namespace Ui
 {
@@ -24,6 +37,8 @@ class Window;
 class QStackedWidget;
 class QButtonGroup;
 class QStackedWidget;
+class QToolButton;
+class AppItem;
 
 namespace Kiran
 {
@@ -34,19 +49,75 @@ class Window : public QWidget
     Q_OBJECT
 
 public:
-    Window(QWidget *parent = nullptr);
+    Window(QWidget* parent = nullptr);
     virtual ~Window();
+
+public slots:
+    void userInfoChanged(QDBusMessage msg);
 
 private:
     void init();
+    void initUI();
+    //收藏夹及常用应用服务
+    void initActivitiesStats();
+    //用户名和用户头像相关dbus服务初始化
+    void initUserInfo();
+    //快速启动初始化
+    void initQuickStart();
+
+    void changeTheme();
+    void clear(QStackedWidget* stackedWidget);
+
+    //启动应用
+    void runApp(QString appId);
+    //打开文件
+    void openFile(QString filePath);
+
+    //收藏夹和常用应用项
+    AppItem* newAppItem(QString appId);
+
+    //添加到收藏夹操作
+    void isInFavorite(QString appId, bool& isFavorite);
+    void addToFavorite(QString appId);
+    void removeFromFavorite(QString appId);
+
+    //添加到任务栏操作
+    void isInTasklist();
+    void addToTasklist(QString appId);
+    void removeFromTasklist(QString appId);
+
+    //添加到桌面操作
+    void addToDesktop(QString appId);
+
+private slots:
+    void updateUserInfo();
+    void updateFavorite();
+    void updatePopular();
+
+protected:
+    //事件过滤器
+    bool eventFilter(QObject* object, QEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+signals:
+    void windowDeactivated();
 
 private:
-    void clear(QStackedWidget *stackedWidget);
+    Ui::Window* m_ui;
 
-private:
-    Ui::Window *m_ui;
+    //常用应用相关
+    std::unique_ptr<KActivities::Consumer> m_activitiesConsumer;
+    KActivities::Stats::ResultWatcher* m_actStatsUsedWatcher;
 
-    QButtonGroup *m_overviewSelections;
+    //收藏夹相关KActivities/Stats/ResultWatcher
+    KActivities::Stats::ResultWatcher* m_actStatsLinkedWatcher;
+    QStringList m_favoriteAppId;
+
+    //用户id
+    uid_t m_uid;
+    //用户信息 dbus
+    QDBusInterface* m_accountProxy;
+    QDBusInterface* m_accountUserProxy;
 };
 }  // namespace Menu
 }  // namespace Kiran

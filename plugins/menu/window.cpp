@@ -12,92 +12,322 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "plugins/menu/window.h"
+#include <kiran-style/style-palette.h>
+#include <ks-i.h>
 #include <qt5-log-i.h>
-#include <KService/KServiceGroup>
+#include <unistd.h>
+#include <KIO/ApplicationLauncherJob>
+#include <KIO/OpenUrlJob>
+#include <KWindowSystem>
+#include <QApplication>
 #include <QButtonGroup>
+#include <QDateTime>
+#include <QDesktopServices>
+#include <QFile>
+#include <QMenu>
+#include <QPainter>
+#include <QPainterPath>
+#include <QProcess>
 #include <QStackedWidget>
-#include "plugins/menu/apps-overview.h"
-#include "plugins/menu/recent-files-overview.h"
+#include <QStyleOption>
+#include <QToolButton>
+#include <QTranslator>
+//#include <kiran-style/kiran-style-public-define.h>
+#include <kiran-style/style-global-define.h>
+#include <kiran-style/style-property.h>
+
+#include "app-item.h"
+#include "apps-overview.h"
+#include "ks-config.h"
+#include "lib/common/common.h"
 #include "plugins/menu/ui_window.h"
+#include "power.h"
+#include "recent-files-overview.h"
+#include "window.h"
+
+#define KIRAN_ACCOUNTS_BUS "com.kylinsec.Kiran.SystemDaemon.Accounts"
+#define KIRAN_ACCOUNTS_PATH "/com/kylinsec/Kiran/SystemDaemon/Accounts"
+#define KIRAN_ACCOUNTS_INTERFACE "com.kylinsec.Kiran.SystemDaemon.Accounts"
+#define KIRAN_ACCOUNTS_USER_INTERFACE "com.kylinsec.Kiran.SystemDaemon.Accounts.User"
+#define PROPERTIES_INTERFACE "org.freedesktop.DBus.Properties"
+#define PROPERTIES_CHANGED "PropertiesChanged"
+
+namespace KAStats = KActivities::Stats;
+using namespace KAStats;
+using namespace KAStats::Terms;
 
 namespace Kiran
 {
 namespace Menu
 {
-Window::Window(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint),
-                                  m_ui(new Ui::Window)
+Window::Window(QWidget *parent)
+    : QWidget(parent, Qt::FramelessWindowHint),
+      m_ui(new Ui::Window),
+      m_uid(getuid()),
+      m_activitiesConsumer(new KActivities::Consumer()),
+      m_accountProxy(nullptr),
+      m_accountUserProxy(nullptr),
+      m_actStatsLinkedWatcher(nullptr),
+      m_actStatsUsedWatcher(nullptr)
 {
-    this->m_ui->setupUi(this);
+    m_ui->setupUi(this);
 
-    this->init();
+    init();
 }
 
 Window::~Window()
 {
-    delete this->m_ui;
+    delete m_ui;
 }
-// void recursiveService(KServiceGroup *serviceGroup)
-// {
-//     KServiceGroup::List list = serviceGroup->entries();
 
-//     KLOG_DEBUG() << "entry number: " << list.size() << "group: " << serviceGroup->name();
+void Window::changeTheme()
+{
+    // FIXME: 等主题库开发好后，使用主题库提供的接口实现
+    QList<QPushButton *> btns_with_svg = {
+        m_ui->m_btnFavoriteAppIcon,
+        m_ui->m_btnPopularAppIcon,
+        m_ui->m_btnAppsOverview,
+        m_ui->m_btnHomeDir,
+        m_ui->m_btnPower,
+        m_ui->m_btnRecentFilesOverview,
+        m_ui->m_btnRunCommand,
+        m_ui->m_btnSearchFiles,
+        m_ui->m_btnSettings,
+        m_ui->m_btnSystemMonitor};
 
-//     // Iterate over all entries in the group
-//     for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
-//     {
-//         KSycocaEntry *p = (*it).data();
-//         KLOG_DEBUG() << "type: " << p->sycocaType();
-
-//         if (p->isType(KST_KService))
-//         {
-//             KService *s = static_cast<KService *>(p);
-//             KLOG_DEBUG() << "MenuID:   " << s->menuId() << "workingDirectory: " << s->path();
-//         }
-//         else if (p->isType(KST_KServiceGroup))
-//         {
-//             KServiceGroup *g = static_cast<KServiceGroup *>(p);
-//             recursiveService(g);
-//         }
-//     }
-// }
+    for (QPushButton *btn : btns_with_svg)
+    {
+        QImage image = btn->icon().pixmap(btn->iconSize()).toImage();
+        image.invertPixels(QImage::InvertRgb);
+        btn->setIcon(QPixmap::fromImage(image));
+    }
+}
 
 void Window::init()
 {
-    this->m_overviewSelections = new QButtonGroup(this);
-    this->m_overviewSelections->addButton(this->m_ui->m_appsOverview, 0);
-    this->m_overviewSelections->addButton(this->m_ui->m_recentFilesOverview, 1);
+    QTranslator translator;
+    if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING() << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+
+    initUI();
+
+    initActivitiesStats();
+
+    initUserInfo();
+
+    initQuickStart();
+
+    //事件过滤器
+    installEventFilter(this);
+}
+
+void Window::initUI()
+{
+    //收藏夹图标
+    m_ui->m_btnFavoriteAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
+    //常用应用图标
+    m_ui->m_btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
+
+    //主题
+    if (PALETTE_DARK != Kiran::StylePalette::instance()->paletteType())
+    {
+        //默认黑色，如果进入程序的时候不是黑色，需要变换一次
+        changeTheme();
+    }
+    QObject::connect(Kiran::StylePalette::instance(), &Kiran::StylePalette::themeChanged, this, &Window::changeTheme);
+
+    //应用列表和文件列表切换
+    QButtonGroup *overviewSelections = new QButtonGroup(this);
+    overviewSelections->addButton(m_ui->m_btnAppsOverview, 0);
+    overviewSelections->addButton(m_ui->m_btnRecentFilesOverview, 1);
     // 移除qt designer默认创建的widget
-    this->clear(this->m_ui->m_overviewStack);
-    this->m_ui->m_overviewStack->addWidget(new AppsOverview());
-    this->m_ui->m_overviewStack->addWidget(new RecentFilesOverview());
+    clear(m_ui->m_widgetOverviewStack);
+
+    AppsOverview *appsOverview = new AppsOverview(this);
+    connect(appsOverview, &AppsOverview::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
+    connect(appsOverview, &AppsOverview::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appsOverview, &AppsOverview::addToFavorite, this, &Window::addToFavorite);
+    connect(appsOverview, &AppsOverview::removeFromFavorite, this, &Window::removeFromFavorite);
+    connect(appsOverview, &AppsOverview::addToTasklist, this, &Window::addToTasklist);
+    connect(appsOverview, &AppsOverview::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appsOverview, &AppsOverview::addToDesktop, this, &Window::addToDesktop);
+    connect(appsOverview, &AppsOverview::runApp, this, &Window::runApp);
+    m_ui->m_widgetOverviewStack->addWidget(appsOverview);
+
+    RecentFilesOverview *recentFilesOverview = new RecentFilesOverview(this);
+    connect(recentFilesOverview, &RecentFilesOverview::fileItemClicked, this, &Window::openFile);
+    m_ui->m_widgetOverviewStack->addWidget(recentFilesOverview);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-    connect(this->m_overviewSelections, SIGNAL(idClicked(int)), this->m_ui->m_overviewStack, SLOT(setCurrentIndex(int)));
+    connect(overviewSelections, SIGNAL(idClicked(int)), m_ui->m_widgetOverviewStack, SLOT(setCurrentIndex(int)));
 #else
-    connect(this->m_overviewSelections, SIGNAL(buttonClicked(int)), this->m_ui->m_overviewStack, SLOT(setCurrentIndex(int)));
+    connect(overviewSelections, SIGNAL(buttonClicked(int)), m_ui->m_overviewStack, SLOT(setCurrentIndex(int)));
 #endif
+}
 
-    // KServiceGroup::Ptr group = KServiceGroup::root();
-    // recursiveService(group.data());
-    // if (!group || !group->isValid()) return;
+void Window::initActivitiesStats()
+{
+    //收藏夹及常用应用服务
+    while (m_activitiesConsumer->serviceStatus() == KActivities::Consumer::Unknown)
+    {
+        QCoreApplication::processEvents();
+    }
 
-    // KServiceGroup::List list = group->entries();
+    //    KLOG_INFO() << activities->activities();
+    //    KLOG_INFO() << activities->serviceStatus();
+    //    KLOG_INFO() << activities->runningActivities();
+    //    KLOG_INFO() << activities->currentActivity();
 
-    // KLOG_DEBUG() << "entry number: " << list.size();
+    //收藏夹监视
+    m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultScoreUpdated, this, &Window::updateFavorite);
+    updateFavorite();
 
-    // // Iterate over all entries in the group
-    // for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
-    // {
-    //     KSycocaEntry *p = (*it).data();
-    //     KLOG_DEBUG() << "type: " << p->sycocaType();
+    //常用应用监视
+    m_actStatsUsedWatcher = new ResultWatcher(UsedResources | Agent::global() | Type::any() | Activity::any(), this);
+    connect(m_actStatsUsedWatcher, &ResultWatcher::resultLinked, this, &Window::updatePopular);
+    connect(m_actStatsUsedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updatePopular);
+    connect(m_actStatsUsedWatcher, &ResultWatcher::resultScoreUpdated, this, &Window::updatePopular);
+    updatePopular();
+}
 
-    //     if (p->isType(KST_KService))
-    //     {
-    //         KService *s = static_cast<KService *>(p);
-    //         KLOG_DEBUG() << "Name:   " << s->name();
-    //     }
-    // }
+void Window::initUserInfo()
+{
+    //用户名、头像
+    try
+    {
+        m_accountProxy = new QDBusInterface(KIRAN_ACCOUNTS_BUS,
+                                            KIRAN_ACCOUNTS_PATH,
+                                            KIRAN_ACCOUNTS_INTERFACE,
+                                            QDBusConnection::systemBus(),
+                                            this);
+    }
+    catch (...)
+    {
+        KLOG_WARNING() << "new QDBusInterface failed";
+    }
+
+    quint64 id = m_uid;
+    QDBusMessage msg = m_accountProxy->call("FindUserById", id);
+    QString accountUserPath = msg.arguments().at(0).value<QDBusObjectPath>().path();
+    bool ret = QDBusConnection::systemBus().connect(KIRAN_ACCOUNTS_BUS,
+                                                    accountUserPath,
+                                                    PROPERTIES_INTERFACE,
+                                                    PROPERTIES_CHANGED,
+                                                    this,
+                                                    SLOT(userInfoChanged(QDBusMessage)));
+
+    try
+    {
+        m_accountUserProxy = new QDBusInterface(KIRAN_ACCOUNTS_BUS,
+                                                accountUserPath,
+                                                KIRAN_ACCOUNTS_USER_INTERFACE,
+                                                QDBusConnection::systemBus(),
+                                                this);
+    }
+    catch (...)
+    {
+        KLOG_WARNING() << "new QDBusInterface failed";
+    }
+
+    updateUserInfo();
+
+    //点击头像
+    connect(m_ui->m_btnUserPhoto, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("kiran-control-panel", {"-c", "account-management"}); });
+
+    //点击时间
+    m_ui->m_btnDate->setText(QLocale().toString(QDate::currentDate()));
+    connect(m_ui->m_btnDate, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("kiran-control-panel", {"-c", "timedate"}); });
+}
+
+void Window::initQuickStart()
+{
+    //快速启动
+    //TODO: mate相关的需要更改成自研
+
+    connect(m_ui->m_btnRunCommand, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("mate-panel", {"--run-dialog"}); });
+    connect(m_ui->m_btnSearchFiles, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("mate-search-tool", {}); });
+    connect(m_ui->m_btnHomeDir, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("caja", {}); });
+    connect(m_ui->m_btnSettings, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("kiran-control-panel", {}); });
+    connect(m_ui->m_btnSystemMonitor, &QPushButton::clicked, this, [=]()
+            { QProcess::startDetached("mate-system-monitor", {}); });
+
+    //电源选项
+    auto power = Power::getDefault();
+    connect(m_ui->m_btnPower, &QPushButton::clicked, this, [=]()
+            {
+                QMenu power_menu;
+
+                if (power->canLockScreen())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-menu-lock-symbolic"), tr("Lock screen"), this, [=]()
+                                         { power->lockScreen(); });
+                }
+
+                if (power->canSwitchUser())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-switch_user"), tr("Switch user"), this, [=]()
+                                         {
+                                             if (power->getGraphicalNtvs() >= power->getNtvsTotal())
+                                             {
+                                                 KLOG_DEBUG("Total ntvs: %d, graphical ntvs: %d.", power->getNtvsTotal(), power->getGraphicalNtvs());
+                                                 //TODO: 弹窗提示，已达最大用户数
+                                             }
+                                             else
+                                             {
+                                                 power->switchUser();
+                                             }
+                                         });
+                }
+
+                if (power->canLogout())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-logout"), tr("Logout"), this, [=]()
+                                         { power->logout(); });
+                }
+
+                if (power->canSuspend())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-suspend"), tr("Suspend"), this, [=]()
+                                         { power->suspend(); });
+                }
+
+                if (power->canHibernate())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-hibernate"), tr("Hibernate"), this, [=]()
+                                         { power->hibernate(); });
+                }
+
+                if (power->canReboot())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-reboot"), tr("Reboot"), this, [=]()
+                                         { power->reboot(); });
+                }
+
+                if (power->canShutdown())
+                {
+                    power_menu.addAction(QIcon::fromTheme("ks-power-shutdown"), tr("Shutdown"), this, [=]()
+                                         { power->shutdown(); });
+                }
+
+                int x = m_ui->m_widgetNavigations->x() + m_ui->m_widgetNavigations->width();
+                int y = m_ui->m_widgetNavigations->y() + m_ui->m_widgetNavigations->height();
+                power_menu.exec(mapToGlobal(QPoint(x, y)));
+            });
 }
 
 void Window::clear(QStackedWidget *stackedWidget)
@@ -108,6 +338,200 @@ void Window::clear(QStackedWidget *stackedWidget)
         stackedWidget->removeWidget(currentWidget);
         delete currentWidget;
     }
+}
+
+AppItem *Window::newAppItem(QString appId)
+{
+    AppItem *appItem = new AppItem(this);
+    appItem->setAppId(appId);
+    connect(appItem, &AppItem::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
+    connect(appItem, &AppItem::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appItem, &AppItem::addToFavorite, this, &Window::addToFavorite);
+    connect(appItem, &AppItem::removeFromFavorite, this, &Window::removeFromFavorite);
+    connect(appItem, &AppItem::addToTasklist, this, &Window::addToTasklist);
+    connect(appItem, &AppItem::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appItem, &AppItem::addToDesktop, this, &Window::addToDesktop);
+    connect(appItem, &AppItem::runApp, this, &Window::runApp);
+
+    return appItem;
+}
+
+void Window::runApp(QString appId)
+{
+    KService::Ptr service = KService::serviceByStorageId(appId);
+
+    if (service)
+    {
+        //启动应用
+        QProcess::startDetached(service->exec(), QStringList());
+
+        //通知kactivitymanagerd
+        KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+    }
+}
+
+void Window::openFile(QString filePath)
+{
+    //    auto job = new KIO::OpenUrlJob(file_path);
+    //    job->start();
+
+    QDesktopServices::openUrl(filePath);
+}
+
+void Window::isInFavorite(QString appId, bool &isFavorite)
+{
+    isFavorite = m_favoriteAppId.contains(appId);
+}
+
+void Window::addToFavorite(QString appId)
+{
+    appId = QLatin1String("applications:") + appId;
+    KLOG_WARNING() << "addToFavorite" << appId;
+    m_actStatsLinkedWatcher->linkToActivity(QUrl(appId), Activity::global(), Agent::global());
+}
+
+void Window::removeFromFavorite(QString appId)
+{
+    appId = QLatin1String("applications:") + appId;
+    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appId), Activity::global(), Agent::global());
+}
+
+void Window::isInTasklist()
+{
+}
+
+void Window::addToTasklist(QString appId)
+{
+}
+
+void Window::removeFromTasklist(QString appId)
+{
+}
+
+void Window::addToDesktop(QString appId)
+{
+}
+
+void Window::updateUserInfo()
+{
+    //    KLOG_INFO() << "Window::updateUserInfo";
+
+    m_ui->m_labelUserName->setText(tr("Hello,") + qgetenv("USER"));
+
+    QString iconFile = m_accountUserProxy->property("icon_file").toString();
+    if (!iconFile.isEmpty() && QFile(iconFile).exists())
+    {
+        m_ui->m_btnUserPhoto->setIcon(QIcon(iconFile));
+    }
+    else
+    {
+        m_ui->m_btnUserPhoto->setIcon(QIcon(":/images/images/avatar_default.png"));
+    }
+}
+
+void Window::updatePopular()
+{
+    clearLayout(m_ui->m_layoutWidgePopular);
+
+    const auto query = UsedResources | HighScoredFirst | Agent::any() | Type::any() | Activity::any() | Url::startsWith(QStringLiteral("applications:")) | Limit(4);
+
+    //    qInfo() << "Query: " << query;
+
+    int col = 0;
+    for (const ResultSet::Result &result : ResultSet(query))
+    {
+        //        KLOG_INFO() << result.title();
+        QString serviceId = QUrl(result.resource()).path();
+        KService::Ptr service = KService::serviceByStorageId(serviceId);
+        if (!service || !service->isValid())
+        {
+            continue;
+        }
+
+        AppItem *appItem = newAppItem(serviceId);
+
+        m_ui->m_layoutWidgePopular->addWidget(appItem, 0, col++);
+    }
+}
+
+void Window::updateFavorite()
+{
+    clearLayout(m_ui->m_gridLayoutFavoriteApp);
+
+    int colMax = 4;
+    int rowIndex = 0;
+    int colIndex = 0;
+
+    //    for (int i = 0; i < 10; i++)
+    {
+        //获取收藏夹数据
+        const auto query = LinkedResources | Agent::global() | Type::any() | Activity::any();
+
+        for (const ResultSet::Result &result : ResultSet(query))
+        {
+            //        KLOG_INFO() << result.url() << result.resource();
+            QString serviceId = QUrl(result.resource()).path();
+            KService::Ptr service = KService::serviceByStorageId(serviceId);
+            if (!service || !service->isValid())
+            {
+                continue;
+            }
+            AppItem *appItem = newAppItem(serviceId);
+
+            m_ui->m_gridLayoutFavoriteApp->addWidget(appItem, rowIndex, colIndex++);
+
+            if (colIndex >= colMax)
+            {
+                colIndex = 0;
+                rowIndex++;
+            }
+
+            m_favoriteAppId.append(serviceId);
+        }
+    }
+}
+
+void Window::userInfoChanged(QDBusMessage msg)
+{
+    updateUserInfo();
+}
+
+bool Window::eventFilter(QObject *object, QEvent *event)
+{
+    //window was deactivated
+    if (QEvent::WindowDeactivate == event->type())
+    {
+        emit windowDeactivated();
+    }
+
+    return QWidget::eventFilter(object, event);
+}
+
+void Window::paintEvent(QPaintEvent *event)
+{
+    //    QPainter painter(this);
+    //    painter.setRenderHint(QPainter::Antialiasing); //反锯齿
+
+    //    auto kiranPalette = StylePalette::instance();
+
+    //    QPainterPath painterPath;
+    //    QRectF frect = rect();
+    //    frect.adjust(0.5, 0.5, -0.5, -0.5);
+    //    painterPath.addRoundedRect(frect, 6, 6);
+
+    //    QColor backgroundColor;
+    //    backgroundColor = kiranPalette->color(StylePalette::Normal,
+    //                                          StylePalette::Window,
+    //                                          StylePalette::Background);
+    //    painter.fillPath(painterPath, backgroundColor);
+
+    QWidget::paintEvent(event);
+}
+
+void Window::showEvent(QShowEvent *event)
+{
+    //任务栏不显示
+    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
 }
 
 }  // namespace  Menu
