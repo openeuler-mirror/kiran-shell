@@ -83,7 +83,7 @@ Window::~Window()
 void Window::changeTheme()
 {
     // FIXME: 等主题库开发好后，使用主题库提供的接口实现
-    QList<QPushButton *> btns_with_svg = {
+    QList<QPushButton *> btnsWithSvg = {
         m_ui->m_btnFavoriteAppIcon,
         m_ui->m_btnPopularAppIcon,
         m_ui->m_btnAppsOverview,
@@ -95,7 +95,7 @@ void Window::changeTheme()
         m_ui->m_btnSettings,
         m_ui->m_btnSystemMonitor};
 
-    for (QPushButton *btn : btns_with_svg)
+    for (QPushButton *btn : btnsWithSvg)
     {
         QImage image = btn->icon().pixmap(btn->iconSize()).toImage();
         image.invertPixels(QImage::InvertRgb);
@@ -114,6 +114,7 @@ void Window::init()
     {
         QCoreApplication::installTranslator(&translator);
     }
+    m_ui->retranslateUi(this);
 
     initUI();
 
@@ -396,16 +397,19 @@ void Window::removeFromFavorite(QString appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appId), Activity::global(), Agent::global());
 }
 
-void Window::isInTasklist()
+void Window::isInTasklist(QString appId, bool &checkResult)
 {
+    checkResult = isTaskBarLockApp(appId);
 }
 
 void Window::addToTasklist(QString appId)
 {
+    addTaskBarLockApp(appId);
 }
 
 void Window::removeFromTasklist(QString appId)
 {
+    removeTaskBarLockApp(appId);
 }
 
 void Window::addToDesktop(QString appId)
@@ -457,6 +461,7 @@ void Window::updatePopular()
 void Window::updateFavorite()
 {
     clearLayout(m_ui->m_gridLayoutFavoriteApp);
+    m_favoriteAppId.clear();
 
     int colMax = 4;
     int rowIndex = 0;

@@ -6,43 +6,49 @@
     <message>
         <location filename="../plugins/menu/app-item.ui" line="26"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.ui" line="53"/>
         <location filename="../plugins/menu/app-item.ui" line="63"/>
         <source>TextLabel</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="69"/>
         <source>Run app</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>运行</translatorcomment>
+        <translation>运行</translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="71"/>
         <source>Add to desktop</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>添加到桌面</translatorcomment>
+        <translation>添加到桌面</translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="77"/>
         <source>Add to favorite</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>添加到收藏夹</translatorcomment>
+        <translation>添加到收藏夹</translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="82"/>
         <source>Remove from favorite</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>从收藏夹中移除</translatorcomment>
+        <translation>从收藏夹中移除</translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="90"/>
         <source>Add to tasklist</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>固定到任务栏</translatorcomment>
+        <translation>固定到任务栏</translation>
     </message>
     <message>
         <location filename="../plugins/menu/app-item.cpp" line="95"/>
         <source>Remove from tasklist</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>取消固定到任务栏</translatorcomment>
+        <translation>取消固定到任务栏</translation>
     </message>
 </context>
 <context>
@@ -50,7 +56,7 @@
     <message>
         <location filename="../plugins/menu/apps-overview.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -58,7 +64,8 @@
     <message>
         <location filename="../plugins/menu/applet.cpp" line="38"/>
         <source>Start Menu</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>开始菜单</translatorcomment>
+        <translation>开始菜单</translation>
     </message>
 </context>
 <context>
@@ -66,7 +73,8 @@
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="66"/>
         <source>Search application</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>搜索应用</translatorcomment>
+        <translation>搜索应用</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="108"/>
@@ -119,37 +127,44 @@
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="215"/>
         <source>Run app</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>启动</translatorcomment>
+        <translation>启动</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="217"/>
         <source>Add to desktop</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>添加到桌面</translatorcomment>
+        <translation>添加到桌面</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="223"/>
         <source>Add to favorite</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>添加到收藏夹</translatorcomment>
+        <translation>添加到收藏夹</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="228"/>
         <source>Remove from favorite</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>从收藏夹中移除</translatorcomment>
+        <translation>从收藏夹中移除</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="236"/>
         <source>Add to tasklist</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>固定到任务栏</translatorcomment>
+        <translation>固定到任务栏</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="241"/>
         <source>Remove from tasklist</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>取消固定到任务栏</translatorcomment>
+        <translation>取消固定到任务栏</translation>
     </message>
     <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="263"/>
         <source>result</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>搜索结果</translatorcomment>
+        <translation>搜索结果</translation>
     </message>
 </context>
 <context>
@@ -157,7 +172,8 @@
     <message>
         <location filename="../plugins/menu/recent-files-overview.cpp" line="62"/>
         <source>Search file</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>搜索文件</translatorcomment>
+        <translation>搜索文件</translation>
     </message>
 </context>
 <context>
@@ -165,42 +181,49 @@
     <message>
         <location filename="../plugins/menu/window.cpp" line="277"/>
         <source>Lock screen</source>
-        <translation type="unfinished"></translation>
+        <translation>锁定屏幕</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="283"/>
         <source>Switch user</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>切换用户</translatorcomment>
+        <translation>切换用户</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="299"/>
         <source>Logout</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>注销</translatorcomment>
+        <translation>注销</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="305"/>
         <source>Suspend</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>待机</translatorcomment>
+        <translation>待机</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="311"/>
         <source>Hibernate</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>休眠</translatorcomment>
+        <translation>休眠</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="317"/>
         <source>Reboot</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>重启</translatorcomment>
+        <translation>重启</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.cpp" line="323"/>
         <source>Shutdown</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>关机</translatorcomment>
+        <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="419"/>
+        <location filename="../plugins/menu/window.cpp" line="422"/>
         <source>Hello,</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>你好，</translatorcomment>
+        <translation>你好，</translation>
     </message>
 </context>
 <context>
@@ -208,7 +231,7 @@
     <message>
         <location filename="../plugins/menu/recent-files-overview.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -216,67 +239,77 @@
     <message>
         <location filename="../plugins/menu/window.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="98"/>
-        <source>所有应用</source>
-        <translation type="unfinished"></translation>
+        <source>All application</source>
+        <translatorcomment>所有应用</translatorcomment>
+        <translation>所有应用</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="124"/>
-        <source>最近访问文档</source>
-        <translation type="unfinished"></translation>
+        <source>Recent files</source>
+        <translatorcomment>最近访问文档</translatorcomment>
+        <translation>最近访问文档</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="164"/>
-        <source>运行命令</source>
-        <translation type="unfinished"></translation>
+        <source>Run command</source>
+        <translatorcomment>运行命令</translatorcomment>
+        <translation>运行命令</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="190"/>
-        <source>搜索文件</source>
-        <translation type="unfinished"></translation>
+        <source>Search file</source>
+        <translatorcomment>搜索文件</translatorcomment>
+        <translation>搜索文件</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="216"/>
-        <source>主目录</source>
-        <translation type="unfinished"></translation>
+        <source>Home dir</source>
+        <translatorcomment>主目录</translatorcomment>
+        <translation>主目录</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="242"/>
-        <source>控制面板</source>
-        <translation type="unfinished"></translation>
+        <source>Settings</source>
+        <translatorcomment>控制面板</translatorcomment>
+        <translation>控制面板</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="268"/>
-        <source>资源管理器</source>
-        <translation type="unfinished"></translation>
+        <source>System monitor</source>
+        <translatorcomment>资源管理器</translatorcomment>
+        <translation>资源管理器</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="294"/>
-        <source>电源选项</source>
-        <translation type="unfinished"></translation>
+        <source>Power</source>
+        <translatorcomment>电源选项</translatorcomment>
+        <translation>电源选项</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="343"/>
         <source>你好，root</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="350"/>
         <source>111</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="405"/>
-        <source>常用应用</source>
-        <translation type="unfinished"></translation>
+        <source>Popular applications</source>
+        <translatorcomment>常用应用</translatorcomment>
+        <translation>常用应用</translation>
     </message>
     <message>
         <location filename="../plugins/menu/window.ui" line="455"/>
-        <source>收藏夹</source>
-        <translation type="unfinished"></translation>
+        <source>Favorite applications</source>
+        <translatorcomment>收藏夹</translatorcomment>
+        <translation>收藏夹</translation>
     </message>
 </context>
 </TS>

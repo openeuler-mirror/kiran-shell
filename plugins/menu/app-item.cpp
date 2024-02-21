@@ -72,7 +72,7 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
                    { emit addToDesktop(m_appId); });
 
     emit isInFavorite(m_appId, check_result);
-    if (check_result)
+    if (!check_result)
     {
         menu.addAction(tr("Add to favorite"), this, [=]()
                        { emit addToFavorite(m_appId); });
@@ -85,7 +85,7 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
 
     check_result = false;
     emit isInTasklist(m_appId, check_result);
-    if (check_result)
+    if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this, [=]()
                        { emit addToTasklist(m_appId); });

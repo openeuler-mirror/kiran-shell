@@ -19,4 +19,10 @@ QString getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen)
 bool isShowAppBtnTail();
 void saveIsShowAppBtnTail(bool isShow);
 
+// 任务栏固定项 获取、添加、删除
+QStringList getTaskBarLockApp();
+void addTaskBarLockApp(QString appId);
+void removeTaskBarLockApp(QString appId);
+bool isTaskBarLockApp(QString appId);
+
 #endif  // COMMON_H

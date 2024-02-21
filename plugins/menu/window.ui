@@ -95,7 +95,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>所有应用</string>
+           <string>All application</string>
           </property>
           <property name="text">
            <string/>
@@ -121,7 +121,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>最近访问文档</string>
+           <string>Recent files</string>
           </property>
           <property name="text">
            <string/>
@@ -161,7 +161,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>运行命令</string>
+           <string>Run command</string>
           </property>
           <property name="text">
            <string/>
@@ -187,7 +187,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>搜索文件</string>
+           <string>Search file</string>
           </property>
           <property name="text">
            <string/>
@@ -213,7 +213,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>主目录</string>
+           <string>Home dir</string>
           </property>
           <property name="text">
            <string/>
@@ -239,7 +239,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>控制面板</string>
+           <string>Settings</string>
           </property>
           <property name="text">
            <string/>
@@ -265,7 +265,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>资源管理器</string>
+           <string>System monitor</string>
           </property>
           <property name="text">
            <string/>
@@ -291,7 +291,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>电源选项</string>
+           <string>Power</string>
           </property>
           <property name="text">
            <string/>
@@ -402,7 +402,7 @@
            <item>
             <widget class="QLabel" name="m_labelPopularApp">
              <property name="text">
-              <string>常用应用</string>
+              <string>Popular applications</string>
              </property>
             </widget>
            </item>
@@ -452,7 +452,7 @@
            <item>
             <widget class="QLabel" name="m_labelFavoriteApp">
              <property name="text">
-              <string>收藏夹</string>
+              <string>Favorite applications</string>
              </property>
             </widget>
            </item>

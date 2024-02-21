@@ -82,7 +82,7 @@ private:
     void removeFromFavorite(QString appId);
 
     //添加到任务栏操作
-    void isInTasklist();
+    void isInTasklist(QString appId, bool& checkResult);
     void addToTasklist(QString appId);
     void removeFromTasklist(QString appId);
 
