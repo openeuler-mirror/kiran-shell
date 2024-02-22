@@ -43,9 +43,48 @@ bool isShowAppBtnTail()
 
 void saveIsShowAppBtnTail(bool isShow)
 {
-    QString file = KIRAN_SHELL_SETTING_FILE;
-
-    KLOG_INFO() << "saveIsShowAppBtnTail" << isShow << file;
     QSettings kiranShellSetting(KIRAN_SHELL_SETTING_FILE, QSettings::IniFormat);
     kiranShellSetting.setValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY, isShow);
 }
+
+QStringList getTaskBarLockApp()
+{
+    QSettings kiranShellSetting(KIRAN_SHELL_SETTING_FILE, QSettings::IniFormat);
+    QStringList apps = kiranShellSetting.value(TASKBAR_LOCK_APP_KEY).toStringList();
+    return apps;
+}
+
+void addTaskBarLockApp(QString appId)
+{
+    QSettings kiranShellSetting(KIRAN_SHELL_SETTING_FILE, QSettings::IniFormat);
+    QStringList apps = kiranShellSetting.value(TASKBAR_LOCK_APP_KEY).toStringList();
+    if (!apps.contains(appId))
+    {
+        apps.append(appId);
+        kiranShellSetting.setValue(TASKBAR_LOCK_APP_KEY, apps);
+    }
+}
+
+void removeTaskBarLockApp(QString appId)
+{
+    QSettings kiranShellSetting(KIRAN_SHELL_SETTING_FILE, QSettings::IniFormat);
+    QStringList apps = kiranShellSetting.value(TASKBAR_LOCK_APP_KEY).toStringList();
+    if (apps.contains(appId))
+    {
+        apps.removeAll(appId);
+        kiranShellSetting.setValue(TASKBAR_LOCK_APP_KEY, apps);
+    }
+}
+
+bool isTaskBarLockApp(QString appId)
+{
+    QSettings kiranShellSetting(KIRAN_SHELL_SETTING_FILE, QSettings::IniFormat);
+    QStringList apps = kiranShellSetting.value(TASKBAR_LOCK_APP_KEY).toStringList();
+    if (apps.contains(appId))
+    {
+        return true;
+    }
+
+    return false;
+}
+

@@ -71,17 +71,17 @@ void RecentFilesOverview::updateRecentFiles(const QString filter)
     for (const ResultSet::Result &result : ResultSet(query))
     {
         //        KLOG_INFO() << result.title() << result.resource();
-        QString file_path = QUrl(result.resource()).path();
-        if (!QFile::exists(file_path))
+        QString filePath = QUrl(result.resource()).path();
+        if (!QFile::exists(filePath))
         {
             continue;
         }
-        QIcon icon = QFileIconProvider().icon(QFileInfo(file_path));
+        QIcon icon = QFileIconProvider().icon(QFileInfo(filePath));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetShowFiles);
         item->setIcon(0, icon);
         item->setText(0, result.title());
-        item->setData(0, Qt::UserRole, file_path);
+        item->setData(0, Qt::UserRole, filePath);
     }
 }
 

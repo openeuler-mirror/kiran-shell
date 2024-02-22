@@ -7,5 +7,6 @@
 // 配置文件 及其字段
 #define KIRAN_SHELL_SETTING_FILE QDir::homePath() + "/.config/kiran-shell/kiran-shell.ini"
 #define TASKBAR_SHOW_APP_BTN_TAIL_KEY "taskbar/showAppBtnTail"
+#define TASKBAR_LOCK_APP_KEY "taskbar/lockApp"
 
 #endif  // DEFINE_H
