@@ -17,7 +17,7 @@
 #include <QBoxLayout>
 
 #include "app-previewer.h"
-#include "lib/common/common.h"
+#include "lib/common/utility.h"
 
 namespace Kiran
 {
@@ -72,7 +72,7 @@ void AppPreviewer::updateLayout()
     auto previwer = m_mapWindowPreviewers.begin().value();
     setFixedSize(previwer->width() * m_mapWindowPreviewers.size(), previwer->height());
 
-    clearLayout(m_layout);
+    Utility::clearLayout(m_layout);
     for (WindowPreviewer *previwer : m_mapWindowPreviewers)
     {
         m_layout->addWidget(previwer);

@@ -15,8 +15,8 @@
 #pragma once
 
 #include <QMap>
-#include "src/shell/profile/profile-applet.h"
-#include "src/shell/profile/profile-panel.h"
+#include "profile-applet.h"
+#include "profile-panel.h"
 
 class QGSettings;
 
@@ -25,7 +25,7 @@ namespace Kiran
 class LayoutPanel;
 class LayoutApplet;
 
-class profile : public QObject
+class Profile : public QObject
 {
     Q_OBJECT
 
@@ -34,7 +34,7 @@ class profile : public QObject
     GSETTINGS_PROPERTY_STRINGLIST_DECLARATION(appletUIDs, AppletUIDs)
 
 public:
-    static profile* getInstance()
+    static Profile* getInstance()
     {
         return m_instance;
     };
@@ -48,7 +48,7 @@ public:
     QList<ProfileApplet*> getAppletsOnPanel(const QString& panelUID);
 
 private:
-    profile();
+    Profile();
 
     void init();
     void initSettings();
@@ -63,7 +63,7 @@ private Q_SLOTS:
     void updateSettings(const QString& key);
 
 private:
-    static profile* m_instance;
+    static Profile* m_instance;
     // 全局配置
     QGSettings* m_settings;
     // <面板UID， 面板配置>

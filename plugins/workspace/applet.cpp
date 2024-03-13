@@ -18,9 +18,12 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
+#include <QTranslator>
+#include <QCoreApplication>
 
-#include "plugins/workspace/applet.h"
-#include "plugins/workspace/window.h"
+#include "applet.h"
+#include "window.h"
+#include "ks-config.h"
 
 namespace Kiran
 {
@@ -30,6 +33,16 @@ Applet::Applet(IAppletImport *import)
     : AppletButton(import),
       m_import(import)
 {
+    static QTranslator translator;
+    if (!translator.load(QLocale(), "workspace", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING() << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+
     m_window = new Window();
 
     connect(this, &QAbstractButton::clicked, this, &Applet::clickButton);

@@ -12,14 +12,14 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/profile/profile.h"
+#include "profile.h"
 #include <ks-definition.h>
 #include <qt5-log-i.h>
 #include <QGSettings>
 #include <QScopedPointer>
-#include "src/shell/layout.h"
-#include "src/shell/profile/profile-applet.h"
-#include "src/shell/profile/profile-panel.h"
+#include "layout.h"
+#include "profile-applet.h"
+#include "profile-panel.h"
 
 namespace Kiran
 {
@@ -28,30 +28,30 @@ namespace Kiran
 #define KS_SCHEMA_KEY_PANEL_UIDS "panel-uids"
 #define KS_SCHEMA_KEY_APPLET_UIDS "applet-uids"
 
-GSETTINGS_PROPERTY_STRING_DEFINITION(profile, defaultLayout, DefaultLayout, KS_SCHEMA_KEY_DEFAULT_LAYOUT)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(profile, panelUIDs, PanelUIDs, KS_SCHEMA_KEY_PANEL_UIDS)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(profile, appletUIDs, AppletUIDs, KS_SCHEMA_KEY_APPLET_UIDS)
+GSETTINGS_PROPERTY_STRING_DEFINITION(Profile, defaultLayout, DefaultLayout, KS_SCHEMA_KEY_DEFAULT_LAYOUT)
+GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, panelUIDs, PanelUIDs, KS_SCHEMA_KEY_PANEL_UIDS)
+GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, appletUIDs, AppletUIDs, KS_SCHEMA_KEY_APPLET_UIDS)
 
-profile* profile::m_instance = nullptr;
-void profile::globalInit()
+Profile* Profile::m_instance = nullptr;
+void Profile::globalInit()
 {
-    m_instance = new profile();
+    m_instance = new Profile();
     m_instance->init();
 }
 
-void profile::globalDeinit()
+void Profile::globalDeinit()
 {
     delete m_instance;
 }
 
-profile::profile()
+Profile::Profile()
 {
     this->m_settings = new QGSettings(KS_SCHEMA_ID, QByteArray(), this);
 
     connect(this->m_settings, SIGNAL(changed(const QString&)), this, SLOT(updateSettings(const QString&)));
 }
 
-void profile::init()
+void Profile::init()
 {
     this->initSettings();
 
@@ -67,7 +67,7 @@ void profile::init()
     }
 }
 
-void profile::initSettings()
+void Profile::initSettings()
 {
     // 初始化阶段不发送信号，避免其他模块重复处理
     this->blockSignals(true);
@@ -77,7 +77,7 @@ void profile::initSettings()
     this->blockSignals(false);
 }
 
-void profile::loadFromLayout()
+void Profile::loadFromLayout()
 {
     QScopedPointer<Layout> layout(new Layout(this->getDefaultLayout()));
 
@@ -96,7 +96,7 @@ void profile::loadFromLayout()
     }
 }
 
-void profile::loadPanelFromLayout(LayoutPanel* layoutPanel)
+void Profile::loadPanelFromLayout(LayoutPanel* layoutPanel)
 {
     auto panel = new ProfilePanel(layoutPanel->getUID());
     // TODO: 将layoutPanel中的属性设置到panel
@@ -115,7 +115,7 @@ void profile::loadPanelFromLayout(LayoutPanel* layoutPanel)
     }
 }
 
-void profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
+void Profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
 {
     auto applet = new ProfileApplet(layoutApplet->getUID());
     // TODO: 将layoutApplet中的属性设置到applet
@@ -133,7 +133,7 @@ void profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
     }
 }
 
-void profile::loadFromSettings()
+void Profile::loadFromSettings()
 {
     auto panelUIDs = this->getPanelUIDs();
     for (auto& panelUID : panelUIDs)
@@ -150,17 +150,17 @@ void profile::loadFromSettings()
     }
 }
 
-QList<ProfilePanel*> profile::getPanels()
+QList<ProfilePanel*> Profile::getPanels()
 {
     return this->m_panels.values();
 }
 
-QList<ProfileApplet*> profile::getApplets()
+QList<ProfileApplet*> Profile::getApplets()
 {
     return this->m_applets.values();
 }
 
-QList<ProfileApplet*> profile::getAppletsOnPanel(const QString& panelUID)
+QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
 {
     QList<ProfileApplet*> applets;
     QList<ProfileApplet*> applets_right;
@@ -191,7 +191,7 @@ QList<ProfileApplet*> profile::getAppletsOnPanel(const QString& panelUID)
     return applets;
 }
 
-void profile::updateSettings(const QString& key)
+void Profile::updateSettings(const QString& key)
 {
     switch (shash(key.toUtf8().data()))
     {

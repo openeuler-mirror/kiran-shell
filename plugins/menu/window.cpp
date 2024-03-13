@@ -28,10 +28,10 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QProcess>
+#include <QSettings>
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
-#include <QTranslator>
 //#include <kiran-style/kiran-style-public-define.h>
 #include <kiran-style/style-global-define.h>
 #include <kiran-style/style-property.h>
@@ -39,10 +39,12 @@
 #include "app-item.h"
 #include "apps-overview.h"
 #include "ks-config.h"
-#include "lib/common/common.h"
-#include "plugins/menu/ui_window.h"
+#include "lib/common/define.h"
+#include "lib/common/setting-process.h"
+#include "lib/common/utility.h"
 #include "power.h"
 #include "recent-files-overview.h"
+#include "ui_window.h"
 #include "window.h"
 
 #define KIRAN_ACCOUNTS_BUS "com.kylinsec.Kiran.SystemDaemon.Accounts"
@@ -105,17 +107,6 @@ void Window::changeTheme()
 
 void Window::init()
 {
-    QTranslator translator;
-    if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
-    {
-        KLOG_WARNING() << "Load translator failed!";
-    }
-    else
-    {
-        QCoreApplication::installTranslator(&translator);
-    }
-    m_ui->retranslateUi(this);
-
     initUI();
 
     initActivitiesStats();
@@ -379,40 +370,40 @@ void Window::openFile(QString filePath)
     QDesktopServices::openUrl(filePath);
 }
 
-void Window::isInFavorite(QString appId, bool &isFavorite)
+void Window::isInFavorite(const QString &appId, bool &isFavorite)
 {
     isFavorite = m_favoriteAppId.contains(appId);
 }
 
-void Window::addToFavorite(QString appId)
+void Window::addToFavorite(const QString &appId)
 {
-    appId = QLatin1String("applications:") + appId;
-    KLOG_WARNING() << "addToFavorite" << appId;
-    m_actStatsLinkedWatcher->linkToActivity(QUrl(appId), Activity::global(), Agent::global());
+    QString appIdTemp = QLatin1String("applications:") + appId;
+    KLOG_WARNING() << "addToFavorite" << appIdTemp;
+    m_actStatsLinkedWatcher->linkToActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
-void Window::removeFromFavorite(QString appId)
+void Window::removeFromFavorite(const QString &appId)
 {
-    appId = QLatin1String("applications:") + appId;
-    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appId), Activity::global(), Agent::global());
+    QString appIdTemp = QLatin1String("applications:") + appId;
+    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
-void Window::isInTasklist(QString appId, bool &checkResult)
+void Window::isInTasklist(const QString &appId, bool &checkResult)
 {
-    checkResult = isTaskBarLockApp(appId);
+    checkResult = SettingProcess::isStringInKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
-void Window::addToTasklist(QString appId)
+void Window::addToTasklist(const QString &appId)
 {
-    addTaskBarLockApp(appId);
+    SettingProcess::addStringToKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
-void Window::removeFromTasklist(QString appId)
+void Window::removeFromTasklist(const QString &appId)
 {
-    removeTaskBarLockApp(appId);
+    SettingProcess::removeStringFromKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
-void Window::addToDesktop(QString appId)
+void Window::addToDesktop(const QString &appId)
 {
 }
 
@@ -435,11 +426,11 @@ void Window::updateUserInfo()
 
 void Window::updatePopular()
 {
-    clearLayout(m_ui->m_layoutWidgePopular);
+    Utility::clearLayout(m_ui->m_layoutWidgePopular);
 
     const auto query = UsedResources | HighScoredFirst | Agent::any() | Type::any() | Activity::any() | Url::startsWith(QStringLiteral("applications:")) | Limit(4);
 
-    //    qInfo() << "Query: " << query;
+    //    KLOG_INFO() << "Query: " << query;
 
     int col = 0;
     for (const ResultSet::Result &result : ResultSet(query))
@@ -460,7 +451,7 @@ void Window::updatePopular()
 
 void Window::updateFavorite()
 {
-    clearLayout(m_ui->m_gridLayoutFavoriteApp);
+    Utility::clearLayout(m_ui->m_gridLayoutFavoriteApp);
     m_favoriteAppId.clear();
 
     int colMax = 4;

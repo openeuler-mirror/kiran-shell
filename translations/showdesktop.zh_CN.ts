@@ -5,7 +5,7 @@
     <name>Kiran::Showdesktop</name>
     <message>
         <source>Show desktop</source>
-        <translation type="unfinished"></translation>
+        <translation>显示桌面</translation>
     </message>
 </context>
 </TS>

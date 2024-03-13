@@ -1,5 +1,16 @@
-# dock
-项目包含主面板和面板插件，面板插件有开始菜单、任务栏、托盘区域、日期和时间和显示桌面
+# kiran面板
+项目包含主面板和面板插件，面板插件有开始菜单、工作区、任务栏、托盘区、日历和显示桌面
+
+## 编译环境要求
+  * cmake >= 3.0
+  * gcc-c++ >= 4.8
+  * kf5-kwindowsystem-devel >= 5.95
+  * kf5-kservice-devel
+  * kf5-kio-devel
+  * kf5-kactivities-devel
+  * kf5-kactivities-stats-devel
+  * dbusmenu-qt5-devel
+  * gsettings-qt-devel
 
 ## 编译安装
 ```
@@ -7,7 +18,12 @@
 # cd build && cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 # make
 # make install
+# glib-compile-schemas /usr/local/share/glib-2.0/schemas
 ```
+
+## 运行依赖
+  * kactivitymanagerd
+  * xembedsniproxy
 
 ## 运行
 ```

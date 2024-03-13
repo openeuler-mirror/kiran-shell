@@ -18,6 +18,8 @@
 #include <style-palette.h>
 #include <QBoxLayout>
 #include <QWidget>
+#include <QMenu>
+
 
 namespace Kiran
 {

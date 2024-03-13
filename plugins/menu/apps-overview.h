@@ -54,19 +54,19 @@ private:
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
 signals:
     // 查询是否在收藏夹中
-    void isInFavorite(QString appId, bool& checkResult);
+    void isInFavorite(const QString &appId, bool &checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(QString appId, bool& checkResult);
+    void isInTasklist(const QString &appId, bool &checkResult);
 
     // 添加到×/从×移除 桌面、收藏夹、任务栏
-    void addToDesktop(QString appId);
-    void addToFavorite(QString appId);
-    void removeFromFavorite(QString appId);
-    void addToTasklist(QString appId);
-    void removeFromTasklist(QString appId);
+    void addToDesktop(const QString &appId);
+    void addToFavorite(const QString &appId);
+    void removeFromFavorite(const QString &appId);
+    void addToTasklist(const QString &appId);
+    void removeFromTasklist(const QString &appId);
 
     // 运行应用
-    void runApp(QString appId);
+    void runApp(const QString &appId);
 
 private:
     Ui::AppsOverview* m_ui;

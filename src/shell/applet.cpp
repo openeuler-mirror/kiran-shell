@@ -12,13 +12,13 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/applet.h"
+#include "applet.h"
 #include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QHBoxLayout>
-#include "src/shell/plugin.h"
-#include "src/shell/profile/profile-applet.h"
-#include "src/shell/shell.h"
+#include "plugin.h"
+#include "profile/profile-applet.h"
+#include "shell.h"
 
 namespace Kiran
 {

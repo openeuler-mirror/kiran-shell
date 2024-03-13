@@ -15,7 +15,7 @@
 #pragma once
 
 #include <QObject>
-#include "src/shell/profile/profile-utils.h"
+#include "profile-utils.h"
 
 class QGSettings;
 

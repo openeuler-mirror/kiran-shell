@@ -15,6 +15,7 @@
 #include <plugin-i.h>
 
 #include "applet.h"
+#include "window.h"
 
 namespace Kiran
 {
@@ -23,8 +24,13 @@ namespace Systemtray
 Applet::Applet(IAppletImport *import)
     : m_import(import)
 {
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(100, size);
+    QGridLayout *layout = new QGridLayout(this);
+    setLayout(layout);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+
+    m_window = new Window(import, this);
+    layout->addWidget(m_window);
 }
 
 Applet::~Applet()

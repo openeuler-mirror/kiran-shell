@@ -17,8 +17,10 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
+#include <QTranslator>
 
 #include "applet.h"
+#include "ks-config.h"
 #include "window.h"
 
 namespace Kiran
@@ -29,6 +31,16 @@ Applet::Applet(IAppletImport *import)
     : AppletButton(import),
       m_import(import)
 {
+    static QTranslator translator;
+    if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING() << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
@@ -49,14 +61,11 @@ Applet::~Applet()
 
 void Applet::clickButton(bool checked)
 {
+    // KLOG_INFO() << "Applet::clickButton" << checked;
     if (checked)
     {
         updateWindowPosition();
         m_window->show();
-    }
-    else
-    {
-        m_window->hide();
     }
 }
 
