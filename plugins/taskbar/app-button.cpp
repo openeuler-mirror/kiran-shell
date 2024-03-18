@@ -25,8 +25,9 @@
 
 #include "app-button-container.h"
 #include "app-button.h"
-#include "lib/common/common.h"
 #include "lib/common/define.h"
+#include "lib/common/setting-process.h"
+#include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 
 namespace Kiran
@@ -73,7 +74,7 @@ void AppButton::setAppInfo(QByteArray wmClass, WId wid)
         QPixmap icon = KWindowSystem::icon(wid);
         // setIcon(QIcon::fromTheme("application-x-executable"));
         setIcon(QIcon(icon));
-        KLOG_INFO() << "app icon:" << icon;
+        // KLOG_INFO() << "app icon:" << icon;
 
         setToolTip(m_name);
         updateName();
@@ -97,7 +98,7 @@ void AppButton::setAppInfo(QString appId)
 
     m_name = service->name();
     setIcon(QIcon::fromTheme(service->icon()));
-    KLOG_INFO() << "app icon:" << service->icon();
+    // KLOG_INFO() << "app icon:" << service->icon();
 
     setToolTip(m_name);
     updateName();
@@ -269,10 +270,10 @@ void AppButton::closeWindow(WId wid)
 void AppButton::updateName()
 {
     auto size = m_import->getPanel()->getSize();
-    if (isShowAppBtnTail())
+    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
     {
         setFixedSize(size * 3, size);
-        QString elideText = getElidedText(fontMetrics(), m_name, size * 2);
+        QString elideText = Utility::getElidedText(fontMetrics(), m_name, size * 2);
         setText(elideText);
     }
     else

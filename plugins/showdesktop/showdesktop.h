@@ -33,6 +33,10 @@ public:
     // virtual void setup(IAppletArgs *args){};
     // // 获取Applet对应的控件对象
     // virtual QWidget *widget() { return this; };
+private slots:
+    // panel布局信息发生变化
+    void updateLayout();
+
 private:
     IAppletImport *m_import;
 };

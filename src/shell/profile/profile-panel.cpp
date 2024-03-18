@@ -12,7 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/profile/profile-panel.h"
+#include "profile-panel.h"
 #include <ks-definition.h>
 #include <qt5-log-i.h>
 #include <QGSettings>
@@ -32,7 +32,7 @@ GSETTINGS_PROPERTY_INT_DEFINITION(ProfilePanel, monitor, Monitor, KS_PANEL_SCHEM
 
 ProfilePanel::ProfilePanel(const QString &uid)
     : m_uid(uid),
-      m_size(40),
+      m_size(100),
       m_monitor(-1)
 {
     auto schemaPath = QString("%1/%2/").arg(KS_PANEL_SCHEMA_PATH).arg(this->m_uid);

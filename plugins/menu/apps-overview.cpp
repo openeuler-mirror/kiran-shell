@@ -30,7 +30,7 @@ namespace Menu
 {
 AppsOverview::AppsOverview(QWidget *parent)
     : QWidget(parent),
-      m_ui(new Ui::AppsOverview())
+      m_ui(new Ui::AppsOverview)
 {
     m_ui->setupUi(this);
 

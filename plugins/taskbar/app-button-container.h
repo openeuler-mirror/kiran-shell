@@ -48,19 +48,19 @@ private:
     // 固定到任务栏操作
     void loadLockApp();
     void updateLockApp();
-    void addLockApp(QString appId);
-    void removeLockApp(QString appId);
+    void addLockApp(const QString &appId);
+    void removeLockApp(const QString &appId);
     // 新建app按钮
     AppButton *newAppBtn();
     // 收藏夹关联
     void updateFavorite();
-    void isInFavorite(QString appId, bool &isFavorite);
-    void addToFavorite(QString appId);
-    void removeFromFavorite(QString appId);
+    void isInFavorite(const QString &appId, bool &isFavorite);
+    void addToFavorite(const QString &appId);
+    void removeFromFavorite(const QString &appId);
     // 固定到任务栏信息 查询、增加、删除
-    void isInTasklist(QString appId, bool &checkResult);
-    void addToTasklist(QString appId);
-    void removeFromTasklist(QString appId);
+    void isInTasklist(const QString &appId, bool &checkResult);
+    void addToTasklist(const QString &appId);
+    void removeFromTasklist(const QString &appId);
 
 signals:
     // apps刷新

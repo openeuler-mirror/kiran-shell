@@ -12,11 +12,11 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/shell.h"
+#include "shell.h"
 #include <QGlobalStatic>
 #include <QScopedPointer>
-#include "src/shell/panel.h"
-#include "src/shell/profile/profile.h"
+#include "panel.h"
+#include "profile/profile.h"
 
 namespace Kiran
 {
@@ -43,7 +43,7 @@ Shell::Shell()
 
 void Shell::init()
 {
-    auto profilePanels = profile::getInstance()->getPanels();
+    auto profilePanels = Profile::getInstance()->getPanels();
 
     for (const auto& profilePanel : profilePanels)
     {

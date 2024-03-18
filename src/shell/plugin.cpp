@@ -12,7 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/plugin.h"
+#include "plugin.h"
 #include <qt5-log-i.h>
 #include <QDir>
 #include <QGlobalStatic>
@@ -21,7 +21,7 @@
 #include <QPluginLoader>
 #include <QScopedPointer>
 #include "ks-config.h"
-#include "src/shell/utils.h"
+#include "utils.h"
 
 namespace Kiran
 {

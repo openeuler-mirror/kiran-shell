@@ -15,7 +15,7 @@
 #include <plugin-i.h>
 
 #include "applet-button.h"
-#include "common.h"
+#include "utility.h"
 #include "define.h"
 
 namespace Kiran

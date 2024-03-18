@@ -19,7 +19,7 @@
 #include <QProcess>
 
 #include "app-item.h"
-#include "lib/common/common.h"
+#include "lib/common/utility.h"
 #include "ui_app-item.h"
 
 AppItem::AppItem(QWidget *parent)
@@ -46,7 +46,7 @@ void AppItem::setAppId(QString id)
         QFontMetrics fontMetrics = m_ui->m_labelName->fontMetrics();
         auto margins = m_ui->m_gridLayoutAppItem->contentsMargins();
         int elidedTextLen = width() - margins.left() - margins.right();
-        QString elideText = getElidedText(fontMetrics, s->name(), elidedTextLen);
+        QString elideText = Utility::getElidedText(fontMetrics, s->name(), elidedTextLen);
         m_ui->m_labelName->setText(elideText);
 
         auto pix = QIcon::fromTheme(s->icon()).pixmap(56, 56);

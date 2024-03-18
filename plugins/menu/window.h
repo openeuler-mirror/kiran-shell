@@ -77,17 +77,17 @@ private:
     AppItem* newAppItem(QString appId);
 
     //添加到收藏夹操作
-    void isInFavorite(QString appId, bool& isFavorite);
-    void addToFavorite(QString appId);
-    void removeFromFavorite(QString appId);
+    void isInFavorite(const QString& appId, bool& isFavorite);
+    void addToFavorite(const QString& appId);
+    void removeFromFavorite(const QString& appId);
 
     //添加到任务栏操作
-    void isInTasklist(QString appId, bool& checkResult);
-    void addToTasklist(QString appId);
-    void removeFromTasklist(QString appId);
+    void isInTasklist(const QString& appId, bool& checkResult);
+    void addToTasklist(const QString& appId);
+    void removeFromTasklist(const QString& appId);
 
     //添加到桌面操作
-    void addToDesktop(QString appId);
+    void addToDesktop(const QString& appId);
 
 private slots:
     void updateUserInfo();

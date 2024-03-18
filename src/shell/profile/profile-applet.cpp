@@ -12,7 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/profile/profile-applet.h"
+#include "profile-applet.h"
 #include <ks-definition.h>
 #include <QGSettings>
 #include <QVariant>

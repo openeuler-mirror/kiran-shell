@@ -25,7 +25,7 @@
 #include <kiran-style/style-palette.h>
 
 #include "applet.h"
-#include "lib/common/common.h"
+#include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 
 namespace Kiran
@@ -108,7 +108,7 @@ void Applet::changedActiveWindow(WId id)
 
 void Applet::updateAppShow()
 {
-    clearLayout(m_layout);
+    Utility::clearLayout(m_layout);
 
     auto appButtons = m_appButtonContainer->getAppButtons();
     for (auto button : appButtons)
@@ -119,7 +119,7 @@ void Applet::updateAppShow()
 
 void Applet::updateLayout()
 {
-    KLOG_INFO() << "Applet::UpdateLayout";
+    // KLOG_INFO() << "Applet::UpdateLayout";
     //横竖摆放
     auto direction = getLayoutDirection();
     m_layout->setDirection(direction);

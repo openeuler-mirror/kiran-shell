@@ -26,11 +26,14 @@
 #include <QScreen>
 #include <QSettings>
 
-#include "lib/common/common.h"
-#include "src/shell/applet.h"
-#include "src/shell/panel.h"
-#include "src/shell/profile/profile.h"
-#include "src/shell/utils.h"
+#include "applet.h"
+#include "ks-config.h"
+#include "lib/common/define.h"
+#include "lib/common/setting-process.h"
+#include "lib/common/utility.h"
+#include "panel.h"
+#include "profile/profile.h"
+#include "utils.h"
 
 namespace Kiran
 {
@@ -92,16 +95,16 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
         QMenu *menuLevel1 = menu0.addMenu(tr("Tasklist"));
         QAction *act = menuLevel1->addAction(tr("Show application name"));
         act->setCheckable(true);
-        act->setChecked(isShowAppBtnTail());
+        act->setChecked(SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool());
         connect(act, &QAction::triggered, this, [=]()
-                { saveIsShowAppBtnTail(act->isChecked()); });
+                { SettingProcess::setValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY, act->isChecked()); });
     }
 
     {
         QMenu *menuLevel1 = menu0.addMenu(tr("Panel"));
         QMenu *menuLevel2 = menuLevel1->addMenu(tr("Position"));
-        QAction *actTop = menuLevel2->addAction(tr("Up"));
-        QAction *actBottom = menuLevel2->addAction(tr("Down"));
+        QAction *actTop = menuLevel2->addAction(tr("Top"));
+        QAction *actBottom = menuLevel2->addAction(tr("Bottom"));
         QAction *actLeft = menuLevel2->addAction(tr("Left"));
         QAction *actRight = menuLevel2->addAction(tr("Right"));
         actTop->setCheckable(true);
@@ -158,7 +161,7 @@ void Panel::initChildren()
     this->m_appletsLayout->setContentsMargins(0, 0, 0, 0);
     this->m_appletsLayout->setSpacing(0);
 
-    auto profileApplets = profile::getInstance()->getAppletsOnPanel(m_profilePanel->getUID());
+    auto profileApplets = Profile::getInstance()->getAppletsOnPanel(m_profilePanel->getUID());
 
     for (const auto &profileApplet : profileApplets)
     {
@@ -218,7 +221,7 @@ QScreen *Panel::getScreen()
     }
     else
     {
-        KLOG_WARNING("The monitor index exceeds the maximum number of screens, so it will use primary screen.");
+        //        KLOG_WARNING("The monitor index exceeds the maximum number of screens, so it will use primary screen.");
     }
 
     return showingScreen;
@@ -229,7 +232,7 @@ void Panel::updateShow()
     updateGeometry();
     updateLayout();
 
-    KLOG_INFO() << "Panel sigPanelProfileChanged";
+    //    KLOG_INFO() << "Panel sigPanelProfileChanged";
 
     //通知插件更新布局
     emit panelProfileChanged();
@@ -240,9 +243,9 @@ void Panel::updateGeometry()
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
-    KLOG_INFO() << "orientation: " << orientation
-                << "screen geometry: " << showingScreen->geometry()
-                << "panel size: " << getSize();
+    //    KLOG_INFO() << "orientation: " << orientation
+    //                << "screen geometry: " << showingScreen->geometry()
+    //                << "panel size: " << getSize();
 
     int panelSize = getSize();  //宽或高
     QRect rect;

@@ -1,5 +1,5 @@
-#ifndef DEFINE_H
-#define DEFINE_H
+#pragma once
+
 #include <QDir>
 
 #define BUTTON_BLANK_SPACE 6
@@ -9,4 +9,4 @@
 #define TASKBAR_SHOW_APP_BTN_TAIL_KEY "taskbar/showAppBtnTail"
 #define TASKBAR_LOCK_APP_KEY "taskbar/lockApp"
 
-#endif  // DEFINE_H
+#define SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY "systemtray/trayBoxItems"

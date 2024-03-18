@@ -62,7 +62,7 @@
 <context>
     <name>Kiran::Menu::Applet</name>
     <message>
-        <location filename="../plugins/menu/applet.cpp" line="38"/>
+        <location filename="../plugins/menu/applet.cpp" line="50"/>
         <source>Start Menu</source>
         <translatorcomment>开始菜单</translatorcomment>
         <translation>开始菜单</translation>
@@ -179,48 +179,48 @@
 <context>
     <name>Kiran::Menu::Window</name>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="277"/>
+        <location filename="../plugins/menu/window.cpp" line="269"/>
         <source>Lock screen</source>
         <translation>锁定屏幕</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="283"/>
+        <location filename="../plugins/menu/window.cpp" line="275"/>
         <source>Switch user</source>
         <translatorcomment>切换用户</translatorcomment>
         <translation>切换用户</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="299"/>
+        <location filename="../plugins/menu/window.cpp" line="291"/>
         <source>Logout</source>
         <translatorcomment>注销</translatorcomment>
         <translation>注销</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="305"/>
+        <location filename="../plugins/menu/window.cpp" line="297"/>
         <source>Suspend</source>
         <translatorcomment>待机</translatorcomment>
         <translation>待机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="311"/>
+        <location filename="../plugins/menu/window.cpp" line="303"/>
         <source>Hibernate</source>
         <translatorcomment>休眠</translatorcomment>
         <translation>休眠</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="317"/>
+        <location filename="../plugins/menu/window.cpp" line="309"/>
         <source>Reboot</source>
         <translatorcomment>重启</translatorcomment>
         <translation>重启</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="323"/>
+        <location filename="../plugins/menu/window.cpp" line="315"/>
         <source>Shutdown</source>
         <translatorcomment>关机</translatorcomment>
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="422"/>
+        <location filename="../plugins/menu/window.cpp" line="414"/>
         <source>Hello,</source>
         <translatorcomment>你好，</translatorcomment>
         <translation>你好，</translation>

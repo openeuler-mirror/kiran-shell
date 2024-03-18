@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-file(GLOB_RECURSE H_FILES ./*.h)
-file(GLOB_RECURSE CPP_FILES ./*.cpp)
+file(GLOB_RECURSE H_FILES *.h)
+file(GLOB_RECURSE CPP_FILES *.cpp)
 
 set(TARGET_NAME kiran-shell)
 
@@ -22,6 +22,7 @@ add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES}
 target_include_directories(
   ${TARGET_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/profile
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/include

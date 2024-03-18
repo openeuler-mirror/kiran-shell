@@ -16,7 +16,7 @@
 
 #include <QMap>
 #include <QString>
-#include "src/shell/panel.h"
+#include "panel.h"
 
 namespace Kiran
 {

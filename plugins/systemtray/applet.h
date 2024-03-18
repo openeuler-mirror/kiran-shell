@@ -16,7 +16,7 @@
 
 #include <kiran-color-block.h>
 #include <plugin-i.h>
-#include <QPushButton>
+#include <QBoxLayout>
 
 namespace Kiran
 {
@@ -24,7 +24,9 @@ class IAppletImport;
 
 namespace Systemtray
 {
-class Applet : public /*QWidget*/ KiranColorBlock
+class Window;
+
+class Applet : public QWidget /*KiranColorBlock*/
 {
     Q_OBJECT
 
@@ -34,6 +36,8 @@ public:
 
 private:
     IAppletImport *m_import;
+
+    Window *m_window;
 };
 
 class Plugin : public QObject, public IPlugin

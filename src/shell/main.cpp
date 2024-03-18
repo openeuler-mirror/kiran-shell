@@ -18,8 +18,8 @@
 #include <QFileInfo>
 #include <QTranslator>
 #include "ks-config.h"
-#include "src/shell/profile/profile.h"
-#include "src/shell/shell.h"
+#include "profile/profile.h"
+#include "shell.h"
 
 // using namespace Kiran;
 
@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     //        fprintf(stderr, "Failed to init kiran-log.");
     //    }
 
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
     QApplication app(argc, argv);
     app.setApplicationName(programName);
     app.setApplicationVersion(PROJECT_VERSION);
@@ -40,8 +42,8 @@ int main(int argc, char *argv[])
     auto local = QLocale();
     KLOG_INFO() << "current local:" << local << local.name();
     QTranslator translator;
-
-    if (!translator.load(QLocale(), qAppName(), ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    if (!translator.load("/usr/local/share/kiran-shell/translations/kiran-shell.zh_CN.qm"))
+    //    if (!translator.load(QLocale(), "kiran-shell", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
     {
         KLOG_WARNING() << "Load translator failed!";
     }
@@ -55,13 +57,13 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.process(app);
 
-    Kiran::profile::globalInit();
+    Kiran::Profile::globalInit();
     Kiran::Shell::globalInit();
 
     auto ret = app.exec();
 
     Kiran::Shell::globalDeinit();
-    Kiran::profile::globalDeinit();
+    Kiran::Profile::globalDeinit();
 
     return ret;
 }

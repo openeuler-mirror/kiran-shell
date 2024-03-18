@@ -12,7 +12,7 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "src/shell/layout.h"
+#include "layout.h"
 #include <qgsettings.h>
 #include <qt5-log-i.h>
 #include <QDir>

@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 set(TARGET_NAME common)
 
-file(GLOB_RECURSE COMMON_H_FILES ./*.h)
-file(GLOB_RECURSE COMMON_CPP_FILES ./*.cpp)
+file(GLOB_RECURSE COMMON_H_FILES *.h)
+file(GLOB_RECURSE COMMON_CPP_FILES *.cpp)
 
 set(ALL_FILES ${COMMON_H_FILES} ${COMMON_CPP_FILES})
 

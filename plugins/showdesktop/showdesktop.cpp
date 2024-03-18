@@ -12,8 +12,13 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#include <ks-i.h>
+#include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
+#include <QCoreApplication>
+#include <QTranslator>
 
+#include "ks-config.h"
 #include "showdesktop.h"
 
 namespace Kiran
@@ -21,15 +26,42 @@ namespace Kiran
 Showdesktop::Showdesktop(IAppletImport *import)
     : m_import(import)
 {
+    static QTranslator translator;
+    if (!translator.load(QLocale(), "showdesktop", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING() << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+
     connect(this, &QPushButton::clicked, this, [=]()
             { KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop()); });
 
-    auto size = m_import->getPanel()->getSize();
-    //    setFixedSize(size, size);
-    setMinimumSize(size, size);
-    setMaximumSize(size, size);
+    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
+    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+
+    updateLayout();
 
     setToolTip(tr("Show desktop"));
+}
+
+void Showdesktop::updateLayout()
+{
+    int orientation = m_import->getPanel()->getOrientation();
+
+    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    {
+        auto size = m_import->getPanel()->getSize();
+        setFixedSize(size / 2, size);
+    }
+    else
+    {
+        auto size = m_import->getPanel()->getSize();
+        setFixedSize(size, size / 2);
+    }
 }
 
 }  // namespace Kiran

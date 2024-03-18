@@ -20,7 +20,7 @@
 #include <QFileInfo>
 #include <QtX11Extras/QX11Info>
 
-#include "lib/common/common.h"
+#include "utility.h"
 #include "window-info-helper.h"
 
 static const NET::Properties windowInfoFlags =
@@ -32,7 +32,6 @@ QByteArray WindowInfoHelper::getDesktopFileByWId(WId wid)
     QByteArray desktopFile = getDesktopFileByWIdPrivate(wid);
 
     return desktopFile.mid(desktopFile.lastIndexOf("/") + 1);
-    ;
 }
 
 QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
@@ -61,7 +60,7 @@ QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
         return "";
     }
 
-    QByteArray procStatus = runCmd("cat", {QString("/proc/%1/status").arg(pid)});
+    QByteArray procStatus = Utility::runCmd("cat", {QString("/proc/%1/status").arg(pid)});
     procStatus = procStatus.split('\n').first();
     windowClassName = QString::fromLocal8Bit(procStatus).remove("Name:").remove("\t").remove("\n").toLocal8Bit();
 
@@ -206,7 +205,7 @@ QByteArray WindowInfoHelper::getDesktopFileByWIdPrivate(WId wid)
     desktopFile = info.desktopFileName();
     if (!desktopFile.isEmpty())
     {
-        KLOG_INFO() << "find desktop file by KWindowInfo::desktopFileName:" << desktopFile;
+        //        KLOG_INFO() << "find desktop file by KWindowInfo::desktopFileName:" << desktopFile;
         return desktopFile;
     }
 
@@ -216,21 +215,21 @@ QByteArray WindowInfoHelper::getDesktopFileByWIdPrivate(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find pid by KWindowInfo";
+        //        KLOG_WARNING() << "can't find pid by KWindowInfo";
         return "";
     }
 
     desktopFile = getDesktopFileByEnviorn(pid);
     if (!desktopFile.isEmpty())
     {
-        KLOG_INFO() << "find desktop file by environ:" << desktopFile;
+        //        KLOG_INFO() << "find desktop file by environ:" << desktopFile;
         return desktopFile;
     }
 
     desktopFile = getDesktopFileByCmdline(pid);
     if (!desktopFile.isEmpty())
     {
-        KLOG_INFO() << "find desktop file by cmd line:" << desktopFile;
+        //        KLOG_INFO() << "find desktop file by cmd line:" << desktopFile;
         return desktopFile;
     }
 
@@ -242,7 +241,7 @@ QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
     // /proc/${pid}/enviorn GIO_LAUNCHED_DESKTOP_FILE
     QByteArray desktopFileEnv = "GIO_LAUNCHED_DESKTOP_FILE=";
 
-    QByteArray environ = runCmd("cat", {QString("/proc/%1/environ").arg(pid)});
+    QByteArray environ = Utility::runCmd("cat", {QString("/proc/%1/environ").arg(pid)});
     QByteArrayList envsList = environ.split('\0');
     for (auto env : envsList)
     {
@@ -257,7 +256,7 @@ QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
 
 QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
 {
-    QByteArray cmdline = runCmd("cat", {QString("/proc/%1/cmdline").arg(pid)});
+    QByteArray cmdline = Utility::runCmd("cat", {QString("/proc/%1/cmdline").arg(pid)});
     //    KLOG_INFO() << cmdline;
     QByteArrayList envsList = cmdline.split(' ');
     QString cmd = envsList.first();

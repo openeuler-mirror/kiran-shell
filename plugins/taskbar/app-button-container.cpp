@@ -14,10 +14,12 @@
 
 #include <plugin-i.h>
 #include <qt5-log-i.h>
+#include <QSettings>
 
 #include "app-button-container.h"
-#include "lib/common/common.h"
 #include "lib/common/define.h"
+#include "lib/common/setting-process.h"
+#include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 
 namespace KAStats = KActivities::Stats;
@@ -147,7 +149,7 @@ void AppButtonContainer::removeAppButton()
 
 void AppButtonContainer::loadLockApp()
 {
-    QStringList appIds = getTaskBarLockApp();
+    QStringList appIds = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toStringList();
     for (QString appId : appIds)
     {
         addLockApp(appId);
@@ -156,7 +158,7 @@ void AppButtonContainer::loadLockApp()
 
 void AppButtonContainer::updateLockApp()
 {
-    QStringList appIds = getTaskBarLockApp();
+    QStringList appIds = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toStringList();
     for (QString appId : appIds)
     {
         if (!m_mapButtonsLock.contains(appId))
@@ -176,7 +178,7 @@ void AppButtonContainer::updateLockApp()
     emit appRefreshed();
 }
 
-void AppButtonContainer::addLockApp(QString appId)
+void AppButtonContainer::addLockApp(const QString &appId)
 {
     AppButton *appButton = newAppBtn();
     appButton->setAppInfo(appId);
@@ -196,7 +198,7 @@ AppButton *AppButtonContainer::newAppBtn()
     return appButton;
 }
 
-void AppButtonContainer::removeLockApp(QString appId)
+void AppButtonContainer::removeLockApp(const QString &appId)
 {
     if (m_mapButtonsLock.contains(appId))
     {
@@ -221,37 +223,37 @@ void AppButtonContainer::updateFavorite()
     }
 }
 
-void AppButtonContainer::isInFavorite(QString appId, bool &checkResult)
+void AppButtonContainer::isInFavorite(const QString &appId, bool &checkResult)
 {
     checkResult = m_favoriteAppId.contains(appId);
 }
 
-void AppButtonContainer::addToFavorite(QString appId)
+void AppButtonContainer::addToFavorite(const QString &appId)
 {
-    appId = QLatin1String("applications:") + appId;
-    KLOG_WARNING() << "addToFavorite" << appId;
-    m_actStatsLinkedWatcher->linkToActivity(QUrl(appId), Activity::global(), Agent::global());
+    QString appIdReal = QLatin1String("applications:") + appId;
+    KLOG_WARNING() << "addToFavorite" << appIdReal;
+    m_actStatsLinkedWatcher->linkToActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void AppButtonContainer::removeFromFavorite(QString appId)
+void AppButtonContainer::removeFromFavorite(const QString &appId)
 {
-    appId = QLatin1String("applications:") + appId;
-    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appId), Activity::global(), Agent::global());
+    QString appIdReal = QLatin1String("applications:") + appId;
+    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void AppButtonContainer::isInTasklist(QString appId, bool &checkResult)
+void AppButtonContainer::isInTasklist(const QString &appId, bool &checkResult)
 {
-    checkResult = isTaskBarLockApp(appId);
+    checkResult = SettingProcess::isStringInKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
-void AppButtonContainer::addToTasklist(QString appId)
+void AppButtonContainer::addToTasklist(const QString &appId)
 {
-    addTaskBarLockApp(appId);
+    SettingProcess::addStringToKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
-void AppButtonContainer::removeFromTasklist(QString appId)
+void AppButtonContainer::removeFromTasklist(const QString &appId)
 {
-    removeTaskBarLockApp(appId);
+    SettingProcess::removeStringFromKey(TASKBAR_LOCK_APP_KEY, appId);
 }
 
 }  // namespace Taskbar
