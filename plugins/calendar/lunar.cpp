@@ -1,0 +1,679 @@
+#include "lunar.h"
+#include <QDebug>
+#define TIANGAN_DIZHI_START_YAER 1924  //  天干地支开始计算年月
+
+// 农历每年春节对应的公历日期 130：1月30号
+static const QList<int> springFestivalDate =
+    QList<int>() << 130 << 217 << 206                                                    // 1968 1969 1970
+                 << 127 << 215 << 203 << 123 << 211 << 131 << 218 << 207 << 128 << 216   // 1971--1980
+                 << 205 << 125 << 213 << 202 << 220 << 209 << 219 << 217 << 206 << 127   // 1981--1990
+                 << 215 << 204 << 123 << 210 << 131 << 219 << 207 << 128 << 216 << 205   // 1991--2000
+                 << 124 << 212 << 201 << 122 << 209 << 129 << 218 << 207 << 126 << 214   // 2001--2010
+                 << 203 << 123 << 210 << 131 << 219 << 208 << 128 << 216 << 205 << 125   // 2011--2020
+                 << 212 << 201 << 122 << 210 << 129 << 217 << 206 << 126 << 213 << 203   // 2021--2030
+                 << 123 << 211 << 131 << 219 << 208 << 128 << 215 << 204 << 124 << 212   // 2031--2040
+                 << 201 << 122 << 210 << 130 << 217 << 206 << 126 << 214 << 202 << 123   // 2041--2050
+                 << 211 << 201 << 219 << 208 << 128 << 215 << 204 << 124 << 212 << 202   // 2051--2060
+                 << 121 << 209 << 129 << 217 << 205 << 126 << 214 << 203 << 123 << 211   // 2061--2070
+                 << 131 << 219 << 207 << 127 << 215 << 205 << 124 << 212 << 202 << 122   // 2071--2080
+                 << 209 << 129 << 217 << 206 << 126 << 214 << 203 << 124 << 210 << 130   // 2081--2090
+                 << 218 << 207 << 127 << 215 << 205 << 125 << 212 << 201 << 121 << 209;  // 2091--2100
+
+// 起始年份1968
+// 每个数代表1年的农历每个月的天数及闰月数据
+// 17位及以上表示闰月的月份，1--13位表示农历每月的数据，高位表示1月，低位表示12月（农历闰月就会多一个月),30天的用1表示，29天的用0表示
+QList<int> lunarData =
+    QList<int>() << 461653 << 1386 << 2413                                                                // 1968 1969 1970
+                 << 330077 << 1197 << 2637 << 268877 << 3365 << 531109 << 2900 << 2922 << 398042 << 2395  // 1971--1980
+                 << 1179 << 267415 << 2635 << 661067 << 1701 << 1748 << 398772 << 2742 << 2391 << 330031  // 1981--1990
+                 << 1175 << 1611 << 200010 << 3749 << 527717 << 1452 << 2742 << 332397 << 2350 << 3222    // 1991--2000
+                 << 268949 << 3402 << 3493 << 133973 << 1386 << 464219 << 605 << 2349 << 334123 << 2709   // 2001--2010
+                 << 2890 << 267946 << 2773 << 592565 << 1210 << 2651 << 395863 << 1323 << 2707 << 265877  // 2011--2020
+                 << 1706 << 2773 << 133557 << 1206 << 398510 << 2638 << 3366 << 335142 << 3411 << 1450    // 2021--2030
+                 << 200042 << 2413 << 723293 << 1197 << 2637 << 399947 << 3365 << 3410 << 334676 << 2906  // 2031--2040
+                 << 1389 << 133467 << 1179 << 464023 << 2635 << 2725 << 333477 << 1746 << 2778 << 199350  // 2041--2050
+                 << 2359 << 264495 << 1175 << 1611 << 396618 << 3749 << 1706 << 267628 << 2734 << 2350    // 2051--2060
+                 << 203054 << 3222 << 465557 << 3402 << 3493 << 330581 << 1386 << 2669 << 264797 << 1325  // 2061--2070
+                 << 529707 << 2709 << 2890 << 399018 << 2773 << 1370 << 267450 << 2651 << 1323 << 202023  // 2071--2080
+                 << 1683 << 462419 << 1706 << 2773 << 330165 << 1206 << 2647 << 264782 << 3350 << 531750  // 2081--2090
+                 << 3410 << 3498 << 396650 << 1389 << 1198 << 267421 << 2605 << 3349 << 138021;           // 2091--2099
+
+//二十四节气，15减每月第一个节气得第一个字节，每月第二个节气减15得第二个字节
+QList<int> chSolarData =
+    QList<int>() << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 1970
+                 << 0x96 << 0xB4 << 0x96 << 0xA6 << 0x97 << 0x97 << 0x78 << 0x79 << 0x79 << 0x69 << 0x78 << 0x77   // 1971
+                 << 0x96 << 0xA4 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1972
+                 << 0xA5 << 0xB5 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 1973
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 1974
+                 << 0x96 << 0xB4 << 0x96 << 0xA6 << 0x97 << 0x97 << 0x78 << 0x79 << 0x78 << 0x69 << 0x78 << 0x77   // 1975
+                 << 0x96 << 0xA4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x88 << 0x89 << 0x88 << 0x78 << 0x87 << 0x87   // 1976
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 1977
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x79 << 0x78 << 0x87   // 1978
+                 << 0x96 << 0xB4 << 0x96 << 0xA6 << 0x96 << 0x97 << 0x78 << 0x79 << 0x78 << 0x69 << 0x78 << 0x77   // 1979
+                 << 0x96 << 0xA4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1980
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x77 << 0x87   // 1981
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 1982
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x78 << 0x79 << 0x78 << 0x69 << 0x78 << 0x77   // 1983
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1984
+                 << 0xA5 << 0xB4 << 0xA6 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 1985
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 1986
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x79 << 0x78 << 0x69 << 0x78 << 0x87   // 1987
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 1988
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1989
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 1990
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x86 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 1991
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 1992
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1993
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 1994
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x76 << 0x78 << 0x69 << 0x78 << 0x87   // 1995
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 1996
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 1997
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 1998
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 1999
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2000
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2001
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 2002
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 2003
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2004
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2005
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2006
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 2007
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2008
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2009
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2010
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x79 << 0x78 << 0x87   // 2011
+                 << 0x96 << 0xB4 << 0xA5 << 0xB5 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2012
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2013
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2014
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 2015
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2016
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2017
+                 << 0xA5 << 0xB4 << 0xA6 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2018
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 2019
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x86   // 2020
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2021
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2022
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 2023
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2024
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2025
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2026
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 2027
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2028
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2029
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2030
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 2031
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2032
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2033
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x78 << 0x88 << 0x78 << 0x87 << 0x87   // 2034
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2035
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2036
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2037
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2038
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2039
+                 << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 2040
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2041
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2042
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2043
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x88 << 0x87 << 0x96   // 2044
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2045
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2046
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2047
+                 << 0x95 << 0xB4 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x87 << 0x87 << 0x88 << 0x86 << 0x96   // 2048
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x86   // 2049
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2050
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2051
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 2052
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x86   // 2053
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2054
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2055
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x79 << 0x77 << 0x87   // 2056
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2057
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2058
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2059
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 2060
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2061
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2062
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2063
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x96 << 0x88 << 0x78 << 0x78 << 0x78 << 0x87 << 0x87   // 2064
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2065
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2066
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2067
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2068
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2069
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2070
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2071
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2072
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x88 << 0x87 << 0x96   // 2073
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA5 << 0xA6 << 0x87 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2074
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2075
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2076
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x88 << 0x87 << 0x96   // 2077
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x88 << 0x87 << 0x78 << 0x87 << 0x86   // 2078
+                 << 0xA5 << 0xB3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2079
+                 << 0xA5 << 0xB4 << 0x96 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x78 << 0x78 << 0x87 << 0x87   // 2080
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x87 << 0x87 << 0x88 << 0x86 << 0x96   // 2081
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x86   // 2082
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2083
+                 << 0xA5 << 0xB4 << 0xA6 << 0xA5 << 0xA6 << 0x96 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2084
+                 << 0xB4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x87 << 0x87 << 0x88 << 0x86 << 0x96   // 2085
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x86   // 2086
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2087
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2088
+                 << 0xB4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x87 << 0x87 << 0x88 << 0x96 << 0x96   // 2089
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2090
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2091
+                 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2092
+                 << 0xB4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x87 << 0x87 << 0x87 << 0x96 << 0x96   // 2093
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2094
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86   // 2095
+                 << 0xA5 << 0xB3 << 0xA5 << 0xA5 << 0xA6 << 0xA6 << 0x88 << 0x88 << 0x88 << 0x78 << 0x87 << 0x87   // 2096
+                 << 0xB4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x97 << 0x87 << 0x87 << 0x96 << 0x96   // 2097
+                 << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2098
+                 << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86;  // 2099
+//公历每个月之前有多少天
+QList<int> daysBeforeMonth = QList<int>() << 0 << 31 << 59 << 90 << 120 << 151 << 181 << 212 << 243 << 273 << 304 << 334;
+
+//农历中文日期
+QList<QString> chDayName =
+    QList<QString>() << "初一"
+                     << "初二"
+                     << "初三"
+                     << "初四"
+                     << "初五"
+                     << "初六"
+                     << "初七"
+                     << "初八"
+                     << "初九"
+                     << "初十"
+                     << "十一"
+                     << "十二"
+                     << "十三"
+                     << "十四"
+                     << "十五"
+                     << "十六"
+                     << "十七"
+                     << "十八"
+                     << "十九"
+                     << "二十"
+                     << "廿一"
+                     << "廿二"
+                     << "廿三"
+                     << "廿四"
+                     << "廿五"
+                     << "廿六"
+                     << "廿七"
+                     << "廿八"
+                     << "廿九"
+                     << "三十";
+//农历中文月份
+QList<QString> chMonName =
+    QList<QString>() << "正月"
+                     << "二月"
+                     << "三月"
+                     << "四月"
+                     << "五月"
+                     << "六月"
+                     << "七月"
+                     << "八月"
+                     << "九月"
+                     << "十月"
+                     << "冬月"
+                     << "腊月";
+//农历中文二十四节气
+QList<QString> chSolarName =
+    QList<QString>() << "小寒"
+                     << "大寒"
+                     << "立春"
+                     << "雨水"
+                     << "惊蛰"
+                     << "春分"
+                     << "清明"
+                     << "谷雨"
+                     << "立夏"
+                     << "小满"
+                     << "芒种"
+                     << "夏至"
+                     << "小暑"
+                     << "大暑"
+                     << "立秋"
+                     << "处暑"
+                     << "白露"
+                     << "秋分"
+                     << "寒露"
+                     << "霜降"
+                     << "立冬"
+                     << "小雪"
+                     << "大雪"
+                     << "冬至";
+//农历中文天干
+QList<QString> chTiangan =
+    QList<QString>() << "甲"
+                     << "乙"
+                     << "丙"
+                     << "丁"
+                     << "戊"
+                     << "己"
+                     << "庚"
+                     << "辛"
+                     << "壬"
+                     << "癸";
+//农历中文地支
+QList<QString> chDizhi =
+    QList<QString>() << "子"
+                     << "丑"
+                     << "寅"
+                     << "卯"
+                     << "辰"
+                     << "巳"
+                     << "午"
+                     << "未"
+                     << "申"
+                     << "酉"
+                     << "戌"
+                     << "亥";
+//农历中文动物属相
+QList<QString> chAnimal =
+    QList<QString>() << "鼠"
+                     << "牛"
+                     << "虎"
+                     << "兔"
+                     << "龙"
+                     << "蛇"
+                     << "马"
+                     << "羊"
+                     << "猴"
+                     << "鸡"
+                     << "狗"
+                     << "猪";
+
+QString Lunar::getLunarDayStr(int year, int month, int day)
+{
+    // 先获取公历节日
+    QString lunarDateStr = holiday(month, day);
+    // 计算24节气
+    QString strSolarTerms = solarTerms(year, month, day);
+
+    //计算转换的农历日期
+    if (!findLunarData(year, month, day))
+    {
+        return "";
+    }
+
+    // 显示转换的农历
+    // 只有农历每月第一天显示月份的名称
+    if (1 == day)
+    {
+        if (month < 1)
+        {
+            lunarDateStr = "闰" + chMonName.at(qAbs(month) - 1);
+            return lunarDateStr;
+        }
+
+        // 公历节日
+        if ("" != lunarDateStr)
+        {
+            return lunarDateStr;
+        }
+
+        // 计算农历节日
+        lunarDateStr = lunarFestival(year, month, day);
+
+        // 如果有节日，直接显示
+        if ("" == lunarDateStr)
+        {
+            // 如果当天不是24节气，显示农历日子
+            lunarDateStr = strSolarTerms;
+            if ("" == lunarDateStr)
+            {
+                lunarDateStr = chMonName.at(month - 1);
+            }
+        }
+    }
+    else
+    {
+        // 公历节日
+        if ("" != lunarDateStr)
+            return lunarDateStr;
+
+        // 计算农历节日
+        lunarDateStr = lunarFestival(year, month, day);
+        // 如果有节日，直接显示
+        if ("" == lunarDateStr)
+        {
+            // 如果当天不是24节气，显示农历日子
+            lunarDateStr = strSolarTerms;
+            if ("" == lunarDateStr)
+            {
+                lunarDateStr = chDayName.at(day - 1);
+            }
+        }
+    }
+
+    return lunarDateStr;
+}
+
+QString Lunar::getLunarMonDayStr(int year, int month, int day)
+{
+    //计算转换的农历日期
+    if (!findLunarData(year, month, day))
+    {
+        return "";
+    }
+
+    // 显示转换的农历
+    QString fullDateStr = chMonName.at(qAbs(month) - 1) + chDayName.at(day - 1);
+    if (month < 1)
+    {
+        fullDateStr = tr("闰") + fullDateStr;
+    }
+
+    return fullDateStr;
+}
+
+QString Lunar::getLunarYearStr(int year)
+{
+    // 农历时辰
+    QString strTime = "";
+    if (year > TIANGAN_DIZHI_START_YAER)
+    {
+        int yearDate = year - TIANGAN_DIZHI_START_YAER;
+        strTime.append(chTiangan.at(yearDate % 10));
+        strTime.append(chDizhi.at(yearDate % 12));
+        strTime.append(chAnimal.at(yearDate % 12));
+        strTime.append(tr("年"));
+    }
+
+    return strTime;
+}
+
+bool Lunar::isLoopYear(int year)
+{
+    return (((0 == (year % 4)) && (0 != (year % 100))) || (0 == (year % 400)));
+}
+
+int Lunar::daysSinceSpringFestival(int year, int month, int day, int& yearCountData)
+{
+    int pastDays;
+    int springFestivalMonth = springFestivalDate.at(yearCountData) / 100;
+    int springFestivalDay = springFestivalDate.at(yearCountData) % 100;
+    //春节离公历元旦所有天数
+    int springFestivalPastDays = 31 * ((springFestivalDate.at(yearCountData) / 100) - 1) + springFestivalDate.at(yearCountData) % 100;
+
+    //如果当前公历日期小于当年春节日期，则计算上一年农历过了多少天，如果当年公历日期大于当年春节日期，则计算当年农历过了多少天
+    if (month < springFestivalMonth)
+    {
+        yearCountData--;
+        pastDays = 365 * 1 + day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
+
+        if ((!(year % 4)) && (month > 2))
+        {
+            pastDays = pastDays + 1;
+        }
+
+        if ((!((year - 1) % 4)))
+        {
+            pastDays = pastDays + 1;
+        }
+    }
+    else if (month == springFestivalMonth)
+    {
+        if (day < springFestivalDay)
+        {
+            yearCountData--;
+            pastDays = 365 * 1 + day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
+
+            if ((!(year % 4)) && (month > 2))
+            {
+                pastDays = pastDays + 1;
+            }
+
+            if ((!((year - 1) % 4)))
+            {
+                pastDays = pastDays + 1;
+            }
+        }
+        else
+        {
+            pastDays = day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
+
+            if ((!(year % 4)) && (month > 2))
+            {
+                pastDays = pastDays + 1;
+            }
+        }
+    }
+    else
+    {
+        pastDays = day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
+        if ((!(year % 4)) && (month > 2))
+        {
+            pastDays = pastDays + 1;
+        }
+    }
+    return pastDays;
+}
+
+QString Lunar::holiday(int month, int day)
+{
+    int monthData = (month << 8) | day;
+    QString strHoliday = "";
+    switch (monthData)
+    {
+    case 0x0101:
+        strHoliday = tr("元旦");
+        break;
+    case 0x020E:
+        strHoliday = tr("情人节");
+        break;
+    case 0x0308:
+        strHoliday = tr("妇女节");
+        break;
+    case 0x030C:
+        strHoliday = tr("植树节");
+        break;
+    case 0x030F:
+        strHoliday = tr("消费者");
+        break;
+    case 0x0401:
+        strHoliday = tr("愚人节");
+        break;
+    case 0x0416:
+        strHoliday = tr("地球日");
+        break;
+    case 0x0501:
+        strHoliday = tr("劳动节");
+        break;
+    case 0x0504:
+        strHoliday = tr("青年节");
+        break;
+    case 0x050C:
+        strHoliday = tr("护士节");
+        break;
+    case 0x0601:
+        strHoliday = tr("儿童节");
+        break;
+    case 0x0701:
+        strHoliday = tr("建党节");
+        break;
+    case 0x0801:
+        strHoliday = tr("建军节");
+        break;
+    case 0x090A:
+        strHoliday = tr("教师节");
+        break;
+    case 0x0912:
+        strHoliday = tr("九一八");
+        break;
+    case 0x0A01:
+        strHoliday = tr("国庆节");
+        break;
+    case 0x0B08:
+        strHoliday = tr("记者节");
+        break;
+    case 0x0B1C:
+        strHoliday = tr("感恩节");
+        break;
+    case 0x0C18:
+        strHoliday = tr("平安夜");
+        break;
+    case 0x0C19:
+        strHoliday = tr("圣诞节");
+        break;
+    default:
+        break;
+    }
+
+    return strHoliday;
+}
+
+QString Lunar::solarTerms(int year, int month, int day)
+{
+    int solarTermsDay = 0;
+    int lunarMonth = (year - 1970) * 12 + month - 1;
+
+    if (day < 15)
+    {
+        solarTermsDay = 15 - day;
+        if ((chSolarData.at(lunarMonth) >> 4) == solarTermsDay)
+            return chSolarName.at(2 * (month - 1));
+        else
+            return "";
+    }
+    else if (day > 15)
+    {
+        solarTermsDay = day - 15;
+        if ((chSolarData.at(lunarMonth) & 0x0f) == solarTermsDay)
+            return chSolarName.at(2 * (month - 1) + 1);
+    }
+
+    return "";
+}
+
+QString Lunar::lunarFestival(int year, int month, int day)
+{
+    int lunarFestivalDay = (month << 8) | day;
+    QString strFestival = "";
+    switch (lunarFestivalDay)
+    {
+    case 0x0101:
+        strFestival = tr("春节");
+        break;
+    case 0x010F:
+        strFestival = tr("元宵节");
+        break;
+    case 0x0202:
+        strFestival = tr("龙抬头");
+        break;
+    case 0x0505:
+        strFestival = tr("端午节");
+        break;
+    case 0x0707:
+        strFestival = tr("七夕节");
+        break;
+    case 0x070F:
+        strFestival = tr("中元节");
+        break;
+    case 0x080F:
+        strFestival = tr("中秋节");
+        break;
+    case 0x0909:
+        strFestival = tr("重阳节");
+        break;
+    case 0x0C08:
+        strFestival = tr("腊八节");
+        break;
+    case 0x0C17:
+        strFestival = tr("北方小年");
+        break;
+    case 0x0C18:
+        strFestival = tr("南方小年");
+        break;
+    default:
+        break;
+    }
+
+    //判断除夕是腊月二十九还是腊月三十
+    int lastMonthBit;
+    lastMonthBit = lunarData.at(year - 1968) % 2;
+    lastMonthBit = lastMonthBit % 2;
+
+    if (lastMonthBit == 1 && lunarFestivalDay == 0x0C1E)
+    {
+        strFestival = tr("除夕");
+    }
+    else if (lastMonthBit == 0 && lunarFestivalDay == 0x0C1D)
+    {
+        strFestival = tr("除夕");
+    }
+
+    return strFestival;
+}
+
+bool Lunar::findLunarData(int& year, int& month, int& day)
+{
+    //如果年月日输入不合规范则返回
+    if (year < 1901 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31)
+    {
+        return false;
+    }
+
+    /*现在计算农历：获得当年春节的公历日期（比如：2015年春节日期为（2月19日）），
+            以此为分界点，2.19前面的农历是2014年农历（用2014年农历数据来计算），
+            2.19以及之后的日期，农历为2015年农历（用2015年农历数据来计算）。*/
+    int lunarDataIndex = year - 1968;
+    int restMonthNum;
+    //当前日期距离春节的天数
+    int daysSinceSF = daysSinceSpringFestival(year, month, day, lunarDataIndex);
+
+    bool findFlag = false;
+
+    //计算农历天干、地支、月、日
+    for (; lunarDataIndex < lunarData.size(); lunarDataIndex++)
+    {
+        //存在闰月则有13个月为13
+        restMonthNum = lunarData.at(lunarDataIndex) < 4095 ? 12 : 13;
+
+        while (restMonthNum > 0)
+        {
+            int monthBit = lunarData.at(lunarDataIndex);
+            monthBit = monthBit >> (restMonthNum - 1);
+            monthBit = monthBit % 2;
+            if (daysSinceSF <= (29 + monthBit))
+            {
+                findFlag = true;
+                break;
+            }
+
+            daysSinceSF = daysSinceSF - 29 - monthBit;
+            restMonthNum = restMonthNum - 1;
+        }
+
+        if (findFlag)
+        {
+            break;
+        }
+    }
+
+    if (!findFlag)
+    {
+        return false;
+    }
+
+    //存在闰月则有13个月为13
+    int monthNum = lunarData.at(lunarDataIndex) < 4095 ? 12 : 13;
+
+    // 农历的年月日
+    year = 1969 + lunarDataIndex - 1;
+    month = monthNum - restMonthNum + 1;
+    day = daysSinceSF;
+
+    if (monthNum == 13)
+    {
+        if (month == (lunarData.at(lunarDataIndex) / 65536) + 1)
+            month = 1 - month;
+        else if (month > (lunarData.at(lunarDataIndex) / 65536) + 1)
+            month = month - 1;
+    }
+
+    return true;
+}
