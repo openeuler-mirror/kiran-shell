@@ -426,7 +426,7 @@ void Window::updateUserInfo()
 
 void Window::updatePopular()
 {
-    Utility::clearLayout(m_ui->m_layoutWidgePopular);
+    Utility::clearLayout(m_ui->m_layoutWidgePopular, true);
 
     const auto query = UsedResources | HighScoredFirst | Agent::any() | Type::any() | Activity::any() | Url::startsWith(QStringLiteral("applications:")) | Limit(4);
 
@@ -451,7 +451,7 @@ void Window::updatePopular()
 
 void Window::updateFavorite()
 {
-    Utility::clearLayout(m_ui->m_gridLayoutFavoriteApp);
+    Utility::clearLayout(m_ui->m_gridLayoutFavoriteApp, true);
     m_favoriteAppId.clear();
 
     int colMax = 4;

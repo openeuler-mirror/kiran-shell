@@ -30,7 +30,7 @@ void SettingProcess::setValue(QString key, const QVariant &value)
 QVariant SettingProcess::getValue(QString iniFile, QString key)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
-    return settings.value(key).toStringList();
+    return settings.value(key);
 }
 
 void SettingProcess::setValue(QString iniFile, QString key, const QVariant &value)

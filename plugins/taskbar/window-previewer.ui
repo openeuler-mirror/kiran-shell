@@ -46,14 +46,14 @@
       <widget class="QPushButton" name="m_btnClose">
        <property name="minimumSize">
         <size>
-         <width>30</width>
-         <height>30</height>
+         <width>20</width>
+         <height>20</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>30</width>
-         <height>30</height>
+         <width>20</width>
+         <height>20</height>
         </size>
        </property>
        <property name="text">

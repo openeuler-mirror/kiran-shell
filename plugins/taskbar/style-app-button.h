@@ -11,26 +11,21 @@
  *
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
-
 #pragma once
 
-#include <QFontMetrics>
-#include <QLayout>
-#include <QObject>
+#include <QPushButton>
 
-class Utility : public QObject
+class StyleAppButton : public QPushButton
 {
     Q_OBJECT
 public:
-    // 执行命令
-    static QByteArray runCmd(QString cmd, QStringList cmdArg = QStringList());
+    StyleAppButton(QWidget *parent = nullptr);
 
-    // 清理布局
-    static void clearLayout(QLayout *layout, bool deleteWidget = false, bool hideWidget = false);
-
-    // 获取含省略号的字符串
-    static QString getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen);
+protected:
+    void enterEvent(QEvent *event);
+    void leaveEvent(QEvent *event);
+    void paintEvent(QPaintEvent *event);
 
 private:
-    Utility() {}
+    bool m_hovered;
 };

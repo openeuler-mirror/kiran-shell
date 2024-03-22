@@ -14,31 +14,43 @@
 
 #include <ks-i.h>
 #include <plugin-i.h>
+#include <qt5-log-i.h>
+#include <KWindowSystem/NETWM>
 #include <QBoxLayout>
 
+#include "app-button-container.h"
 #include "app-previewer.h"
+#include "lib/common/define.h"
+#include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
+#include "lib/common/window-info-helper.h"
+
+#define PREVIEWER_SPACING 3
 
 namespace Kiran
 {
 namespace Taskbar
 {
-AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
+AppPreviewer::AppPreviewer(IAppletImport *import, AppButtonContainer *parent)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::Tool),
       m_import(import)
 {
+    connect(parent, &AppButtonContainer::windowAdded, this, &AppPreviewer::addWindow);
+    connect(parent, &AppButtonContainer::windowRemoved, this, &AppPreviewer::removeWindow);
+    connect(parent, &AppButtonContainer::windowChanged, this, &AppPreviewer::windowChanged);
+    connect(parent, &AppButtonContainer::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
+
+    connect(parent, &AppButtonContainer::previewerShow, this, &AppPreviewer::showPreviewer);
+    connect(parent, &AppButtonContainer::previewerHide, this, &AppPreviewer::hidePreviewer);
+
     //横竖摆放
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     setLayout(m_layout);
     m_layout->setMargin(0);
-    m_layout->setSpacing(3);
+    m_layout->setSpacing(PREVIEWER_SPACING);
 
-    //子控件排列方式：左右、上下
-    Qt::AlignmentFlag alignment = getLayoutAlignment();
-    m_layout->setAlignment(alignment);
-
-    updateLayout();
+    setLayout(m_layout);
 }
 
 QBoxLayout::Direction AppPreviewer::getLayoutDirection()
@@ -62,35 +74,45 @@ Qt::AlignmentFlag AppPreviewer::getLayoutAlignment()
     return alignment;
 }
 
-void AppPreviewer::updateLayout()
+void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 {
-    if (m_mapWindowPreviewers.isEmpty())
+    if (windowPreviewerShow.isEmpty())
     {
         return;
     }
 
-    auto previwer = m_mapWindowPreviewers.begin().value();
-    setFixedSize(previwer->width() * m_mapWindowPreviewers.size(), previwer->height());
+    Utility::clearLayout(m_layout, false, true);
 
-    Utility::clearLayout(m_layout);
-    for (WindowPreviewer *previwer : m_mapWindowPreviewers)
+    auto previwer = windowPreviewerShow.first();
+    setFixedSize((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING, previwer->height());
+
+    //横竖摆放
+    auto direction = getLayoutDirection();
+    m_layout->setDirection(direction);
+    //子控件对齐方式：左右、上下
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+    m_layout->setAlignment(alignment);
+
+    for (WindowPreviewer *previwer : windowPreviewerShow)
     {
+        previwer->show();
         m_layout->addWidget(previwer);
     }
 }
 
-void AppPreviewer::addWindow(WId wid)
+void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
 {
-    m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, this);
-    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, this, &AppPreviewer::closeWindow);
+    m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
+    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, this, &AppPreviewer::windowClose);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, this, &QWidget::hide, Qt::DirectConnection);
 
-    int panelSize = m_import->getPanel()->getSize();
-    m_mapWindowPreviewers[wid]->setFixedSize(panelSize * 4, panelSize * 4);
-    updateLayout();
+    // 需要显示时才显示
+    m_mapWindowPreviewers[wid]->hide();
+
+    m_multiMapWmClassWid.insert(wmClass, wid);
 }
 
-void AppPreviewer::removeWindow(WId wid)
+void AppPreviewer::removeWindow(QByteArray wmClass, WId wid)
 {
     WindowPreviewer *previewr = m_mapWindowPreviewers.take(wid);
     if (previewr)
@@ -98,15 +120,46 @@ void AppPreviewer::removeWindow(WId wid)
         delete previewr;
         previewr = nullptr;
     }
-    updateLayout();
+
+    m_multiMapWmClassWid.remove(wmClass, wid);
 }
 
-void AppPreviewer::showEvent(QShowEvent *event)
+void AppPreviewer::showPreviewer(QByteArray wmClass, WId wid, QPoint centerOnGlobal)
 {
-    for (WindowPreviewer *previwer : m_mapWindowPreviewers)
+    QList<WindowPreviewer *> windowPreviewerShow;
+
+    // 根据当前模式，显示不一样的结果
+    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
     {
-        //更新截图
-        previwer->updatePreviewer();
+        // 显示单个
+        if (m_mapWindowPreviewers.contains(wid))
+        {
+            windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
+        }
+    }
+    else
+    {
+        // 显示一类
+        QList<WId> wids = m_multiMapWmClassWid.values(wmClass);
+        for (WId wid : wids)
+        {
+            if (m_mapWindowPreviewers.contains(wid))
+            {
+                windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
+            }
+        }
+    }
+
+    updateLayout(windowPreviewerShow);
+    move(centerOnGlobal.x() - width() / 2, 0);
+    show();
+}
+
+void AppPreviewer::hidePreviewer(QByteArray wmClass, WId wid)
+{
+    if (!geometry().contains(QCursor::pos()))
+    {
+        hide();
     }
 }
 

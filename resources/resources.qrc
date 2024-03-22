@@ -1,9 +1,9 @@
 <RCC>
     <qresource prefix="/images">
         <file>images/avatar_default.png</file>
-        <file>images/close_active.png</file>
         <file>images/close_normal.png</file>
-        <file>images/close_prelight.png</file>
+        <file>images/close_pressed.png</file>
+        <file>images/close_hover.png</file>
     </qresource>
     <qresource prefix="/theme">
         <file>themes/black_theme.qss</file>

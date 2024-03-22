@@ -19,6 +19,7 @@
 #include <QPushButton>
 
 #include "app-previewer.h"
+#include "style-app-button.h"
 
 namespace Kiran
 {
@@ -28,7 +29,7 @@ namespace Taskbar
 {
 class AppButtonContainer;
 
-class AppButton : public QPushButton
+class AppButton : public StyleAppButton
 {
     Q_OBJECT
 public:
@@ -51,19 +52,20 @@ private:
 
     void buttonClicked();
 
-    // 通过按钮进行关闭
-    void closeAppButton();
-    void closeWindow(WId wid);
-
     // 设置名称
     void updateName();
 
     // 监测窗口变化
-    void changedWindow(WId id, NET::Properties properties, NET::Properties2 properties2);
+    void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
 
+    void changedActiveWindow(WId wid);
 signals:
-    // 已没有打开的窗口
-    void windowEmptied();
+    // 显示预览窗口
+    void previewerShow(QByteArray wmClass, WId wid);
+    void previewerHide(QByteArray wmClass, WId wid);
+
+    // 通过按钮进行关闭
+    void windowClose(WId wid);
 
     // 查询是否在收藏夹中
     void isInFavorite(QString appId, bool &checkResult);
@@ -77,18 +79,14 @@ signals:
 
 private:
     IAppletImport *m_import;
-    AppButtonContainer *m_parent;
 
-    QByteArray m_wmClass;   // AppButton以wmclass为准，每个wmclass关联一个AppButton
-    QList<WId> m_windowId;  // 关联的窗口
+    QByteArray m_wmClass;  // AppButton以wmclass为准，每个wmclass关联一个AppButton
+    WId m_wid;             // 关联的窗口
 
-    QByteArray m_desktopFile;
-    QString m_name;
+    QByteArray m_desktopFile;  // 固定到任务栏时，关联的desktopfile
+    QString m_name;            // 应用名称
 
-    // 用于检测是否显示软件名称
-    QFileSystemWatcher m_settingFileWatcher;
-
-    AppPreviewer *m_appPreviewer;  // 应用预览窗口
+    QFileSystemWatcher m_settingFileWatcher;  // 用于检测是否显示软件名称
 };
 
 }  // namespace Taskbar
