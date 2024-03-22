@@ -14,32 +14,32 @@
         <translation>显示应用名称</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="104"/>
+        <location filename="../src/shell/panel.cpp" line="105"/>
         <source>Panel</source>
         <translation>面板</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="105"/>
+        <location filename="../src/shell/panel.cpp" line="106"/>
         <source>Position</source>
         <translation>调整位置</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="106"/>
+        <location filename="../src/shell/panel.cpp" line="107"/>
         <source>Top</source>
         <translation>上</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="107"/>
+        <location filename="../src/shell/panel.cpp" line="108"/>
         <source>Bottom</source>
         <translation>下</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="108"/>
+        <location filename="../src/shell/panel.cpp" line="109"/>
         <source>Left</source>
         <translation>左</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="109"/>
+        <location filename="../src/shell/panel.cpp" line="110"/>
         <source>Right</source>
         <translation>右</translation>
     </message>

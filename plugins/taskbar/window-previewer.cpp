@@ -12,12 +12,15 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QScreen>
 
+#include "app-previewer.h"
+#include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "ui_window-previewer.h"
 #include "window-previewer.h"
@@ -26,23 +29,39 @@ namespace Kiran
 {
 namespace Taskbar
 {
-WindowPreviewer::WindowPreviewer(WId wid, QWidget *parent)
+WindowPreviewer::WindowPreviewer(WId wid, IAppletImport *import, AppPreviewer *parent)
     : QWidget(parent),
       m_ui(new Ui::WindowPreviewer),
-      m_wid(wid)
+      m_wid(wid),
+      m_import(import)
 {
     m_ui->setupUi(this);
 
+    int panelSize = m_import->getPanel()->getSize();
+    setFixedSize(panelSize * 4, panelSize * 4);
+
+    // 标题栏图标
     int iconSize = m_ui->m_labelAppIcon->width();
     QPixmap icon = KWindowSystem::icon(wid, iconSize, iconSize, true);
     m_ui->m_labelAppIcon->setPixmap(icon);
-
-    QString name = WindowInfoHelper::getAppNameByWId(wid);
-    m_ui->m_labelAppName->setText(name);
+    // 初始默认截图
+    int screenshotSize = m_ui->m_labelGrabWindow->width();
+    QPixmap screenshot = KWindowSystem::icon(m_wid, screenshotSize, screenshotSize, true);
+    screenshot = screenshot.scaled(m_ui->m_labelGrabWindow->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    m_ui->m_labelGrabWindow->setPixmap(screenshot);
 
     m_menu = new QMenu(this);
     // 菜单弹出时，点击其地方，隐藏预览窗口
     connect(m_menu, &QMenu::aboutToHide, this, &WindowPreviewer::hideWindow);
+
+    // FIXME:待主题开发好之后去掉
+    QString style = "QPushButton{background:transparent; border:none; image:url(:/images/images/close_normal.png);} \
+                    QPushButton:hover{image:url(:/images/images/close_hover.png);} \
+                    QPushButton:pressed{image:url(:/images/images/close_pressed.png);}";
+    m_ui->m_btnClose->setStyleSheet(style);
+
+    connect(parent, &AppPreviewer::windowChanged, this, &WindowPreviewer::changedWindow);
+    connect(parent, &AppPreviewer::activeWindowChanged, this, &WindowPreviewer::changedActiveWindow);
 }
 
 WindowPreviewer::~WindowPreviewer()
@@ -52,6 +71,7 @@ WindowPreviewer::~WindowPreviewer()
 
 void WindowPreviewer::updatePreviewer()
 {
+    KLOG_INFO() << "WindowPreviewer::updatePreviewer" << m_wid;
     // FIXME:截取不到最小化窗口或被覆盖窗口
     QScreen *screen = QGuiApplication::primaryScreen();
     QPixmap screenshot = screen->grabWindow(m_wid);
@@ -68,6 +88,40 @@ void WindowPreviewer::updatePreviewer()
 bool WindowPreviewer::checkCanHide()
 {
     return m_menu->isHidden();
+}
+
+void WindowPreviewer::showPreviewer(QByteArray wmClass, WId wid)
+{
+}
+
+void WindowPreviewer::hidePreviewer(QByteArray wmClass, WId wid)
+{
+}
+
+void WindowPreviewer::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+{
+    if (m_wid == wid)
+    {
+        // 窗口位置变化
+        if (properties.testFlag(NET::WMGeometry))
+        {
+            KLOG_INFO() << "AppPreviewer::changedWindow NET::WMGeometry" << wid;
+
+            updatePreviewer();
+        }
+    }
+}
+
+void WindowPreviewer::changedActiveWindow(WId wid)
+{
+    // 接收到这个信号时，只能截取到激活之前的画面
+    if (m_wid == m_widLastActive)
+    {
+        KLOG_INFO() << "AppPreviewer::changedActiveWindow" << wid;
+        updatePreviewer();
+    }
+
+    m_widLastActive = wid;
 }
 
 void WindowPreviewer::on_m_btnClose_clicked()
@@ -157,7 +211,11 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
 
 void WindowPreviewer::showEvent(QShowEvent *event)
 {
-    m_widLastActive = KWindowSystem::activeWindow();
+    QString visibleName = WindowInfoHelper::getAppNameByWId(m_wid);
+    QFontMetrics fontMetrics = m_ui->m_labelAppName->fontMetrics();
+    int elidedTextLen = m_ui->m_labelAppName->width();
+    QString elideText = Utility::getElidedText(fontMetrics, visibleName, elidedTextLen);
+    m_ui->m_labelAppName->setText(elideText);
 }
 
 }  // namespace Taskbar

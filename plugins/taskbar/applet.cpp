@@ -33,31 +33,17 @@ namespace Kiran
 namespace Taskbar
 {
 Applet::Applet(IAppletImport *import)
-    : m_import(import),
-      m_appButtonContainer(nullptr)
+    : m_import(import)
 {
     //最大化
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
-
-    //横竖摆放
-    auto direction = getLayoutDirection();
-    m_layout = new QBoxLayout(direction, this);
-    setLayout(m_layout);
-    m_layout->setMargin(0);
-    m_layout->setSpacing(3);
-
-    //子控件排列方式：左右、上下
-    Qt::AlignmentFlag alignment = getLayoutAlignment();
-    m_layout->setAlignment(alignment);
-
     m_appButtonContainer = new AppButtonContainer(m_import, this);
-    connect(this, &Applet::windowAdded, m_appButtonContainer, &AppButtonContainer::addWindow);
-    connect(this, &Applet::windowRemoved, m_appButtonContainer, &AppButtonContainer::removedWindow);
-    connect(this, &Applet::activeWindowChanged, m_appButtonContainer, &AppButtonContainer::changedActiveWindow);
-    connect(m_appButtonContainer, &AppButtonContainer::appRefreshed, this, &Applet::updateAppShow);
+
+    QGridLayout *gridLayout = new QGridLayout(this);
+    gridLayout->setMargin(0);
+    gridLayout->setSpacing(0);
+    gridLayout->addWidget(m_appButtonContainer);
 
     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &Applet::addWindow);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &Applet::removeWindow);
@@ -81,73 +67,29 @@ Applet::~Applet()
 {
 }
 
-void Applet::addWindow(WId id)
+void Applet::addWindow(WId wid)
 {
     //    if (KWindowSystem::isPlatformX11())
-    if (!WindowInfoHelper::isSkipTaskbar(id))
+    if (!WindowInfoHelper::isSkipTaskbar(wid))
     {
-        emit windowAdded(id);
+        emit windowAdded(wid);
     }
 }
 
-void Applet::removeWindow(WId id)
+void Applet::removeWindow(WId wid)
 {
-    if (!WindowInfoHelper::isSkipTaskbar(id))
+    if (!WindowInfoHelper::isSkipTaskbar(wid))
     {
-        emit windowRemoved(id);
+        emit windowRemoved(wid);
     }
 }
 
-void Applet::changedActiveWindow(WId id)
+void Applet::changedActiveWindow(WId wid)
 {
-    if (!WindowInfoHelper::isSkipTaskbar(id))
+    if (!WindowInfoHelper::isSkipTaskbar(wid))
     {
-        emit activeWindowChanged(id);
+        emit activeWindowChanged(wid);
     }
-}
-
-void Applet::updateAppShow()
-{
-    Utility::clearLayout(m_layout);
-
-    auto appButtons = m_appButtonContainer->getAppButtons();
-    for (auto button : appButtons)
-    {
-        m_layout->addWidget(button);
-    }
-}
-
-void Applet::updateLayout()
-{
-    // KLOG_INFO() << "Applet::UpdateLayout";
-    //横竖摆放
-    auto direction = getLayoutDirection();
-    m_layout->setDirection(direction);
-
-    //子控件排列方式：左右、上下
-    Qt::AlignmentFlag alignment = getLayoutAlignment();
-    m_layout->setAlignment(alignment);
-}
-
-QBoxLayout::Direction Applet::getLayoutDirection()
-{
-    int orientation = m_import->getPanel()->getOrientation();
-    auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                      orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                         ? QBoxLayout::Direction::LeftToRight
-                         : QBoxLayout::Direction::TopToBottom;
-    return direction;
-}
-
-Qt::AlignmentFlag Applet::getLayoutAlignment()
-{
-    int orientation = m_import->getPanel()->getOrientation();
-    Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                                   orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                                      ? Qt::AlignLeft
-                                      : Qt::AlignTop;
-
-    return alignment;
 }
 
 }  // namespace Taskbar

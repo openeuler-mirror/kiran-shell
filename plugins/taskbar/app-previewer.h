@@ -27,36 +27,47 @@ class IAppletImport;
 
 namespace Taskbar
 {
+class AppButtonContainer;
+
 class AppPreviewer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AppPreviewer(IAppletImport *import, QWidget *parent = nullptr);
-
-    // 关联KWindowSystem，增加或关闭窗口
-    void addWindow(WId wid);
-    void removeWindow(WId wid);
+    AppPreviewer(IAppletImport *import, AppButtonContainer *parent);
 
 private:
     // 获取panel方向信息
     QBoxLayout::Direction getLayoutDirection();
     Qt::AlignmentFlag getLayoutAlignment();
+
     // 布局更新
-    void updateLayout();
+    void updateLayout(QList<WindowPreviewer *> windowPreviewerShow);
+
+    // 关联KWindowSystem，增加或关闭窗口
+    void addWindow(QByteArray wmClass, WId wid);
+    void removeWindow(QByteArray wmClass, WId wid);
+
+    void showPreviewer(QByteArray wmClass, WId wid, QPoint centerOnGlobal);
+    void hidePreviewer(QByteArray wmClass, WId wid);
 
 protected:
-    void showEvent(QShowEvent *event);
     void leaveEvent(QEvent *event);
 
 signals:
-    void closeWindow(WId wid);
+    void windowClose(WId wid);
+    // 窗口属性变化
+    void windowChanged(WId, NET::Properties, NET::Properties2);
+    // 激活状态
+    void activeWindowChanged(WId wid);
 
 private:
-    QBoxLayout *m_layout;
-
     IAppletImport *m_import;
 
     QMap<int, WindowPreviewer *> m_mapWindowPreviewers;  // key: wid
+
+    QMultiMap<QByteArray, WId> m_multiMapWmClassWid;
+
+    QBoxLayout *m_layout;
 };
 
 }  // namespace Taskbar

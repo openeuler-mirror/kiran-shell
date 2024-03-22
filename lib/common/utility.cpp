@@ -27,14 +27,32 @@ QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
     return p.readAll();
 }
 
-void Utility::clearLayout(QLayout *layout)
+void Utility::clearLayout(QLayout *layout, bool deleteWidget, bool hideWidget)
 {
     QLayoutItem *child;
     while ((child = layout->takeAt(0)) != 0)
     {
-        if (child->widget())
+        QWidget *widget = child->widget();
+        if (widget)
         {
-            child->widget()->setParent(NULL);
+            if (deleteWidget)
+            {
+                // 不再需要子项
+                widget->setParent(NULL);
+                delete widget;
+            }
+            else if (hideWidget)
+            {
+                // 隐藏功能，用于只需要显示部分子项，调用后再次显示需要调用show
+                // setParent(NULL)会导致不显示的子项无法自动析构
+                layout->removeWidget(widget);
+                widget->hide();
+            }
+            else
+            {
+                // 若为全量显示，则不需要隐藏
+                layout->removeWidget(widget);
+            }
         }
         delete child;
     }

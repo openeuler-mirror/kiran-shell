@@ -17,7 +17,7 @@
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
 #include <QMap>
-#include <QObject>
+#include <QWidget>
 
 #include "app-button.h"
 
@@ -27,24 +27,25 @@ class IAppletImport;
 
 namespace Taskbar
 {
-class AppButtonContainer : public QObject
+class Applet;
+class AppButtonContainer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AppButtonContainer(IAppletImport *import, QObject *parent = nullptr);
+    AppButtonContainer(IAppletImport *import, Applet *parent);
     ~AppButtonContainer();
 
-    //  打开或关闭窗口软件
-    void addWindow(WId wid);
-    void removedWindow(WId wid);
-    //激活窗口
-    void changedActiveWindow(WId id);
-    // 获取当前所有app按钮
-    QList<AppButton *> getAppButtons();
+private slots:
+    // 刷新app显示
+    void updateAppShow();
 
 private:
-    // 删除app按钮
-    void removeAppButton();
+    //  打开或关闭窗口软件
+    void addWindow(WId wid);
+    void removeWindow(WId wid);
+    //激活窗口
+    void changeActiveWindow(WId wid);
+
     // 固定到任务栏操作
     void loadLockApp();
     void updateLockApp();
@@ -62,21 +63,34 @@ private:
     void addToTasklist(const QString &appId);
     void removeFromTasklist(const QString &appId);
 
+    // 窗口关闭
+    void closeWindow(WId wid);
+
+    Qt::AlignmentFlag getLayoutAlignment();
+    QBoxLayout::Direction getLayoutDirection();
+
+    void showPreviewer(QByteArray wmClass, WId wid);
+
 signals:
-    // apps刷新
-    void appRefreshed();
-    //  打开或关闭窗口软件，用于按钮保存app信息
+    //  打开或关闭窗口软件
     void windowAdded(QByteArray wmClass, WId wid);
     void windowRemoved(QByteArray wmClass, WId wid);
     // 窗口属性变化
     void windowChanged(WId, NET::Properties, NET::Properties2);
+    // 激活状态
+    void activeWindowChanged(WId wid);
+
+    // 预览显示/隐藏
+    void previewerShow(QByteArray wmClass, WId wid, QPoint centerOnGlobal);
+    void previewerHide(QByteArray wmClass, WId wid);
 
 private:
     IAppletImport *m_import;
 
-    QMap<WId, QByteArray> m_mapWidWmClass;        // 当前打开的软件 key: wid value: wm_class
-    QMap<QByteArray, AppButton *> m_mapButtons;   // 当前打开的软件 key: wm_class
-    QMap<QString, AppButton *> m_mapButtonsLock;  // 固定到任务栏的软件 key: desktopfile
+    QMultiMap<QByteArray, QPair<WId, AppButton *>> m_mapButtons;  // key:wm_class
+    QMap<QString, AppButton *> m_mapButtonsLock;                  // 固定到任务栏的软件 key: desktopfile
+
+    AppPreviewer *m_appPreviewer;  // 应用预览窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 
@@ -84,6 +98,8 @@ private:
     KActivities::Stats::ResultWatcher *m_actStatsLinkedWatcher;
     // 保存收藏夹应用信息，用于判断应用是否在收藏夹中
     QStringList m_favoriteAppId;
+
+    QBoxLayout *m_layout;
 };
 
 }  // namespace Taskbar

@@ -16,7 +16,6 @@
 
 #include <kiran-color-block.h>
 #include <plugin-i.h>
-#include <QBoxLayout>
 #include <QWidget>
 
 #include "app-button-container.h"
@@ -25,7 +24,7 @@ namespace Kiran
 {
 namespace Taskbar
 {
-class Applet : public /*QWidget*/ KiranColorBlock
+class Applet : public QWidget /*KiranColorBlock*/
 {
     Q_OBJECT
 
@@ -35,31 +34,22 @@ public:
 
 private slots:
     //  打开或关闭窗口软件
-    void addWindow(WId id);
-    void removeWindow(WId id);
+    void addWindow(WId wid);
+    void removeWindow(WId wid);
     //激活窗口
-    void changedActiveWindow(WId id);
-    // 重新获取app，并显示
-    void updateAppShow();
-    // panel布局信息发生变化
-    void updateLayout();
-    // 获取panel方向信息
-    QBoxLayout::Direction getLayoutDirection();
-    Qt::AlignmentFlag getLayoutAlignment();
+    void changedActiveWindow(WId wid);
 
 signals:
     //  打开或关闭窗口软件
-    void windowAdded(WId id);
-    void windowRemoved(WId id);
-    void activeWindowChanged(WId id);
+    void windowAdded(WId wid);
+    void windowRemoved(WId wid);
+    void activeWindowChanged(WId wid);
 
 private:
     IAppletImport *m_import;
 
     // app容器
     AppButtonContainer *m_appButtonContainer;
-
-    QBoxLayout *m_layout;
 };
 
 class Plugin : public QObject, public IPlugin

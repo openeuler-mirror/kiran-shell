@@ -20,6 +20,7 @@
 #include <KWindowSystem>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QProcess>
 #include <QSettings>
 
@@ -35,11 +36,14 @@ namespace Kiran
 namespace Taskbar
 {
 AppButton::AppButton(IAppletImport *import, AppButtonContainer *parent)
-    : m_import(import)
+    : StyleAppButton(parent),
+      m_import(import),
+      m_wid(0)
 {
     connect(parent, &AppButtonContainer::windowAdded, this, &AppButton::addWindow);
     connect(parent, &AppButtonContainer::windowRemoved, this, &AppButton::removeWindow);
     connect(parent, &AppButtonContainer::windowChanged, this, &AppButton::changedWindow);
+    connect(parent, &AppButtonContainer::activeWindowChanged, this, &AppButton::changedActiveWindow);
 
     connect(this, &QPushButton::clicked, this, &AppButton::buttonClicked);
 
@@ -51,9 +55,6 @@ AppButton::AppButton(IAppletImport *import, AppButtonContainer *parent)
     m_settingFileWatcher.addPath(QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path());
     connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
             { updateName(); });
-
-    m_appPreviewer = new AppPreviewer(m_import);
-    connect(m_appPreviewer, &AppPreviewer::closeWindow, this, &AppButton::closeWindow);
 }
 
 void AppButton::setAppInfo(QByteArray wmClass, WId wid)
@@ -109,7 +110,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu;
     bool check_result = false;
 
-    if (m_windowId.isEmpty())
+    if (0 == m_wid)
     {
         menu.addAction(tr("Run app"), this, [=]()
                        { buttonClicked(); });
@@ -117,7 +118,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
     else
     {
         menu.addAction(tr("Close all windows"), this, [=]()
-                       { closeAppButton(); });
+                       { emit windowClose(m_wid); });
     }
 
     emit isInFavorite(m_desktopFile, check_result);
@@ -149,40 +150,43 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
 
 void AppButton::enterEvent(QEvent *event)
 {
-    // 移入鼠标，显示预览窗口
-    if (m_windowId.isEmpty())
+    // 鼠标移入，显示预览窗口
+    if (0 == m_wid)
     {
         return;
     }
 
-    int orientation = m_import->getPanel()->getOrientation();
-    auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                      orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                         ? QBoxLayout::Direction::LeftToRight
-                         : QBoxLayout::Direction::TopToBottom;
+    emit previewerShow(m_wmClass, m_wid);
 
-    m_appPreviewer->move(pos());
-
-    m_appPreviewer->show();
+    StyleAppButton::enterEvent(event);
 }
 
 void AppButton::leaveEvent(QEvent *event)
 {
-    if (!m_appPreviewer->geometry().contains(QCursor::pos()))
-    {
-        m_appPreviewer->hide();
-    }
-}
-
-void AppButton::addWindow(QByteArray wmClass, WId wid)
-{
-    if (wmClass != m_wmClass || m_windowId.contains(wid))
+    // 鼠标移出，隐藏预览窗口
+    if (0 == m_wid)
     {
         return;
     }
 
-    m_windowId.push_back(wid);
-    m_appPreviewer->addWindow(wid);
+    emit previewerHide(m_wmClass, m_wid);
+
+    StyleAppButton::leaveEvent(event);
+}
+
+void AppButton::addWindow(QByteArray wmClass, WId wid)
+{
+    if (wmClass != m_wmClass || m_wid == wid)
+    {
+        return;
+    }
+
+    if (0 != m_wid)
+    {
+        return;
+    }
+
+    m_wid = wid;
 }
 
 void AppButton::removeWindow(QByteArray wmClass, WId wid)
@@ -192,33 +196,34 @@ void AppButton::removeWindow(QByteArray wmClass, WId wid)
         return;
     }
 
-    m_windowId.removeAll(wid);
-
-    if (m_windowId.isEmpty())
+    if (m_wid == wid)
     {
-        emit windowEmptied();
+        m_wid = 0;
     }
-    m_appPreviewer->removeWindow(wid);
 }
 
-void AppButton::changedWindow(WId id, NET::Properties properties, NET::Properties2 properties2)
+void AppButton::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
 {
-    if (!m_windowId.contains(id))
+    if (m_wid != wid)
     {
         return;
     }
 
     if (properties.testFlag(NET::WMState))
     {
-        if (WindowInfoHelper::hasState(id, NET::DemandsAttention))
+        if (WindowInfoHelper::hasState(wid, NET::DemandsAttention))
         {
             // TODO: 提醒 需要样式支持
         }
-        else if (WindowInfoHelper::hasState(id, NET::Focused))
+        else if (WindowInfoHelper::hasState(wid, NET::Focused))
         {
             // TODO: 已聚焦窗口，清除提醒 需要样式支持
         }
     }
+}
+
+void AppButton::changedActiveWindow(WId wid)
+{
 }
 
 void AppButton::buttonClicked()
@@ -226,7 +231,7 @@ void AppButton::buttonClicked()
     // 如果没有关联的窗口，则启动应用（固定到任务栏的应用）
     // 如果只有一个关联的窗口，则激活或最小化窗口
     // 如果由多个关联窗口，不用处理
-    if (m_windowId.isEmpty())
+    if (0 == m_wid)
     {
         KService::Ptr service = KService::serviceByStorageId(m_desktopFile);
 
@@ -239,32 +244,17 @@ void AppButton::buttonClicked()
             KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
         }
     }
-    else if (1 == m_windowId.size())
+    else
     {
-        WId wid = m_windowId.first();
-        if (WindowInfoHelper::isActived(wid))
+        if (WindowInfoHelper::isActived(m_wid))
         {
-            WindowInfoHelper::minimizeWindow(wid);
+            WindowInfoHelper::minimizeWindow(m_wid);
         }
         else
         {
-            WindowInfoHelper::activeWindow(wid);
+            WindowInfoHelper::activeWindow(m_wid);
         }
     }
-}
-
-void AppButton::closeAppButton()
-{
-    for (WId wid : m_windowId)
-    {
-        closeWindow(wid);
-    }
-}
-
-void AppButton::closeWindow(WId wid)
-{
-    WindowInfoHelper::closeWindow(wid);
-    m_appPreviewer->hide();
 }
 
 void AppButton::updateName()
