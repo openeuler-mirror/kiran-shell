@@ -14,11 +14,13 @@
 
 #pragma once
 
+#include <kiran-color-block.h>
 #include <plugin-i.h>
 #include <QBoxLayout>
 #include <QPushButton>
 #include <QWidget>
 
+#include "lib/widgets/styled-button.h"
 #include "status-notifier-manager.h"
 #include "statusnotifierwatcherinterface.h"
 #include "window-popup.h"
@@ -29,7 +31,7 @@ namespace Systemtray
 {
 class TrayItem;
 
-class Window : public QWidget
+class Window : public KiranColorBlock
 {
     Q_OBJECT
 public:
@@ -73,7 +75,7 @@ private:
 
 private slots:
     // panel布局信息发生变化
-    void refreshLayout();
+    void updateLayout();
 
 signals:
     void dropEnded(QString serviceAndPath);
@@ -89,12 +91,12 @@ private:
     QMap<QString, TrayItem *> m_services;
 
     // 托盘弹出窗口
-    QPushButton *m_windowPopupButton;
+    StyledButton *m_windowPopupButton;
     WindowPopup *m_windowPopup;
 
     // 拖拽相关
     int m_currentDropIndex;
-    KiranColorBlock *m_indicatorWidget;
+    StyledButton *m_indicatorWidget;
 
     // 非弹出窗口项，放置在外面的项
     QList<QWidget *> m_items;

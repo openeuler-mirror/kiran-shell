@@ -16,7 +16,8 @@
 
 #include <dbusmenu-qt5/dbusmenuimporter.h>
 #include <QMenu>
-#include <QToolButton>
+
+#include "lib/widgets/styled-button.h"
 #include "tray-item-proxy.h"
 
 #define TRAY_ITEM_DATA_
@@ -25,7 +26,7 @@ namespace Kiran
 {
 namespace Systemtray
 {
-class TrayItem : public QToolButton
+class TrayItem : public StyledButton
 {
     Q_OBJECT
 public:

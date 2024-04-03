@@ -14,12 +14,12 @@
 
 #pragma once
 
+#include <KWindowSystem>
 #include <QFileSystemWatcher>
-#include <QMap>
-#include <QPushButton>
+#include <QUrl>
 
-#include "app-previewer.h"
-#include "style-app-button.h"
+#include "app-group.h"
+#include "lib/widgets/styled-button.h"
 
 namespace Kiran
 {
@@ -28,65 +28,66 @@ class IAppletImport;
 namespace Taskbar
 {
 class AppButtonContainer;
-
-class AppButton : public StyleAppButton
+class AppButton : public StyledButton
 {
     Q_OBJECT
 public:
-    AppButton(IAppletImport *import, AppButtonContainer *parent);
+    AppButton(IAppletImport *import, QWidget *parent);
 
-    // 新增窗口时调用
-    void setAppInfo(QByteArray wmClass, WId wid);
-    // 只传desktopfile，用于固定到任务栏的应用（未打开前）
-    void setAppInfo(QString appId);
+    void setAppInfo(const AppBaseInfo &appBaseInfo);
+    void setAppInfo(const QByteArray &wmClass, const WId &wid);  // 新增窗口时调用
+    void setUrl(QUrl url);
+    void setShowVisualName(const bool &isShow);
+    void reset();
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event);
-    void enterEvent(QEvent *event);
-    void leaveEvent(QEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
+private slots:
+    void updateLayout();
 
 private:
-    // 关联KWindowSystem，增加或关闭窗口
-    void addWindow(QByteArray wmClass, WId wid);
-    void removeWindow(QByteArray wmClass, WId wid);
-
     void buttonClicked();
-
-    // 设置名称
-    void updateName();
 
     // 监测窗口变化
     void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
+    void updateShowName();
 
-    void changedActiveWindow(WId wid);
+    void getInfoFromUrl();
+
 signals:
-    // 显示预览窗口
-    void previewerShow(QByteArray wmClass, WId wid);
-    void previewerHide(QByteArray wmClass, WId wid);
+    // 显示、隐藏预览窗口
+    void previewerShowChange(WId wid);
 
     // 通过按钮进行关闭
     void windowClose(WId wid);
 
     // 查询是否在收藏夹中
-    void isInFavorite(QString appId, bool &checkResult);
+    void isInFavorite(const QString &appId, bool &checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(QString appId, bool &checkResult);
-    // 添加到×/从×移除 桌面、收藏夹、任务栏
-    void addToFavorite(QString appId);
-    void removeFromFavorite(QString appId);
-    void addToTasklist(QString appId);
-    void removeFromTasklist(QString appId);
+    void isInTasklist(const QUrl &url, bool &checkResult);
+    // 添加到×/从×移除 x:桌面、收藏夹、任务栏
+    void addToFavorite(const QString &appId);
+    void removeFromFavorite(const QString &appId);
+    void addToTasklist(const QUrl &url, AppButton *appButton);
+    void removeFromTasklist(const QUrl &url);
+
+    // 确认是否单个按钮关联了多个窗口
+    void getRelationAppSize(int &result);
 
 private:
     IAppletImport *m_import;
 
-    QByteArray m_wmClass;  // AppButton以wmclass为准，每个wmclass关联一个AppButton
-    WId m_wid;             // 关联的窗口
+    AppBaseInfo m_appBaseInfo;
 
-    QByteArray m_desktopFile;  // 固定到任务栏时，关联的desktopfile
-    QString m_name;            // 应用名称
+    WId m_wid;  // 关联的窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测是否显示软件名称
+    QString m_visualName;                     // 显示的文本
+    bool m_isShowName;
 };
 
 }  // namespace Taskbar

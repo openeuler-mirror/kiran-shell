@@ -33,7 +33,8 @@ WindowPopup::WindowPopup(IAppletImport *import, QWidget *parent)
     m_layout->setMargin(0);
     m_layout->setSpacing(0);
 
-    m_indicatorWidget = new KiranColorBlock(this);
+    m_indicatorWidget = new StyledButton(this);
+    m_indicatorWidget->setChecked(true);  // 显示不一样的样式
     auto size = m_import->getPanel()->getSize();
     m_indicatorWidget->setFixedSize(size, size);
     m_indicatorWidget->hide();
@@ -270,17 +271,17 @@ void WindowPopup::itemRemove(const QString &serviceAndPath)
 
 void WindowPopup::addWindowPopupItem(const QString &serviceAndPath)
 {
-    SettingProcess::addStringToKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    SettingProcess::addValueToKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
 }
 
 void WindowPopup::removeWindowPopupItem(const QString &serviceAndPath)
 {
-    SettingProcess::removeStringFromKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    SettingProcess::removeValueFromKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
 }
 
 bool WindowPopup::isWindowPopupItem(const QString &serviceAndPath)
 {
-    return SettingProcess::isStringInKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    return SettingProcess::isValueInKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
 }
 
 }  // namespace Systemtray

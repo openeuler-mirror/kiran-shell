@@ -18,7 +18,7 @@
 #include <KWindowSystem/NETWM>
 #include <QBoxLayout>
 
-#include "app-button-container.h"
+#include "app-group.h"
 #include "app-previewer.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
@@ -31,17 +31,17 @@ namespace Kiran
 {
 namespace Taskbar
 {
-AppPreviewer::AppPreviewer(IAppletImport *import, AppButtonContainer *parent)
+AppPreviewer::AppPreviewer(IAppletImport *import, AppGroup *parent)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::Tool),
       m_import(import)
 {
-    connect(parent, &AppButtonContainer::windowAdded, this, &AppPreviewer::addWindow);
-    connect(parent, &AppButtonContainer::windowRemoved, this, &AppPreviewer::removeWindow);
-    connect(parent, &AppButtonContainer::windowChanged, this, &AppPreviewer::windowChanged);
-    connect(parent, &AppButtonContainer::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
+    connect(parent, &AppGroup::windowAdded, this, &AppPreviewer::addWindow);
+    connect(parent, &AppGroup::windowRemoved, this, &AppPreviewer::removeWindow);
+    connect(parent, &AppGroup::windowChanged, this, &AppPreviewer::windowChanged);
+    connect(parent, &AppGroup::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
 
-    connect(parent, &AppButtonContainer::previewerShow, this, &AppPreviewer::showPreviewer);
-    connect(parent, &AppButtonContainer::previewerHide, this, &AppPreviewer::hidePreviewer);
+    connect(parent, &AppGroup::previewerShow, this, &AppPreviewer::showPreviewer);
+    connect(parent, &AppGroup::previewerHide, this, &AppPreviewer::hidePreviewer);
 
     //横竖摆放
     auto direction = getLayoutDirection();
@@ -83,9 +83,6 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 
     Utility::clearLayout(m_layout, false, true);
 
-    auto previwer = windowPreviewerShow.first();
-    setFixedSize((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING, previwer->height());
-
     //横竖摆放
     auto direction = getLayoutDirection();
     m_layout->setDirection(direction);
@@ -98,21 +95,30 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
         previwer->show();
         m_layout->addWidget(previwer);
     }
+
+    auto previwer = windowPreviewerShow.first();
+    if (QBoxLayout::Direction::LeftToRight == direction)
+    {
+        setFixedSize((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING, previwer->height());
+    }
+    else
+    {
+        setFixedSize(previwer->width(), (previwer->height() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING);
+    }
 }
 
 void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
 {
+    //    KLOG_INFO() << "AppPreviewer::addWindow" << wmClass << wid;
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, this, &AppPreviewer::windowClose);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, this, &QWidget::hide, Qt::DirectConnection);
 
     // 需要显示时才显示
     m_mapWindowPreviewers[wid]->hide();
-
-    m_multiMapWmClassWid.insert(wmClass, wid);
 }
 
-void AppPreviewer::removeWindow(QByteArray wmClass, WId wid)
+void AppPreviewer::removeWindow(WId wid)
 {
     WindowPreviewer *previewr = m_mapWindowPreviewers.take(wid);
     if (previewr)
@@ -120,12 +126,11 @@ void AppPreviewer::removeWindow(QByteArray wmClass, WId wid)
         delete previewr;
         previewr = nullptr;
     }
-
-    m_multiMapWmClassWid.remove(wmClass, wid);
 }
 
-void AppPreviewer::showPreviewer(QByteArray wmClass, WId wid, QPoint centerOnGlobal)
+void AppPreviewer::showPreviewer(WId wid, QPoint centerOnGlobal)
 {
+    // KLOG_INFO() << "AppPreviewer::showPreviewer" << wid;
     QList<WindowPreviewer *> windowPreviewerShow;
 
     // 根据当前模式，显示不一样的结果
@@ -140,22 +145,30 @@ void AppPreviewer::showPreviewer(QByteArray wmClass, WId wid, QPoint centerOnGlo
     else
     {
         // 显示一类
-        QList<WId> wids = m_multiMapWmClassWid.values(wmClass);
-        for (WId wid : wids)
+        auto iter = m_mapWindowPreviewers.begin();
+        while (iter != m_mapWindowPreviewers.end())
         {
-            if (m_mapWindowPreviewers.contains(wid))
-            {
-                windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
-            }
+            windowPreviewerShow.push_back(iter.value());
+            iter++;
         }
     }
 
     updateLayout(windowPreviewerShow);
-    move(centerOnGlobal.x() - width() / 2, 0);
+
+    auto direction = getLayoutDirection();
+    if (QBoxLayout::Direction::LeftToRight == direction)
+    {
+        move(centerOnGlobal.x() - width() / 2, 0);
+    }
+    else
+    {
+        move(0, centerOnGlobal.y() - height() / 2);
+    }
+
     show();
 }
 
-void AppPreviewer::hidePreviewer(QByteArray wmClass, WId wid)
+void AppPreviewer::hidePreviewer(WId wid)
 {
     if (!geometry().contains(QCursor::pos()))
     {

@@ -12,6 +12,15 @@
  * Author:     yanglan <yanglan@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
+#include <QCoreApplication>
+#include <QDBusInterface>
+#include <QFont>
+#include <QMouseEvent>
+#include <QTimer>
+#include <QToolTip>
+#include <QTranslator>
+
 #include "applet.h"
 
 #define KIRAN_TIMEDATA_BUS "com.kylinsec.Kiran.SystemDaemon.TimeDate"
@@ -210,9 +219,16 @@ void Applet::timeUpdate()
     QString curWeekDateStr = curDateTime.toString("dddd");
     QString curMonthDateStr = curDateTime.toString("MM");
     QString curDayDateStr = curDateTime.toString("dd");
-    QString yearStr = tr("年");
-    QString monthStr = tr("月");
-    QString dayStr = tr("月");
+    QString yearStr = "/";
+    QString monthStr = "/";
+    QString dayStr = "";
+    if (QLocale().language() == QLocale::Chinese)
+    {
+        // 仅中文环境下显示，不需要翻译
+        yearStr = "年";
+        monthStr = "月";
+        dayStr = "日";
+    }
 
     QString tooltipStr = QString("%1,%2%3%4%5%6%7").arg(curWeekDateStr).arg(curYearDateStr).arg(yearStr).arg(curMonthDateStr).arg(monthStr).arg(curDayDateStr).arg(dayStr);
 

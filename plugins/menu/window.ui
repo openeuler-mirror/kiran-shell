@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>736</width>
-    <height>652</height>
+    <width>751</width>
+    <height>729</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -81,7 +81,13 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QPushButton" name="m_btnAppsOverview">
+         <widget class="StyledButton" name="m_btnAppsOverview">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -104,10 +110,22 @@
            <iconset theme="ks-menu-apps-list-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnRecentFilesOverview">
+         <widget class="StyledButton" name="m_btnRecentFilesOverview">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -130,6 +148,9 @@
            <iconset theme="ks-menu-recent-files-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
        </layout>
@@ -147,7 +168,13 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QPushButton" name="m_btnRunCommand">
+         <widget class="StyledButton" name="m_btnRunCommand">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -170,10 +197,19 @@
            <iconset theme="ks-menu-run-command-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnSearchFiles">
+         <widget class="StyledButton" name="m_btnSearchFiles">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -196,10 +232,19 @@
            <iconset theme="ks-menu-search-files-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnHomeDir">
+         <widget class="StyledButton" name="m_btnHomeDir">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -222,10 +267,19 @@
            <iconset theme="ks-menu-home-dir-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnSettings">
+         <widget class="StyledButton" name="m_btnSettings">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -248,10 +302,19 @@
            <iconset theme="ks-menu-settings-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnSystemMonitor">
+         <widget class="StyledButton" name="m_btnSystemMonitor">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -274,10 +337,19 @@
            <iconset theme="ks-menu-system-monitor-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnPower">
+         <widget class="StyledButton" name="m_btnPower">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -299,6 +371,9 @@
           <property name="icon">
            <iconset theme="ks-menu-power-symbolic">
             <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -335,26 +410,53 @@
       <item>
        <widget class="QWidget" name="m_widgetUserInfo" native="true">
         <layout class="QGridLayout" name="gridLayout_2">
+         <property name="leftMargin">
+          <number>30</number>
+         </property>
+         <property name="horizontalSpacing">
+          <number>20</number>
+         </property>
          <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
+           <item alignment="Qt::AlignBottom">
             <widget class="QLabel" name="m_labelUserName">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>你好，root</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="m_btnDate">
+            <widget class="StyledButton" name="m_btnDate">
              <property name="text">
               <string>111</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
           </layout>
          </item>
-         <item row="0" column="0">
+         <item row="0" column="0" alignment="Qt::AlignLeft">
           <widget class="QPushButton" name="m_btnUserPhoto">
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>60</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -371,7 +473,16 @@
       </item>
       <item>
        <widget class="QWidget" name="m_widgetPopularApp" native="true">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>160</height>
+         </size>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
            <property name="spacing">
@@ -387,12 +498,15 @@
             <number>15</number>
            </property>
            <property name="bottomMargin">
-            <number>15</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QPushButton" name="m_btnPopularAppIcon">
              <property name="enabled">
               <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
              </property>
              <property name="text">
               <string/>
@@ -410,7 +524,7 @@
          </item>
          <item>
           <widget class="QWidget" name="m_widgetPopular" native="true">
-           <layout class="QGridLayout" name="m_layoutWidgePopular"/>
+           <layout class="QGridLayout" name="m_gridLayoutPopularApp"/>
           </widget>
          </item>
         </layout>
@@ -437,12 +551,15 @@
             <number>15</number>
            </property>
            <property name="bottomMargin">
-            <number>15</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QPushButton" name="m_btnFavoriteAppIcon">
              <property name="enabled">
               <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
              </property>
              <property name="text">
               <string/>
@@ -477,27 +594,11 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>314</width>
-              <height>294</height>
+              <width>321</width>
+              <height>412</height>
              </rect>
             </property>
-            <layout class="QGridLayout" name="m_gridLayoutFavoriteApp">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <property name="spacing">
-              <number>6</number>
-             </property>
-            </layout>
+            <layout class="QGridLayout" name="m_gridLayoutFavoriteApp"/>
            </widget>
           </widget>
          </item>
@@ -509,6 +610,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>StyledButton</class>
+   <extends>QPushButton</extends>
+   <header>lib/widgets/styled-button.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

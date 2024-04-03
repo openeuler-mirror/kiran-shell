@@ -82,9 +82,9 @@ private:
     void removeFromFavorite(const QString& appId);
 
     //添加到任务栏操作
-    void isInTasklist(const QString& appId, bool& checkResult);
-    void addToTasklist(const QString& appId);
-    void removeFromTasklist(const QString& appId);
+    void isInTasklist(const QUrl& url, bool& checkResult);
+    void addToTasklist(const QUrl& url);
+    void removeFromTasklist(const QUrl& url);
 
     //添加到桌面操作
     void addToDesktop(const QString& appId);
@@ -97,8 +97,9 @@ private slots:
 protected:
     //事件过滤器
     bool eventFilter(QObject* object, QEvent* event) override;
-    void paintEvent(QPaintEvent* event) override;
     void showEvent(QShowEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+
 signals:
     void windowDeactivated();
 

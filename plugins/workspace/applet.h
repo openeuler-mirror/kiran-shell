@@ -15,7 +15,7 @@
 #pragma once
 
 #include <plugin-i.h>
-#include "lib/common/applet-button.h"
+#include "lib/widgets/applet-button.h"
 
 namespace Kiran
 {

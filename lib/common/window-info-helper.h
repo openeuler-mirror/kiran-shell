@@ -22,7 +22,7 @@ class WindowInfoHelper : public QObject
 {
     Q_OBJECT
 public:
-    static QByteArray getDesktopFileByWId(WId wid);
+    static QUrl getUrlByWId(WId wid);
     static QByteArray getWmClassByWId(WId wid);
     static QString getAppNameByWId(WId wid);
     static QString getAppIconByWId(WId wid);
@@ -40,12 +40,13 @@ public:
     static void minimizeWindow(WId wid);
     static void restoredWindow(WId wid);
 
-    static void activeWindow(WId wid);
+    static void activateWindow(WId wid);
+    static WId activeWindow();
 
 private:
     WindowInfoHelper() {}
 
-    static QByteArray getDesktopFileByWIdPrivate(WId wid);
+    static QByteArray getUrlByWIdPrivate(WId wid);
 
     static QByteArray getDesktopFileByEnviorn(int pid);
     static QByteArray getDesktopFileByCmdline(int pid);

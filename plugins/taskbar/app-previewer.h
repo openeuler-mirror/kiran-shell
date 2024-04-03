@@ -27,13 +27,13 @@ class IAppletImport;
 
 namespace Taskbar
 {
-class AppButtonContainer;
+class AppGroup;
 
 class AppPreviewer : public QWidget
 {
     Q_OBJECT
 public:
-    AppPreviewer(IAppletImport *import, AppButtonContainer *parent);
+    AppPreviewer(IAppletImport *import, AppGroup *parent);
 
 private:
     // 获取panel方向信息
@@ -45,10 +45,10 @@ private:
 
     // 关联KWindowSystem，增加或关闭窗口
     void addWindow(QByteArray wmClass, WId wid);
-    void removeWindow(QByteArray wmClass, WId wid);
+    void removeWindow(WId wid);
 
-    void showPreviewer(QByteArray wmClass, WId wid, QPoint centerOnGlobal);
-    void hidePreviewer(QByteArray wmClass, WId wid);
+    void showPreviewer(WId wid, QPoint centerOnGlobal);
+    void hidePreviewer(WId wid);
 
 protected:
     void leaveEvent(QEvent *event);
@@ -64,8 +64,6 @@ private:
     IAppletImport *m_import;
 
     QMap<int, WindowPreviewer *> m_mapWindowPreviewers;  // key: wid
-
-    QMultiMap<QByteArray, WId> m_multiMapWmClassWid;
 
     QBoxLayout *m_layout;
 };

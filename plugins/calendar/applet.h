@@ -16,16 +16,13 @@
 
 #include <ks-i.h>
 #include <plugin-i.h>
-#include <qt5-log-i.h>
-#include <QDBusInterface>
-#include <QFont>
-#include <QMouseEvent>
-#include <QTimer>
-#include <QToolTip>
-#include <QTranslator>
+#include <QPushButton>
 
 #include "ks-config.h"
 #include "window.h"
+
+class QDBusInterface;
+class QTimer;
 
 namespace Kiran
 {

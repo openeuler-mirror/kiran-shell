@@ -14,10 +14,10 @@
 
 #pragma once
 
+#include <kiran-color-block.h>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
-#include <QMap>
-#include <QWidget>
+#include <QBoxLayout>
 
 #include "app-button.h"
 
@@ -28,69 +28,72 @@ class IAppletImport;
 namespace Taskbar
 {
 class Applet;
-class AppButtonContainer : public QWidget
+class AppGroup;
+class AppBaseInfo;
+class AppButtonContainer : public KiranColorBlock
 {
     Q_OBJECT
 public:
     AppButtonContainer(IAppletImport *import, Applet *parent);
     ~AppButtonContainer();
 
+protected:
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+
 private slots:
     // 刷新app显示
-    void updateAppShow();
+    void updateLayout();
 
 private:
+    AppGroup *genAppGroup(const AppBaseInfo &baseinfo);
+
     //  打开或关闭窗口软件
     void addWindow(WId wid);
-    void removeWindow(WId wid);
-    //激活窗口
-    void changeActiveWindow(WId wid);
 
     // 固定到任务栏操作
-    void loadLockApp();
     void updateLockApp();
-    void addLockApp(const QString &appId);
-    void removeLockApp(const QString &appId);
-    // 新建app按钮
-    AppButton *newAppBtn();
+    void addLockApp(const QUrl &url);
+    void removeLockApp(const QUrl &url);
+
     // 收藏夹关联
     void updateFavorite();
     void isInFavorite(const QString &appId, bool &isFavorite);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
     // 固定到任务栏信息 查询、增加、删除
-    void isInTasklist(const QString &appId, bool &checkResult);
-    void addToTasklist(const QString &appId);
-    void removeFromTasklist(const QString &appId);
+    void isInTasklist(const QUrl &url, bool &checkResult);
+    void addToTasklist(const QUrl &url, AppGroup *appGroup);
+    void removeFromTasklist(const QUrl &url);
 
     // 窗口关闭
     void closeWindow(WId wid);
+    void removeGroup(AppGroup *group);
 
     Qt::AlignmentFlag getLayoutAlignment();
     QBoxLayout::Direction getLayoutDirection();
 
-    void showPreviewer(QByteArray wmClass, WId wid);
+    // 拖拽相关，计算位置
+    int getInsertedIndex(const QPoint &pos);
 
 signals:
     //  打开或关闭窗口软件
     void windowAdded(QByteArray wmClass, WId wid);
-    void windowRemoved(QByteArray wmClass, WId wid);
+    void windowRemoved(WId wid);
     // 窗口属性变化
     void windowChanged(WId, NET::Properties, NET::Properties2);
     // 激活状态
     void activeWindowChanged(WId wid);
 
-    // 预览显示/隐藏
-    void previewerShow(QByteArray wmClass, WId wid, QPoint centerOnGlobal);
-    void previewerHide(QByteArray wmClass, WId wid);
-
 private:
     IAppletImport *m_import;
+    QBoxLayout *m_layout;
 
-    QMultiMap<QByteArray, QPair<WId, AppButton *>> m_mapButtons;  // key:wm_class
-    QMap<QString, AppButton *> m_mapButtonsLock;                  // 固定到任务栏的软件 key: desktopfile
-
-    AppPreviewer *m_appPreviewer;  // 应用预览窗口
+    QMap<QByteArray, AppGroup *> m_mapAppGroupOpened;  // 打开的应用组，key:wm_class
+    QList<AppGroup *> m_listAppGroupLocked;            // 锁定应用组
+    QList<AppGroup *> m_listAppGroupShow;              // 所有应用组，用于排序显示
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 
@@ -99,7 +102,9 @@ private:
     // 保存收藏夹应用信息，用于判断应用是否在收藏夹中
     QStringList m_favoriteAppId;
 
-    QBoxLayout *m_layout;
+    // 拖拽相关
+    int m_currentDropIndex;
+    AppGroup *m_indicatorWidget;
 };
 
 }  // namespace Taskbar

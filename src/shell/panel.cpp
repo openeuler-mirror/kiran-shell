@@ -41,9 +41,10 @@ Panel::Panel(ProfilePanel *profilePanel)
     : QWidget(nullptr, Qt::FramelessWindowHint),
       m_profilePanel(profilePanel)
 {
-    this->setAttribute(Qt::WA_X11NetWmWindowTypeDock);
+    setAttribute(Qt::WA_X11NetWmWindowTypeDock);
+    setAttribute(Qt::WA_TranslucentBackground);  // 透明
 
-    this->init();
+    init();
 }
 
 QString Panel::getUID()
@@ -92,47 +93,55 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu0;
 
     {
-        QMenu *menuLevel1 = menu0.addMenu(tr("Tasklist"));
-        QAction *act = menuLevel1->addAction(tr("Show application name"));
-        act->setCheckable(true);
-        act->setChecked(SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool());
-        connect(act, &QAction::triggered, this, [=]()
-                { SettingProcess::setValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY, act->isChecked()); });
-    }
-
-    {
-        QMenu *menuLevel1 = menu0.addMenu(tr("Panel"));
-        QMenu *menuLevel2 = menuLevel1->addMenu(tr("Position"));
-        QAction *actTop = menuLevel2->addAction(tr("Top"));
-        QAction *actBottom = menuLevel2->addAction(tr("Bottom"));
-        QAction *actLeft = menuLevel2->addAction(tr("Left"));
-        QAction *actRight = menuLevel2->addAction(tr("Right"));
+        QMenu *menuLevel1 = menu0.addMenu(tr("Position"));
+        QAction *actTop = menuLevel1->addAction(tr("Top"));
+        QAction *actBottom = menuLevel1->addAction(tr("Bottom"));
+        QAction *actLeft = menuLevel1->addAction(tr("Left"));
+        QAction *actRight = menuLevel1->addAction(tr("Right"));
         actTop->setCheckable(true);
         actBottom->setCheckable(true);
         actLeft->setCheckable(true);
         actRight->setCheckable(true);
 
-        QActionGroup *menuLevel2Group = new QActionGroup(&menu0);
-        menuLevel2Group->addAction(actTop);
-        menuLevel2Group->addAction(actRight);
-        menuLevel2Group->addAction(actBottom);
-        menuLevel2Group->addAction(actLeft);
+        QActionGroup *menuLevel1Group = new QActionGroup(&menu0);
+        menuLevel1Group->addAction(actTop);
+        menuLevel1Group->addAction(actRight);
+        menuLevel1Group->addAction(actBottom);
+        menuLevel1Group->addAction(actLeft);
 
         int orientation = getOrientation();
-        if (orientation >= menuLevel2Group->actions().size())
+        if (orientation >= menuLevel1Group->actions().size())
         {
-            menuLevel2Group->actions().at(menuLevel2Group->actions().size() - 1)->setChecked(true);
+            menuLevel1Group->actions().at(menuLevel1Group->actions().size() - 1)->setChecked(true);
         }
         else
         {
-            menuLevel2Group->actions().at(orientation)->setChecked(true);
+            menuLevel1Group->actions().at(orientation)->setChecked(true);
         }
 
-        connect(menuLevel2Group, &QActionGroup::triggered, this, [=](QAction *action)
+        connect(menuLevel1Group, &QActionGroup::triggered, this, [=](QAction *action)
                 {
-                    PanelOrientation orientation = (PanelOrientation)menuLevel2Group->actions().indexOf(action);
+                    PanelOrientation orientation = (PanelOrientation)menuLevel1Group->actions().indexOf(action);
                     m_profilePanel->setOrientation(orientationEnum2Str(orientation));
+
+                    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+                        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+                    {
+                        m_appletsLayout->setContentsMargins(5, 0, 5, 0);
+                    }
+                    else
+                    {
+                        m_appletsLayout->setContentsMargins(0, 5, 0, 5);
+                    }
                 });
+    }
+
+    {
+        QAction *act = menu0.addAction(tr("Show application name"));
+        act->setCheckable(true);
+        act->setChecked(SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool());
+        connect(act, &QAction::triggered, this, [=]()
+                { SettingProcess::setValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY, act->isChecked()); });
     }
 
     menu0.exec(mapToGlobal(event->pos()));
@@ -157,9 +166,19 @@ void Panel::init()
 
 void Panel::initChildren()
 {
-    this->m_appletsLayout = new QBoxLayout(getLayoutDirection(), this);
-    this->m_appletsLayout->setContentsMargins(0, 0, 0, 0);
-    this->m_appletsLayout->setSpacing(0);
+    m_appletsLayout = new QBoxLayout(getLayoutDirection(), this);
+    int orientation = getOrientation();
+    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    {
+        m_appletsLayout->setContentsMargins(5, 0, 5, 0);
+    }
+    else
+    {
+        m_appletsLayout->setContentsMargins(0, 5, 0, 5);
+    }
+
+    m_appletsLayout->setSpacing(5);
 
     auto profileApplets = Profile::getInstance()->getAppletsOnPanel(m_profilePanel->getUID());
 
@@ -167,10 +186,10 @@ void Panel::initChildren()
     {
         auto applet = new Applet(profileApplet, this);
 
-        this->m_appletsLayout->addWidget(applet);
+        m_appletsLayout->addWidget(applet);
     }
-    //    this->m_appletsLayout->addStretch(0);
-    KLOG_DEBUG() << this->m_appletsLayout->geometry();
+    //    m_appletsLayout->addStretch(0);
+    KLOG_DEBUG() << m_appletsLayout->geometry();
 }
 
 int Panel::orientationStr2Enum(const QString &orientation)

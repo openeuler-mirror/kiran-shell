@@ -12,12 +12,23 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-color-block.h>
+#include <kiran-style/style-palette.h>
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
+#include <KActivities/Stats/ResultSet>
+#include <KActivities/Stats/ResultWatcher>
+#include <KIOCore/KFileItem>
+#include <QDragEnterEvent>
+#include <QMimeData>
+#include <QPainter>
 #include <QSettings>
+#include <QTimer>
 
 #include "app-button-container.h"
+#include "app-button.h"
+#include "app-group.h"
 #include "applet.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
@@ -33,22 +44,20 @@ namespace Kiran
 namespace Taskbar
 {
 AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
-    : QWidget(parent),
-      m_import(import)
+    : KiranColorBlock(parent),
+      m_import(import),
+      m_indicatorWidget(nullptr)
 {
-    connect(parent, &Applet::windowAdded, this, &AppButtonContainer::addWindow);
-    connect(parent, &Applet::windowRemoved, this, &AppButtonContainer::removeWindow);
-    connect(parent, &Applet::activeWindowChanged, this, &AppButtonContainer::changeActiveWindow);
-
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
+    m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->setSpacing(0);
-    m_layout->setMargin(0);
+    setLayout(m_layout);
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateAppShow()));
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
-    loadLockApp();
+    updateLockApp();
 
     QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
     if (!QDir(settingDir).exists())
@@ -65,12 +74,224 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &AppButtonContainer::updateFavorite);
     updateFavorite();
 
-    m_appPreviewer = new AppPreviewer(m_import, this);
-    connect(m_appPreviewer, &AppPreviewer::windowClose, this, &AppButtonContainer::closeWindow);
+    connect(parent, &Applet::windowAdded, this, &AppButtonContainer::addWindow);
+    connect(parent, &Applet::windowRemoved, this, &AppButtonContainer::windowRemoved);
+    connect(parent, &Applet::activeWindowChanged, this, &AppButtonContainer::activeWindowChanged);
+
+    // 等待应用加载
+    QTimer::singleShot(1000, this, [this]()
+                       {
+                           WId wid = WindowInfoHelper::activeWindow();
+                           emit activeWindowChanged(wid);
+                       });
+
+    setAcceptDrops(true);
+    m_currentDropIndex = -1;
+    m_indicatorWidget = new AppGroup(m_import, this);
+    m_indicatorWidget->hide();
+
+    updateLayout();
 }
 
 AppButtonContainer::~AppButtonContainer()
 {
+}
+
+void AppButtonContainer::dragEnterEvent(QDragEnterEvent *event)
+{
+    for (auto fmt : event->mimeData()->formats())
+    {
+        KLOG_INFO() << fmt << event->mimeData()->data(fmt);
+    }
+    m_currentDropIndex = 0;
+    QByteArray mimeData = event->mimeData()->data("text/uri-list");
+    if (event->mimeData()->hasFormat("text/uri-list"))
+    {
+        QList<QUrl> urls(event->mimeData()->urls());
+        for (auto url : urls)
+        {
+            m_indicatorWidget->setDragData(url);
+            event->accept();
+            return;
+        }
+    }
+    else
+    {
+        event->ignore();
+    }
+}
+
+void AppButtonContainer::dragMoveEvent(QDragMoveEvent *event)
+{
+    QPoint pos = event->pos();
+    int index = getInsertedIndex(pos);
+    if (-1 == index)
+    {
+        m_listAppGroupShow.removeAll(m_indicatorWidget);
+        m_indicatorWidget->hide();
+        updateLayout();
+        event->ignore();
+        return;
+    }
+
+    m_currentDropIndex = index;
+
+    if (m_currentDropIndex != m_listAppGroupShow.indexOf(m_indicatorWidget))
+    {
+        m_listAppGroupShow.removeAll(m_indicatorWidget);
+
+        // 直接使用insert，效果一样，但是Qt有警告
+        if (m_currentDropIndex >= m_listAppGroupShow.size())
+        {
+            m_listAppGroupShow.append(m_indicatorWidget);
+        }
+        else
+        {
+            m_listAppGroupShow.insert(m_currentDropIndex, m_indicatorWidget);
+        }
+
+        m_indicatorWidget->show();
+    }
+
+    updateLayout();
+
+    event->accept();
+}
+
+void AppButtonContainer::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    m_currentDropIndex = 0;
+    m_listAppGroupShow.removeAll(m_indicatorWidget);
+    m_indicatorWidget->hide();
+    updateLayout();
+
+    event->accept();
+}
+
+void AppButtonContainer::dropEvent(QDropEvent *event)
+{
+    QByteArray mimeData = event->mimeData()->data("text/uri-list");
+    if (!event->mimeData()->hasFormat("text/uri-list"))
+    {
+        QWidget::dropEvent(event);
+        return;
+    }
+
+    m_listAppGroupShow.removeAll(m_indicatorWidget);
+    m_indicatorWidget->hide();
+
+    AppBaseInfo appBaseinfo;
+
+    QList<QUrl> urls(event->mimeData()->urls());
+    KLOG_INFO() << "AppButtonContainer::dropEvent" << urls;
+    for (auto url : urls)
+    {
+        KFileItem fileItem(url);
+        if (fileItem.isNull())
+        {
+            event->ignore();
+            continue;
+        }
+
+        appBaseinfo.m_url = url;
+        break;
+    }
+    AppGroup *appGroup = genAppGroup(appBaseinfo);
+
+    // 如果 appGroup 本来就在任务栏显示，调整位置，不锁定
+    if (m_listAppGroupShow.contains(appGroup))
+    {
+        int dropIndex = m_currentDropIndex;
+        if (dropIndex >= m_listAppGroupShow.size())
+        {
+            dropIndex = m_listAppGroupShow.size() - 1;
+        }
+        m_listAppGroupShow.move(m_listAppGroupShow.indexOf(appGroup), dropIndex);
+        // 上面将显示排序已确定
+        // 已锁定应用调整位置
+        if (m_listAppGroupLocked.contains(appGroup))
+        {
+            QList<AppGroup *> listAppGroupLocked;
+            for (auto appGroup : m_listAppGroupShow)
+            {
+                if (m_listAppGroupLocked.contains(appGroup))
+                {
+                    listAppGroupLocked.append(appGroup);
+                }
+            }
+            m_listAppGroupLocked = listAppGroupLocked;
+            addToTasklist(appBaseinfo.m_url, appGroup);
+        }
+    }
+    else
+    {
+        // 直接使用insert，效果一样，但是Qt有警告
+        if (m_currentDropIndex >= m_listAppGroupShow.size())
+        {
+            m_listAppGroupShow.append(appGroup);
+        }
+        else
+        {
+            m_listAppGroupShow.insert(m_currentDropIndex, appGroup);
+        }
+
+        addToTasklist(appBaseinfo.m_url, appGroup);
+    }
+
+    updateLayout();
+
+    event->accept();
+    //    QWidget::dropEvent(event);
+}
+
+AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
+{
+    AppGroup *appGroup = nullptr;
+
+    // 是否是已固定应用
+    for (auto iter : m_listAppGroupLocked)
+    {
+        if (iter->getUrl() == baseinfo.m_url)
+        {
+            appGroup = iter;
+            break;
+        }
+    }
+
+    if (appGroup)
+    {
+        return appGroup;
+    }
+
+    // 是否是已打开应用
+    for (auto iter : m_mapAppGroupOpened)
+    {
+        if (iter->getUrl() == baseinfo.m_url)
+        {
+            appGroup = iter;
+            break;
+        }
+    }
+
+    if (appGroup)
+    {
+        return appGroup;
+    }
+
+    if (!appGroup)
+    {
+        appGroup = new AppGroup(m_import, baseinfo, this);
+    }
+
+    connect(appGroup, &AppGroup::isInFavorite, this, &AppButtonContainer::isInFavorite, Qt::DirectConnection);
+    connect(appGroup, &AppGroup::isInTasklist, this, &AppButtonContainer::isInTasklist, Qt::DirectConnection);
+    connect(appGroup, &AppGroup::addToFavorite, this, &AppButtonContainer::addToFavorite);
+    connect(appGroup, &AppGroup::removeFromFavorite, this, &AppButtonContainer::removeFromFavorite);
+    connect(appGroup, &AppGroup::addToTasklist, this, &AppButtonContainer::addToTasklist);
+    connect(appGroup, &AppGroup::removeFromTasklist, this, &AppButtonContainer::removeFromTasklist);
+    connect(appGroup, &AppGroup::emptyGroup, this, &AppButtonContainer::removeGroup);
+
+    return appGroup;
 }
 
 void AppButtonContainer::addWindow(WId wid)
@@ -78,116 +299,52 @@ void AppButtonContainer::addWindow(WId wid)
     QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
     if (wmClass.isEmpty())
     {
+        KLOG_WARNING() << "can't find wmclass by wid:" << wid;
         return;
     }
 
-    auto widAndAppButton = m_mapButtons.values(wmClass);
-    for (auto iter : widAndAppButton)
+    QUrl url = WindowInfoHelper::getUrlByWId(wid);
+
+    //    KLOG_INFO() << "AppButtonContainer::addWindow:" << wid << wmClass << url;
+
+    // 锁定应用的打开
+    AppGroup *appGroup = nullptr;
+    if (!url.isEmpty())
     {
-        if (iter.first == wid)
+        for (auto appLocked : m_listAppGroupLocked)
         {
-            // 已经存在窗口
-            return;
+            if (appLocked->getUrl() == url)
+            {
+                appGroup = appLocked;
+                m_mapAppGroupOpened[wmClass] = appGroup;
+                break;
+            }
         }
     }
 
-    AppButton *appButton = nullptr;
-    QByteArray desktopFile = WindowInfoHelper::getDesktopFileByWId(wid);
-    if (!desktopFile.isEmpty() && m_mapButtonsLock.contains(desktopFile))
+    if (!appGroup)
     {
-        appButton = m_mapButtonsLock.value(desktopFile);
+        if (!m_mapAppGroupOpened.contains(wmClass))
+        {
+            // 创建组
+            AppBaseInfo appBaseInfo(wmClass, url);
+            appGroup = genAppGroup(appBaseInfo);
+            m_mapAppGroupOpened[wmClass] = appGroup;
+            m_listAppGroupShow.append(appGroup);
+        }
+        else
+        {
+            appGroup = m_mapAppGroupOpened[wmClass];
+        }
     }
-    else
-    {
-        // 创建app按钮
-        appButton = newAppBtn();
-    }
-
-    appButton->setAppInfo(wmClass, wid);
-    m_mapButtons.insert(wmClass, {wid, appButton});
 
     emit windowAdded(wmClass, wid);
-    updateAppShow();
+    updateLayout();
 }
 
-void AppButtonContainer::removeWindow(WId wid)
+void AppButtonContainer::updateLayout()
 {
-    AppButton *appButton = nullptr;
-    QByteArray wmClass;
-
-    auto iter = m_mapButtons.begin();
-    while (iter != m_mapButtons.end())
-    {
-        if (iter.value().first == wid)
-        {
-            wmClass = iter.key();
-            appButton = iter.value().second;
-            break;
-        }
-        iter++;
-    }
-
-    if (wmClass.isEmpty() || !appButton)
-    {
-        return;
-    }
-
-    m_mapButtons.remove(wmClass, {wid, appButton});
-
-    if (!m_mapButtonsLock.values().contains(appButton))
-    {
-        delete appButton;
-        appButton = nullptr;
-    }
-
-    emit windowRemoved(wmClass, wid);
-
-    updateAppShow();
-}
-
-void AppButtonContainer::changeActiveWindow(WId wid)
-{
-    emit activeWindowChanged(wid);
-    // TODO:激活按钮，需要集成主题样式
-
-    AppButton *appButton = nullptr;
-    QByteArray wmClass;
-
-    auto iter = m_mapButtons.begin();
-    while (iter != m_mapButtons.end())
-    {
-        if (iter.value().first == wid)
-        {
-            wmClass = iter.key();
-            appButton = iter.value().second;
-            //            break;
-        }
-        iter.value().second->setChecked(false);
-        iter++;
-    }
-
-    if (wmClass.isEmpty() || !appButton)
-    {
-        return;
-    }
-
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
-    {
-        appButton->setChecked(true);
-    }
-    else
-    {
-        QList<QPair<WId, AppButton *>> values = m_mapButtons.values(wmClass);
-        if (!values.isEmpty())
-        {
-            values.first().second->setChecked(true);
-        }
-    }
-}
-
-void AppButtonContainer::updateAppShow()
-{
-    Utility::clearLayout(m_layout, false, true);
+    Utility::clearLayout(m_layout, false, false);
 
     //横竖摆放
     auto direction = getLayoutDirection();
@@ -196,113 +353,101 @@ void AppButtonContainer::updateAppShow()
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
-    QList<AppButton *> appButtons = m_mapButtonsLock.values();
-
-    // 根据当前模式，显示不一样的结果
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    if (QBoxLayout::Direction::LeftToRight == direction)
     {
-        for (auto iter : m_mapButtons.values())
-        {
-            if (!appButtons.contains(iter.second))
-            {
-                appButtons.push_back(iter.second);
-            }
-        }
+        m_layout->setContentsMargins(10, 0, 10, 0);
     }
     else
     {
-        for (auto key : m_mapButtons.keys())
-        {
-            QList<QPair<WId, AppButton *>> values = m_mapButtons.values(key);
-            if (!values.isEmpty())
-            {
-                appButtons.push_back(values.first().second);
-            }
-        }
+        m_layout->setContentsMargins(0, 10, 0, 10);
     }
-
-    for (auto button : appButtons)
+    //    KLOG_INFO() << "m_listAppGroupShow" << m_listAppGroupShow << m_indicatorWidget;
+    for (auto appGroup : m_listAppGroupShow)
     {
-        button->show();
-        m_layout->addWidget(button);
-    }
-}
-
-void AppButtonContainer::loadLockApp()
-{
-    QStringList appIds = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toStringList();
-    for (QString appId : appIds)
-    {
-        addLockApp(appId);
+        m_layout->addWidget(appGroup);
     }
 }
 
 void AppButtonContainer::updateLockApp()
 {
-    QStringList appIds = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toStringList();
-    for (QString appId : appIds)
+    QVariantList appUrls = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toList();
+
+    for (auto appUrl : appUrls)
     {
-        if (!m_mapButtonsLock.contains(appId))
+        addLockApp(appUrl.toUrl());
+    }
+
+    for (auto appGroup : m_listAppGroupLocked)
+    {
+        if (!appUrls.contains(appGroup->getUrl()))
         {
-            addLockApp(appId);
+            removeLockApp(appGroup->getUrl());
         }
     }
 
-    for (QString appId : m_mapButtonsLock.keys())
+    updateLayout();
+}
+
+void AppButtonContainer::addLockApp(const QUrl &url)
+{
+    AppBaseInfo baseinfo;
+    baseinfo.m_url = url;
+    baseinfo.m_isLocked = true;
+    AppGroup *appGroup = genAppGroup(baseinfo);
+    if (!appGroup)
     {
-        if (!appIds.contains(appId))
+        return;
+    }
+
+    if (!m_listAppGroupLocked.contains(appGroup))
+    {
+        m_listAppGroupLocked.append(appGroup);
+    }
+
+    if (!m_listAppGroupShow.contains(appGroup))
+    {
+        // 不需要调整位置，只有初次加载时，才会走这里
+        m_listAppGroupShow.append(appGroup);
+    }
+
+    updateLayout();
+}
+
+void AppButtonContainer::removeLockApp(const QUrl &url)
+{
+    AppGroup *appGroup = nullptr;
+    for (auto app : m_listAppGroupLocked)
+    {
+        if (app->getUrl() == url)
         {
-            removeLockApp(appId);
+            appGroup = app;
+            break;
         }
     }
 
-    updateAppShow();
-}
-
-void AppButtonContainer::addLockApp(const QString &appId)
-{
-    AppButton *appButton = newAppBtn();
-    appButton->setAppInfo(appId);
-    m_mapButtonsLock.insert(appId, appButton);
-}
-
-AppButton *AppButtonContainer::newAppBtn()
-{
-    AppButton *appButton = new AppButton(m_import, this);
-    connect(appButton, &AppButton::previewerShow, this, &AppButtonContainer::showPreviewer);
-    connect(appButton, &AppButton::previewerHide, this, &AppButtonContainer::previewerHide);
-    connect(appButton, &AppButton::windowClose, this, &AppButtonContainer::closeWindow);
-    connect(appButton, &AppButton::isInFavorite, this, &AppButtonContainer::isInFavorite, Qt::DirectConnection);
-    connect(appButton, &AppButton::isInTasklist, this, &AppButtonContainer::isInTasklist, Qt::DirectConnection);
-    connect(appButton, &AppButton::addToFavorite, this, &AppButtonContainer::addToFavorite);
-    connect(appButton, &AppButton::removeFromFavorite, this, &AppButtonContainer::removeFromFavorite);
-    connect(appButton, &AppButton::addToTasklist, this, &AppButtonContainer::addToTasklist);
-    connect(appButton, &AppButton::removeFromTasklist, this, &AppButtonContainer::removeFromTasklist);
-    // 需要显示时才显示
-    appButton->hide();
-
-    return appButton;
-}
-
-void AppButtonContainer::removeLockApp(const QString &appId)
-{
-    if (m_mapButtonsLock.contains(appId))
+    if (appGroup)
     {
-        AppButton *appButton = m_mapButtonsLock.take(appId);
-        bool isfind = false;
-        for (auto value : m_mapButtons.values())
+        m_listAppGroupLocked.removeAll(appGroup);
+        appGroup->setLocked(false);
+
+        auto iter = m_mapAppGroupOpened.begin();
+        while (iter != m_mapAppGroupOpened.end())
         {
-            if (value.second == appButton)
+            if (iter.value() == appGroup)
             {
-                isfind = true;
                 break;
             }
+            iter++;
         }
-        if (!isfind)
+
+        if (iter == m_mapAppGroupOpened.end())
         {
-            delete appButton;
-            appButton = nullptr;
+            removeGroup(appGroup);
         }
+    }
+    else
+    {
+        KLOG_ERROR() << "can't find lock app:appId";
     }
 }
 
@@ -336,42 +481,179 @@ void AppButtonContainer::removeFromFavorite(const QString &appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void AppButtonContainer::isInTasklist(const QString &appId, bool &checkResult)
+void AppButtonContainer::isInTasklist(const QUrl &url, bool &checkResult)
 {
-    checkResult = SettingProcess::isStringInKey(TASKBAR_LOCK_APP_KEY, appId);
+    checkResult = SettingProcess::isValueInKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void AppButtonContainer::addToTasklist(const QString &appId)
+void AppButtonContainer::addToTasklist(const QUrl &url, AppGroup *appGroup)
 {
-    SettingProcess::addStringToKey(TASKBAR_LOCK_APP_KEY, appId);
+    int inserIndex = 0;
+    int indexShow = m_listAppGroupShow.indexOf(appGroup);
+    appGroup->setLocked(true);
+
+    if (m_listAppGroupLocked.contains(appGroup))
+    {
+        // 本来就是锁定应用
+        // 锁定应用调整位置
+        QVariant values = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY);
+        QVariantList valuesList = values.toList();
+
+        int newIndex = m_listAppGroupLocked.indexOf(appGroup);
+        int oldIndex = valuesList.indexOf(url);
+
+        valuesList.move(oldIndex, newIndex);
+
+        KLOG_INFO() << "AppButtonContainer::addToTasklist move" << oldIndex << newIndex;
+
+        SettingProcess::setValue(TASKBAR_LOCK_APP_KEY, valuesList);
+
+        return;
+    }
+    else
+    {
+        // appGroup 不在 m_listAppGroupLocked 中
+
+        // appGroup 在 m_listAppGroupShow 中
+        // m_listAppGroupLocked 也在 m_listAppGroupShow 中
+        // 判断 appGroup 在 m_listAppGroupLocked 中的位置
+
+        // 无锁定应用，inserIndex = 0
+        for (inserIndex = 0; inserIndex < m_listAppGroupLocked.size(); inserIndex++)
+        {
+            // 找锁定应用第一个大于显示位置的，就是要替换它的位置
+            // 如果没找到，就是放在最后
+            if (m_listAppGroupShow.indexOf(m_listAppGroupLocked.at(inserIndex)) > indexShow)
+            {
+                break;
+            }
+        }
+    }
+
+    QVariant values = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY);
+    QVariantList valuesList = values.toList();
+    if (inserIndex >= valuesList.size())
+    {
+        valuesList.append(url);
+        m_listAppGroupLocked.append(appGroup);
+    }
+    else
+    {
+        valuesList.insert(inserIndex, url);
+        m_listAppGroupLocked.insert(inserIndex, appGroup);
+    }
+
+    KLOG_INFO() << "AppButtonContainer::addToTasklist" << inserIndex << valuesList.size();
+
+    SettingProcess::setValue(TASKBAR_LOCK_APP_KEY, valuesList);
 }
 
-void AppButtonContainer::removeFromTasklist(const QString &appId)
+void AppButtonContainer::removeFromTasklist(const QUrl &url)
 {
-    SettingProcess::removeStringFromKey(TASKBAR_LOCK_APP_KEY, appId);
+    SettingProcess::removeValueFromKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void AppButtonContainer::closeWindow(WId wid)
+void AppButtonContainer::removeGroup(AppGroup *group)
 {
-    WindowInfoHelper::closeWindow(wid);
-    m_appPreviewer->hide();
+    auto iter = m_mapAppGroupOpened.begin();
+    while (iter != m_mapAppGroupOpened.end())
+    {
+        if (iter.value() == group)
+        {
+            break;
+        }
+        iter++;
+    }
+    if (iter != m_mapAppGroupOpened.end())
+    {
+        m_mapAppGroupOpened.erase(iter);
+    }
+
+    m_listAppGroupLocked.removeAll(group);
+    m_listAppGroupShow.removeAll(group);
+    delete group;
+    group = nullptr;
+
+    updateLayout();
 }
 
-QBoxLayout::Direction AppButtonContainer::getLayoutDirection()
+int AppButtonContainer::getInsertedIndex(const QPoint &pos)
 {
-    int orientation = m_import->getPanel()->getOrientation();
-    auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                      orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                         ? QBoxLayout::Direction::LeftToRight
-                         : QBoxLayout::Direction::TopToBottom;
-    return direction;
-}
+    // 在按钮区域：
+    //      活动插入按钮：序号不变
+    //      普通按钮：左右或上下 1/4 范围内，得到序号
 
-void AppButtonContainer::showPreviewer(QByteArray wmClass, WId wid)
-{
-    AppButton *button = (AppButton *)sender();
-    QPoint center = mapToGlobal(button->geometry().center());
-    emit previewerShow(wmClass, wid, center);
+    // 不在按钮区域：
+    //      首尾区域，返回 0 或 最大值
+
+    // 在按钮区域
+    if (m_indicatorWidget->geometry().contains(pos))
+    {
+        return m_currentDropIndex;
+    }
+
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+
+    for (int i = 0; i < m_listAppGroupShow.size(); i++)
+    {
+        QRect rect = m_listAppGroupShow.at(i)->geometry();
+        if (rect.contains(pos))
+        {
+            QRect rectPrev;
+            QRect rectNext;
+
+            if (Qt::AlignLeft == alignment)
+            {
+                // 左右 1/4 判断
+                rectPrev = rect.adjusted(0, 0, -rect.width() / 4 * 3, 0);
+                rectNext = rect.adjusted(rect.width() / 4 * 3, 0, 0, 0);
+            }
+            else
+            {
+                // 上下 1/4 判断
+                rectPrev = rect.adjusted(0, 0, 0, -rect.height() / 4 * 3);
+                rectNext = rect.adjusted(0, rect.height() / 4 * 3, 0, 0);
+            }
+
+            if (rectPrev.contains(pos))
+            {
+                return i;
+            }
+            else if (rectNext.contains(pos))
+            {
+                return i + 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    }
+
+    // 不在按钮区域
+    if (m_listAppGroupShow.isEmpty())
+    {
+        return 0;
+    }
+
+    if (Qt::AlignLeft == alignment)
+    {
+        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size();
+    }
+    else
+    {
+        if (pos.y() < m_listAppGroupShow.first()->pos().y())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size();
+    }
 }
 
 Qt::AlignmentFlag AppButtonContainer::getLayoutAlignment()
@@ -383,6 +665,16 @@ Qt::AlignmentFlag AppButtonContainer::getLayoutAlignment()
                                       : Qt::AlignTop;
 
     return alignment;
+}
+
+QBoxLayout::Direction AppButtonContainer::getLayoutDirection()
+{
+    int orientation = m_import->getPanel()->getOrientation();
+    auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+                      orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+                         ? QBoxLayout::Direction::LeftToRight
+                         : QBoxLayout::Direction::TopToBottom;
+    return direction;
 }
 
 }  // namespace Taskbar

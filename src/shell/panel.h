@@ -17,9 +17,8 @@
 #include <plugin-i.h>
 #include <style-palette.h>
 #include <QBoxLayout>
-#include <QWidget>
 #include <QMenu>
-
+#include <QWidget>
 
 namespace Kiran
 {

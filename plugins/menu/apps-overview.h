@@ -37,11 +37,14 @@ public:
 
 private slots:
     // 应用项点击
-    void on_m_treeWidgetShowApps_itemClicked(QTreeWidgetItem* item, int column);
+    void on_m_treeWidgetApps_itemClicked(QTreeWidgetItem* item, int column);
     // 应用项右键
-    void on_m_treeWidgetShowApps_itemPressed(QTreeWidgetItem* item, int column);
+    void on_m_treeWidgetApps_itemPressed(QTreeWidgetItem* item, int column);
 
     void on_m_lineEditSearch_textChanged(const QString& arg1);
+
+protected:
+    void showEvent(QShowEvent* event) override;
 
 private:
     void init();
@@ -54,19 +57,19 @@ private:
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
 signals:
     // 查询是否在收藏夹中
-    void isInFavorite(const QString &appId, bool &checkResult);
+    void isInFavorite(const QString& appId, bool& checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(const QString &appId, bool &checkResult);
+    void isInTasklist(const QUrl& url, bool& checkResult);
 
     // 添加到×/从×移除 桌面、收藏夹、任务栏
-    void addToDesktop(const QString &appId);
-    void addToFavorite(const QString &appId);
-    void removeFromFavorite(const QString &appId);
-    void addToTasklist(const QString &appId);
-    void removeFromTasklist(const QString &appId);
+    void addToDesktop(const QString& appId);
+    void addToFavorite(const QString& appId);
+    void removeFromFavorite(const QString& appId);
+    void addToTasklist(const QUrl& url);
+    void removeFromTasklist(const QUrl& url);
 
     // 运行应用
-    void runApp(const QString &appId);
+    void runApp(const QString& appId);
 
 private:
     Ui::AppsOverview* m_ui;

@@ -55,12 +55,12 @@ void Showdesktop::updateLayout()
         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
     {
         auto size = m_import->getPanel()->getSize();
-        setFixedSize(size / 2, size);
+        setFixedSize(size / 4, size);
     }
     else
     {
         auto size = m_import->getPanel()->getSize();
-        setFixedSize(size, size / 2);
+        setFixedSize(size, size / 4);
     }
 }
 

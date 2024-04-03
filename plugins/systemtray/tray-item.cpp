@@ -27,7 +27,7 @@ namespace Kiran
 namespace Systemtray
 {
 TrayItem::TrayItem(QString service, QString objectPath, QWidget *parent)
-    : QToolButton(parent),
+    : StyledButton(parent),
       m_dBusMenuImporter(nullptr)
 {
     KLOG_INFO() << "TrayItem::TrayItem" << service << objectPath;

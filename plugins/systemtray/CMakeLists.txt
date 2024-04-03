@@ -65,7 +65,8 @@ target_link_libraries(
     Qt5::DBus
     KF5::WindowSystem
     dbusmenu-qt5
-    common)
+    common
+    widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

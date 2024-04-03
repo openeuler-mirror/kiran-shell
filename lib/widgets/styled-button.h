@@ -13,19 +13,22 @@
  */
 #pragma once
 
-#include <QPushButton>
+#include <QToolButton>
 
-class StyleAppButton : public QPushButton
+class StyledButton : public QToolButton
 {
     Q_OBJECT
 public:
-    StyleAppButton(QWidget *parent = nullptr);
+    StyledButton(QWidget *parent = nullptr);
 
 protected:
-    void enterEvent(QEvent *event);
-    void leaveEvent(QEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-private:
+protected:
     bool m_hovered;
+    bool m_pressed;
 };

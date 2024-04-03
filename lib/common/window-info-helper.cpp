@@ -27,11 +27,11 @@ static const NET::Properties windowInfoFlags =
     NET::WMState | NET::XAWMState | NET::WMDesktop | NET::WMVisibleName | NET::WMGeometry | NET::WMFrameExtents | NET::WMWindowType | NET::WMPid;
 static const NET::Properties2 windowInfoFlags2 = NET::WM2DesktopFileName | NET::WM2Activities | NET::WM2WindowClass | NET::WM2AllowedActions | NET::WM2AppMenuObjectPath | NET::WM2AppMenuServiceName | NET::WM2GTKApplicationId;
 
-QByteArray WindowInfoHelper::getDesktopFileByWId(WId wid)
+QUrl WindowInfoHelper::getUrlByWId(WId wid)
 {
-    QByteArray desktopFile = getDesktopFileByWIdPrivate(wid);
+    QByteArray desktopFile = getUrlByWIdPrivate(wid);
 
-    return desktopFile.mid(desktopFile.lastIndexOf("/") + 1);
+    return QUrl::fromLocalFile(desktopFile);
 }
 
 QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
@@ -56,7 +56,7 @@ QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find pid by KWindowInfo";
+        KLOG_WARNING() << "can't find pid by KWindowInfo:" << wid;
         return "";
     }
 
@@ -69,13 +69,16 @@ QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
 
 QString WindowInfoHelper::getAppNameByWId(WId wid)
 {
-    KWindowInfo info(wid, NET::WMVisibleName);
+    KWindowInfo info(wid, NET::WMName);
     if (info.valid())
     {
-        return info.visibleName();
+        return info.name();
     }
-
-    return "";
+    else
+    {
+        KLOG_WARNING() << "can't find app name by wid:" << wid;
+        return "";
+    }
 }
 
 QString WindowInfoHelper::getAppIconByWId(WId wid)
@@ -85,8 +88,11 @@ QString WindowInfoHelper::getAppIconByWId(WId wid)
     {
         return info.iconName();
     }
-
-    return "";
+    else
+    {
+        KLOG_WARNING() << "can't find app icon by wid:" << wid;
+        return "";
+    }
 }
 
 bool WindowInfoHelper::hasState(WId wid, NET::States s)
@@ -182,55 +188,56 @@ void WindowInfoHelper::minimizeWindow(WId wid)
     KWindowSystem::minimizeWindow(wid);
 }
 
-void WindowInfoHelper::activeWindow(WId wid)
+void WindowInfoHelper::activateWindow(WId wid)
 {
     KWindowSystem::activateWindow(wid);
 }
 
-QByteArray WindowInfoHelper::getDesktopFileByWIdPrivate(WId wid)
+WId WindowInfoHelper::activeWindow()
+{
+    return KWindowSystem::activeWindow();
+}
+
+QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
 {
     QByteArray desktopFile;
-    int pid;
 
     KWindowInfo info(wid, NET::WMPid, NET::WM2DesktopFileName | NET::WM2WindowClass);
-    //    KLOG_INFO() << "---------------------------------";
-    //    KLOG_INFO() << "KWindowSystem::windowAdded:" << wid;
-
-    //    KLOG_INFO() << info.name();
-    //    KLOG_INFO() << info.pid();
-    //        KLOG_INFO() << info.windowClassClass();
-    //        KLOG_INFO() << info.windowClassName();
-    //    KLOG_INFO() << "---------------------------------";
-
     desktopFile = info.desktopFileName();
     if (!desktopFile.isEmpty())
     {
-        //        KLOG_INFO() << "find desktop file by KWindowInfo::desktopFileName:" << desktopFile;
         return desktopFile;
     }
 
+    int pid;
     if (info.valid())
     {
         pid = info.pid();
     }
     else
     {
-        //        KLOG_WARNING() << "can't find pid by KWindowInfo";
+        KLOG_WARNING() << "can't find pid by Wid";
         return "";
     }
 
     desktopFile = getDesktopFileByEnviorn(pid);
     if (!desktopFile.isEmpty())
     {
-        //        KLOG_INFO() << "find desktop file by environ:" << desktopFile;
         return desktopFile;
+    }
+    else
+    {
+        KLOG_WARNING() << "can't find url by environ";
     }
 
     desktopFile = getDesktopFileByCmdline(pid);
     if (!desktopFile.isEmpty())
     {
-        //        KLOG_INFO() << "find desktop file by cmd line:" << desktopFile;
         return desktopFile;
+    }
+    else
+    {
+        KLOG_WARNING() << "can't find url by cmd line";
     }
 
     return desktopFile;
@@ -257,7 +264,6 @@ QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
 QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
 {
     QByteArray cmdline = Utility::runCmd("cat", {QString("/proc/%1/cmdline").arg(pid)});
-    //    KLOG_INFO() << cmdline;
     QByteArrayList envsList = cmdline.split(' ');
     QString cmd = envsList.first();
     if (cmd.isEmpty())
@@ -281,7 +287,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
         }
         if (cmd_simple == desktopEntryName)
         {
-            return service->storageId().toLocal8Bit();
+            return service->entryPath().toLocal8Bit();
         }
     }
 
@@ -294,7 +300,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
         }
         if (cmd_simple == serviceName)
         {
-            return service->storageId().toLocal8Bit();
+            return service->entryPath().toLocal8Bit();
         }
     }
 
@@ -307,7 +313,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
         }
         if (cmd_simple == exec)
         {
-            return service->storageId().toLocal8Bit();
+            return service->entryPath().toLocal8Bit();
         }
     }
 
@@ -322,7 +328,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
 
         if (cmd_simple == exec_simple || cmd_simple.startsWith(exec_simple) || exec_simple.startsWith(cmd_simple))
         {
-            return service->storageId().toLocal8Bit();
+            return service->entryPath().toLocal8Bit();
         }
     }
 

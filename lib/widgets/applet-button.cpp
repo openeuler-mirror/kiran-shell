@@ -15,8 +15,8 @@
 #include <plugin-i.h>
 
 #include "applet-button.h"
-#include "utility.h"
-#include "define.h"
+#include "lib/common/define.h"
+#include "lib/common/utility.h"
 
 namespace Kiran
 {
@@ -37,17 +37,19 @@ AppletButton::~AppletButton()
 void AppletButton::setIconByName(const QString &iconName)
 {
     auto buttonSize = size();
-    setIcon(QIcon(iconName));
     setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
                       buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+
+    setIcon(QIcon(iconName));
 }
 
 void AppletButton::setIconFromTheme(const QString &iconName)
 {
     auto buttonSize = size();
-    setIcon(QIcon::fromTheme(iconName));
     setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
                       buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+
+    setIcon(QIcon::fromTheme(iconName));
 }
 
 }  // namespace Kiran

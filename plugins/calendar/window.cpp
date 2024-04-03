@@ -1,5 +1,21 @@
+
+#include <KWindowSystem>
+#include <QApplication>
+#include <QFocusEvent>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QLocale>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QProcess>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QTableView>
+#include <QTextCharFormat>
+
 #include "window.h"
-#include <QDebug>
+
 namespace Kiran
 {
 namespace Calendar
