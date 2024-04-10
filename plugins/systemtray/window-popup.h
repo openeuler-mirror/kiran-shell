@@ -86,7 +86,7 @@ private:
 
     // 拖拽相关
     int m_currentDropIndex;
-    KiranColorBlock *m_indicatorWidget;
+    StyledButton *m_indicatorWidget;
     QList<QWidget *> m_items;
 
     // 托盘项，显示在托盘区弹出窗口里

@@ -364,7 +364,7 @@ QString Lunar::getLunarMonDayStr(int year, int month, int day)
     QString fullDateStr = chMonName.at(qAbs(month) - 1) + chDayName.at(day - 1);
     if (month < 1)
     {
-        fullDateStr = tr("闰") + fullDateStr;
+        fullDateStr = "闰" + fullDateStr;
     }
 
     return fullDateStr;
@@ -380,7 +380,7 @@ QString Lunar::getLunarYearStr(int year)
         strTime.append(chTiangan.at(yearDate % 10));
         strTime.append(chDizhi.at(yearDate % 12));
         strTime.append(chAnimal.at(yearDate % 12));
-        strTime.append(tr("年"));
+        strTime.append("年");
     }
 
     return strTime;

@@ -17,14 +17,17 @@
 #include <qt5-log-i.h>
 #include <KWindowSystem>
 #include <QBoxLayout>
+#include <QCoreApplication>
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
 #include <QSizePolicy>
+#include <QTranslator>
 
 #include <kiran-style/style-palette.h>
 
 #include "applet.h"
+#include "ks-config.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 
@@ -35,6 +38,16 @@ namespace Taskbar
 Applet::Applet(IAppletImport *import)
     : m_import(import)
 {
+    static QTranslator translator;
+    if (!translator.load(QLocale(), "taskbar", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING() << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+
     //最大化
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -48,14 +61,6 @@ Applet::Applet(IAppletImport *import)
     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &Applet::addWindow);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &Applet::removeWindow);
     connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &Applet::changedActiveWindow);
-
-    //    connect(KWindowSystem::self(), SIGNAL(windowChanged(WId, NET::Properties, NET::Properties2)), this, SLOT(changedWindow(WId, NET::Properties, NET::Properties2)));
-
-    //    connect(KWindowSystem::self(),
-    //            static_cast<void (KWindowSystem::*)(WId, NET::Properties, NET::Properties2)>(&KWindowSystem::windowChanged),
-    //            this,
-    //            &AppButton::changedWindow);
-
     connect(KWindowSystem::self(),
             QOverload<WId, NET::Properties, NET::Properties2>::of(
                 &KWindowSystem::windowChanged),
@@ -78,18 +83,18 @@ void Applet::addWindow(WId wid)
 
 void Applet::removeWindow(WId wid)
 {
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        emit windowRemoved(wid);
-    }
+    // 不需要判断 SkipTaskbar，窗口已经不存在
+    emit windowRemoved(wid);
 }
 
 void Applet::changedActiveWindow(WId wid)
 {
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        emit activeWindowChanged(wid);
-    }
+    //    if (!WindowInfoHelper::isSkipTaskbar(wid))
+    //    {
+    //        emit activeWindowChanged(wid);
+    //    }
+    //    KLOG_INFO() << "Applet::changedActiveWindow" << wid;
+    emit activeWindowChanged(wid);
 }
 
 }  // namespace Taskbar

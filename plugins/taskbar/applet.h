@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <kiran-color-block.h>
 #include <plugin-i.h>
 #include <QWidget>
 
@@ -24,7 +23,7 @@ namespace Kiran
 {
 namespace Taskbar
 {
-class Applet : public QWidget /*KiranColorBlock*/
+class Applet : public QWidget
 {
     Q_OBJECT
 

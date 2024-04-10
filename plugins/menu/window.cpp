@@ -35,6 +35,7 @@
 //#include <kiran-style/kiran-style-public-define.h>
 #include <kiran-style/style-global-define.h>
 #include <kiran-style/style-property.h>
+#include <QKeyEvent>
 
 #include "app-item.h"
 #include "apps-overview.h"
@@ -85,7 +86,7 @@ Window::~Window()
 void Window::changeTheme()
 {
     // FIXME: 等主题库开发好后，使用主题库提供的接口实现
-    QList<QPushButton *> btnsWithSvg = {
+    QList<QAbstractButton *> btnsWithSvg = {
         m_ui->m_btnFavoriteAppIcon,
         m_ui->m_btnPopularAppIcon,
         m_ui->m_btnAppsOverview,
@@ -97,7 +98,7 @@ void Window::changeTheme()
         m_ui->m_btnSettings,
         m_ui->m_btnSystemMonitor};
 
-    for (QPushButton *btn : btnsWithSvg)
+    for (QAbstractButton *btn : btnsWithSvg)
     {
         QImage image = btn->icon().pixmap(btn->iconSize()).toImage();
         image.invertPixels(QImage::InvertRgb);
@@ -121,9 +122,14 @@ void Window::init()
 
 void Window::initUI()
 {
+    m_ui->m_gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    m_ui->m_gridLayoutFavoriteApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
     //收藏夹图标
+    m_ui->m_btnFavoriteAppIcon->setFlat(true);
     m_ui->m_btnFavoriteAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
     //常用应用图标
+    m_ui->m_btnPopularAppIcon->setFlat(true);
     m_ui->m_btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
 
     //主题
@@ -193,6 +199,8 @@ void Window::initActivitiesStats()
 
 void Window::initUserInfo()
 {
+    m_ui->m_btnUserPhoto->setFlat(true);
+
     //用户名、头像
     try
     {
@@ -354,8 +362,11 @@ void Window::runApp(QString appId)
 
     if (service)
     {
+        KLOG_INFO() << appId << service->exec();
         //启动应用
-        QProcess::startDetached(service->exec(), QStringList());
+        // QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
+        auto *job = new KIO::ApplicationLauncherJob(service);
+        job->start();
 
         //通知kactivitymanagerd
         KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
@@ -388,23 +399,24 @@ void Window::removeFromFavorite(const QString &appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
-void Window::isInTasklist(const QString &appId, bool &checkResult)
+void Window::isInTasklist(const QUrl &url, bool &checkResult)
 {
-    checkResult = SettingProcess::isStringInKey(TASKBAR_LOCK_APP_KEY, appId);
+    checkResult = SettingProcess::isValueInKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void Window::addToTasklist(const QString &appId)
+void Window::addToTasklist(const QUrl &url)
 {
-    SettingProcess::addStringToKey(TASKBAR_LOCK_APP_KEY, appId);
+    SettingProcess::addValueToKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void Window::removeFromTasklist(const QString &appId)
+void Window::removeFromTasklist(const QUrl &url)
 {
-    SettingProcess::removeStringFromKey(TASKBAR_LOCK_APP_KEY, appId);
+    SettingProcess::removeValueFromKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
 void Window::addToDesktop(const QString &appId)
 {
+    // TODO:添加到桌面
 }
 
 void Window::updateUserInfo()
@@ -426,7 +438,7 @@ void Window::updateUserInfo()
 
 void Window::updatePopular()
 {
-    Utility::clearLayout(m_ui->m_layoutWidgePopular, true);
+    Utility::clearLayout(m_ui->m_gridLayoutPopularApp, true);
 
     const auto query = UsedResources | HighScoredFirst | Agent::any() | Type::any() | Activity::any() | Url::startsWith(QStringLiteral("applications:")) | Limit(4);
 
@@ -445,7 +457,7 @@ void Window::updatePopular()
 
         AppItem *appItem = newAppItem(serviceId);
 
-        m_ui->m_layoutWidgePopular->addWidget(appItem, 0, col++);
+        m_ui->m_gridLayoutPopularApp->addWidget(appItem, 0, col++);
     }
 }
 
@@ -458,32 +470,28 @@ void Window::updateFavorite()
     int rowIndex = 0;
     int colIndex = 0;
 
-    //    for (int i = 0; i < 10; i++)
+    //获取收藏夹数据
+    const auto query = LinkedResources | Agent::global() | Type::any() | Activity::any();
+
+    for (const ResultSet::Result &result : ResultSet(query))
     {
-        //获取收藏夹数据
-        const auto query = LinkedResources | Agent::global() | Type::any() | Activity::any();
-
-        for (const ResultSet::Result &result : ResultSet(query))
+        QString serviceId = QUrl(result.resource()).path();
+        KService::Ptr service = KService::serviceByStorageId(serviceId);
+        if (!service || !service->isValid())
         {
-            //        KLOG_INFO() << result.url() << result.resource();
-            QString serviceId = QUrl(result.resource()).path();
-            KService::Ptr service = KService::serviceByStorageId(serviceId);
-            if (!service || !service->isValid())
-            {
-                continue;
-            }
-            AppItem *appItem = newAppItem(serviceId);
-
-            m_ui->m_gridLayoutFavoriteApp->addWidget(appItem, rowIndex, colIndex++);
-
-            if (colIndex >= colMax)
-            {
-                colIndex = 0;
-                rowIndex++;
-            }
-
-            m_favoriteAppId.append(serviceId);
+            continue;
         }
+        AppItem *appItem = newAppItem(serviceId);
+
+        m_ui->m_gridLayoutFavoriteApp->addWidget(appItem, rowIndex, colIndex++);
+
+        if (colIndex >= colMax)
+        {
+            colIndex = 0;
+            rowIndex++;
+        }
+
+        m_favoriteAppId.append(serviceId);
     }
 }
 
@@ -503,31 +511,30 @@ bool Window::eventFilter(QObject *object, QEvent *event)
     return QWidget::eventFilter(object, event);
 }
 
-void Window::paintEvent(QPaintEvent *event)
-{
-    //    QPainter painter(this);
-    //    painter.setRenderHint(QPainter::Antialiasing); //反锯齿
-
-    //    auto kiranPalette = StylePalette::instance();
-
-    //    QPainterPath painterPath;
-    //    QRectF frect = rect();
-    //    frect.adjust(0.5, 0.5, -0.5, -0.5);
-    //    painterPath.addRoundedRect(frect, 6, 6);
-
-    //    QColor backgroundColor;
-    //    backgroundColor = kiranPalette->color(StylePalette::Normal,
-    //                                          StylePalette::Window,
-    //                                          StylePalette::Background);
-    //    painter.fillPath(painterPath, backgroundColor);
-
-    QWidget::paintEvent(event);
-}
-
 void Window::showEvent(QShowEvent *event)
 {
     //任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+}
+
+void Window::keyPressEvent(QKeyEvent *event)
+{
+    if (Qt::Key_Up == event->key())
+    {
+        focusPreviousChild();
+    }
+    else if (Qt::Key_Down == event->key())
+    {
+        focusNextChild();
+    }
+    else if (Qt::Key_Escape == event->key())
+    {
+        emit windowDeactivated();
+    }
+    else
+    {
+        QWidget::keyPressEvent(event);
+    }
 }
 
 }  // namespace  Menu

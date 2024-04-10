@@ -17,68 +17,68 @@
 #include "define.h"
 #include "setting-process.h"
 
-QVariant SettingProcess::getValue(QString key)
+QVariant SettingProcess::getValue(const QString &key)
 {
     return getValue(KIRAN_SHELL_SETTING_FILE, key);
 }
 
-void SettingProcess::setValue(QString key, const QVariant &value)
+void SettingProcess::setValue(const QString &key, const QVariant &value)
 {
     setValue(KIRAN_SHELL_SETTING_FILE, key, value);
 }
 
-QVariant SettingProcess::getValue(QString iniFile, QString key)
+QVariant SettingProcess::getValue(const QString &iniFile, const QString &key)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
     return settings.value(key);
 }
 
-void SettingProcess::setValue(QString iniFile, QString key, const QVariant &value)
+void SettingProcess::setValue(const QString &iniFile, const QString &key, const QVariant &value)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
     settings.setValue(key, value);
 }
 
-void SettingProcess::addStringToKey(QString key, const QString &value)
+void SettingProcess::addValueToKey(const QString &key, const QVariant &value)
 {
-    addStringToKey(KIRAN_SHELL_SETTING_FILE, key, value);
+    addValueToKey(KIRAN_SHELL_SETTING_FILE, key, value);
 }
 
-void SettingProcess::addStringToKey(QString iniFile, QString key, const QString &value)
+void SettingProcess::addValueToKey(const QString &iniFile, const QString &key, const QVariant &value)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
-    QStringList strlistValue = settings.value(key).toStringList();
-    if (!strlistValue.contains(value))
+    QVariantList values = settings.value(key).toList();
+    if (!values.contains(value))
     {
-        strlistValue.append(value);
-        settings.setValue(key, strlistValue);
+        values.append(value);
+        settings.setValue(key, values);
     }
 }
 
-void SettingProcess::removeStringFromKey(QString key, const QString &value)
+void SettingProcess::removeValueFromKey(const QString &key, const QVariant &value)
 {
-    removeStringFromKey(KIRAN_SHELL_SETTING_FILE, key, value);
+    removeValueFromKey(KIRAN_SHELL_SETTING_FILE, key, value);
 }
 
-void SettingProcess::removeStringFromKey(QString iniFile, QString key, const QString &value)
+void SettingProcess::removeValueFromKey(const QString &iniFile, const QString &key, const QVariant &value)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
-    QStringList strlistValue = settings.value(key).toStringList();
-    if (strlistValue.contains(value))
+    QVariantList values = settings.value(key).toList();
+    if (values.contains(value))
     {
-        strlistValue.removeAll(value);
-        settings.setValue(key, strlistValue);
+        values.removeAll(value);
+        settings.setValue(key, values);
     }
 }
 
-bool SettingProcess::isStringInKey(QString key, const QString &value)
+bool SettingProcess::isValueInKey(const QString &key, const QVariant &value)
 {
-    return isStringInKey(KIRAN_SHELL_SETTING_FILE, key, value);
+    return isValueInKey(KIRAN_SHELL_SETTING_FILE, key, value);
 }
 
-bool SettingProcess::isStringInKey(QString iniFile, QString key, const QString &value)
+bool SettingProcess::isValueInKey(const QString &iniFile, const QString &key, const QVariant &value)
 {
     QSettings settings(iniFile, QSettings::IniFormat);
-    QStringList strlistValue = settings.value(key).toStringList();
-    return strlistValue.contains(value);
+    QVariantList values = settings.value(key).toList();
+    return values.contains(value);
 }

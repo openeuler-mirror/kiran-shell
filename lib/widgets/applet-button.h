@@ -28,7 +28,6 @@ public:
     AppletButton(IAppletImport *import);
     virtual ~AppletButton();
 
-protected:
     // 通过名称设置图标，图标大小会根据按钮大小做调整
     void setIconByName(const QString &iconName);
     void setIconFromTheme(const QString &iconName);

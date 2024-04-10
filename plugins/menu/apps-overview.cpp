@@ -15,6 +15,7 @@
 #include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
+#include <QAbstractItemModel>
 #include <QAction>
 #include <QCursor>
 #include <QMap>
@@ -44,22 +45,21 @@ AppsOverview::~AppsOverview()
 
 void AppsOverview::init()
 {
-    m_ui->m_treeWidgetShowApps->clear();
+    //    m_ui->m_treeWidgetApps->clear();
     //禁用双击展开
-    m_ui->m_treeWidgetShowApps->setExpandsOnDoubleClick(false);
+    m_ui->m_treeWidgetApps->setExpandsOnDoubleClick(false);
     //隐藏小三角
-    m_ui->m_treeWidgetShowApps->setRootIsDecorated(false);
-
+    m_ui->m_treeWidgetApps->setRootIsDecorated(false);
     //载入应用列表
     loadApps();
 
     //剔除列表下为空的顶级项
-    for (int i = 0; i < m_ui->m_treeWidgetShowApps->topLevelItemCount(); i++)
+    for (int i = 0; i < m_ui->m_treeWidgetApps->topLevelItemCount(); i++)
     {
-        auto item = m_ui->m_treeWidgetShowApps->topLevelItem(i);
+        auto item = m_ui->m_treeWidgetApps->topLevelItem(i);
         if (0 == item->childCount())
         {
-            delete m_ui->m_treeWidgetShowApps->takeTopLevelItem(i);
+            delete m_ui->m_treeWidgetApps->takeTopLevelItem(i);
         }
     }
 
@@ -68,13 +68,13 @@ void AppsOverview::init()
 
 void AppsOverview::loadApps()
 {
-    m_ui->m_treeWidgetShowApps->clear();
+    m_ui->m_treeWidgetApps->clear();
 
     KServiceGroup::Ptr group = KServiceGroup::root();
     recursiveService(group.data());
 
     //展开应用列表
-    m_ui->m_treeWidgetShowApps->expandAll();
+    m_ui->m_treeWidgetApps->expandAll();
 }
 
 void AppsOverview::recursiveService(KServiceGroup *serviceGroup, const QString &filter, QTreeWidgetItem *parent)
@@ -127,12 +127,12 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
             return;
         }
 
-        QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetShowApps);
+        QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetApps);
         item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
         //        KLOG_INFO() << "propertyNames:" << g->name() << g->caption() << g->icon() << g->comment() << g->noDisplay() << g->baseGroupName();
 
         item->setText(0, TR_NOOP_STRING.contains(g->caption()) ? tr(TR_NOOP_STRING[g->caption()]) : g->caption());
-        m_ui->m_treeWidgetShowApps->addTopLevelItem(item);
+        m_ui->m_treeWidgetApps->addTopLevelItem(item);
     }
     else if (entry->isType(KST_KService))
     {
@@ -161,7 +161,7 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
 
         if (!parent)
         {
-            parent = m_ui->m_treeWidgetShowApps->topLevelItem(m_ui->m_treeWidgetShowApps->topLevelItemCount() - 1);
+            parent = m_ui->m_treeWidgetApps->topLevelItem(m_ui->m_treeWidgetApps->topLevelItemCount() - 1);
             if (!parent)
             {
                 return;
@@ -174,7 +174,7 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
     }
 }
 
-void AppsOverview::on_m_treeWidgetShowApps_itemClicked(QTreeWidgetItem *item, int column)
+void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)
 {
     QVariant itemData = item->data(0, Qt::UserRole);
     if (itemData.isValid())
@@ -186,18 +186,18 @@ void AppsOverview::on_m_treeWidgetShowApps_itemClicked(QTreeWidgetItem *item, in
         if (item->isExpanded())
         {
             //折叠
-            m_ui->m_treeWidgetShowApps->collapseAll();
+            m_ui->m_treeWidgetApps->collapseAll();
         }
         else
         {
             //展开后滚动到最上面
-            m_ui->m_treeWidgetShowApps->expandAll();
-            m_ui->m_treeWidgetShowApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
+            m_ui->m_treeWidgetApps->expandAll();
+            m_ui->m_treeWidgetApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
         }
     }
 }
 
-void AppsOverview::on_m_treeWidgetShowApps_itemPressed(QTreeWidgetItem *item, int column)
+void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int column)
 {
     if (qApp->mouseButtons() == Qt::RightButton)
     {
@@ -230,16 +230,26 @@ void AppsOverview::on_m_treeWidgetShowApps_itemPressed(QTreeWidgetItem *item, in
         }
 
         isCheckOK = false;
-        emit isInTasklist(appId, isCheckOK);
+        KService::Ptr s = KService::serviceByMenuId(appId);
+        QUrl url = QUrl::fromLocalFile(s->entryPath());
+        emit isInTasklist(url, isCheckOK);
         if (!isCheckOK)
         {
             menu.addAction(tr("Add to tasklist"), this, [=]()
-                           { emit addToTasklist(appId); });
+                           {
+                               KService::Ptr s = KService::serviceByMenuId(appId);
+                               QUrl url = QUrl::fromLocalFile(s->entryPath());
+                               emit addToTasklist(url);
+                           });
         }
         else
         {
             menu.addAction(tr("Remove from tasklist"), this, [=]()
-                           { emit removeFromTasklist(appId); });
+                           {
+                               KService::Ptr s = KService::serviceByMenuId(appId);
+                               QUrl url = QUrl::fromLocalFile(s->entryPath());
+                               emit removeFromTasklist(url);
+                           });
         }
 
         menu.exec(QCursor::pos());
@@ -254,19 +264,25 @@ void AppsOverview::on_m_lineEditSearch_textChanged(const QString &arg1)
         return;
     }
 
-    m_ui->m_treeWidgetShowApps->clear();
+    m_ui->m_treeWidgetApps->clear();
 
-    QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetShowApps);
+    QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetApps);
     item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
     //        KLOG_INFO() << "propertyNames:" << g->name() << g->caption() << g->icon() << g->comment() << g->noDisplay() << g->baseGroupName();
 
     item->setText(0, tr("result"));
-    m_ui->m_treeWidgetShowApps->addTopLevelItem(item);
+    m_ui->m_treeWidgetApps->addTopLevelItem(item);
 
     KServiceGroup::Ptr group = KServiceGroup::root();
     recursiveService(group.data(), arg1, item);
 
-    m_ui->m_treeWidgetShowApps->expandAll();
+    m_ui->m_treeWidgetApps->expandAll();
+}
+
+void AppsOverview::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    m_ui->m_lineEditSearch->setFocus();
 }
 
 }  // namespace Menu

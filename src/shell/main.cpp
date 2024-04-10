@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     //        fprintf(stderr, "Failed to init kiran-log.");
     //    }
 
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
     app.setApplicationName(programName);

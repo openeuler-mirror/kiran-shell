@@ -15,8 +15,9 @@
 #pragma once
 
 #include <KWindowInfo>
-#include <QMenu>
 #include <QWidget>
+
+class QMenu;
 
 namespace Ui
 {
@@ -47,13 +48,12 @@ public:
     void updatePreviewer();
 
 private:
-    // 预览显示/隐藏
-    void showPreviewer(QByteArray wmClass, WId wid);
-    void hidePreviewer(QByteArray wmClass, WId wid);
-
     // 监测窗口变化
     void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
     void changedActiveWindow(WId wid);
+
+    // 启动截图
+    void startUpdatePreviewer();
 
 private slots:
     void on_m_btnClose_clicked();
@@ -76,6 +76,10 @@ private:
     WId m_widLastActive;
 
     QMenu *m_menu;
+
+    bool m_updateInProgress;
+
+    QPixmap m_pixPreviewer;
 };
 
 }  // namespace Taskbar

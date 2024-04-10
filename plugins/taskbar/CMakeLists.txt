@@ -6,6 +6,8 @@ file(GLOB_RECURSE UI_FILES ./*.ui)
 
 set(TARGET_NAME taskbar)
 
+set(TRANSLATION_FILES "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
+
 # 更新ts文件
 execute_process(
     COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts ${TRANSLATION_FILES}
@@ -42,6 +44,9 @@ target_link_libraries(
     KF5::Service
     KF5::Activities
     KF5::ActivitiesStats
-    common)
+    KF5::KIOCore
+    KF5::KIOWidgets
+    common
+    widgets)
 
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

@@ -12,20 +12,25 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-style/style-palette.h>
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
+#include <KDesktopFile>
+#include <KIO/ApplicationLauncherJob>
+#include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <KWindowSystem>
+#include <QDesktopServices>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QProcess>
 #include <QSettings>
 
-#include "app-button-container.h"
 #include "app-button.h"
+#include "app-group.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
@@ -35,74 +40,101 @@ namespace Kiran
 {
 namespace Taskbar
 {
-AppButton::AppButton(IAppletImport *import, AppButtonContainer *parent)
-    : StyleAppButton(parent),
+AppButton::AppButton(IAppletImport *import, QWidget *parent)
+    : StyledButton(parent),
       m_import(import),
-      m_wid(0)
+      m_wid(0),
+      m_isShowName(false)
 {
-    connect(parent, &AppButtonContainer::windowAdded, this, &AppButton::addWindow);
-    connect(parent, &AppButtonContainer::windowRemoved, this, &AppButton::removeWindow);
-    connect(parent, &AppButtonContainer::windowChanged, this, &AppButton::changedWindow);
-    connect(parent, &AppButtonContainer::activeWindowChanged, this, &AppButton::changedActiveWindow);
+    AppGroup *appGroup = (AppGroup *)parent;
+    connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
 
-    connect(this, &QPushButton::clicked, this, &AppButton::buttonClicked);
+    connect(this, &QAbstractButton::clicked, this, &AppButton::buttonClicked);
 
     auto panelSize = m_import->getPanel()->getSize();
     int iconSize = panelSize - BUTTON_BLANK_SPACE * 2;
     setIconSize(QSize(iconSize, iconSize));
-
-    // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
-    m_settingFileWatcher.addPath(QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path());
-    connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
-            { updateName(); });
+    setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 }
 
-void AppButton::setAppInfo(QByteArray wmClass, WId wid)
+void AppButton::setAppInfo(const AppBaseInfo &appBaseInfo)
 {
-    m_desktopFile = WindowInfoHelper::getDesktopFileByWId(wid);
+    m_appBaseInfo = appBaseInfo;
+    getInfoFromUrl();
+}
 
-    KLOG_INFO() << "AppButton::setAppInfo" << wmClass << m_desktopFile;
-    m_wmClass = wmClass;
+void AppButton::setAppInfo(const QByteArray &wmClass, const WId &wid)
+{
+    m_appBaseInfo.m_url = WindowInfoHelper::getUrlByWId(wid);
+
+    //    KLOG_INFO() << "AppButton::setAppInfo" << wmClass << wid << m_appBaseInfo.m_url;
+    m_appBaseInfo.m_wmClass = wmClass;
+    m_wid = wid;
 
     //    KLOG_INFO() << "desktop file:" << m_desktopFile;
-    if (m_desktopFile.isEmpty())
+    if (m_appBaseInfo.m_url.isEmpty())
     {
         // 找不到 desktop file 的app
-        // 获取名称
-        m_name = WindowInfoHelper::getAppNameByWId(wid);
-
         // 使用默认图标
         QPixmap icon = KWindowSystem::icon(wid);
-        // setIcon(QIcon::fromTheme("application-x-executable"));
         setIcon(QIcon(icon));
-        // KLOG_INFO() << "app icon:" << icon;
 
-        setToolTip(m_name);
-        updateName();
+        // 获取名称
+        QString visibleName = WindowInfoHelper::getAppNameByWId(wid);
+        setToolTip(visibleName);
     }
     else
     {
-        setAppInfo(m_desktopFile);
+        getInfoFromUrl();
     }
 }
 
-void AppButton::setAppInfo(QString appId)
+void AppButton::getInfoFromUrl()
 {
-    // 只传desktopfile，用于固定到任务栏的应用（未打开前）
-    m_desktopFile = appId.toLocal8Bit();
-    auto service = KService::serviceByStorageId(m_desktopFile);
-    if (!service->isValid())
+    if (m_appBaseInfo.m_url.isEmpty())
     {
-        KLOG_WARNING() << "KService::serviceByStorageId failed";
         return;
     }
 
-    m_name = service->name();
-    setIcon(QIcon::fromTheme(service->icon()));
-    // KLOG_INFO() << "app icon:" << service->icon();
+    KFileItem fileItem(m_appBaseInfo.m_url);
+    if (fileItem.isNull())
+    {
+        KLOG_ERROR() << "get url info failed, url:" << m_appBaseInfo.m_url;
+        return;
+    }
 
-    setToolTip(m_name);
-    updateName();
+    //    KLOG_INFO() << "AppButton::getInfoFromUrl" << m_appBaseInfo.m_url << fileItem.iconName() << fileItem.mimeComment();
+
+    setIcon(QIcon::fromTheme(fileItem.iconName()));  // 图标正确，除了桌面的计算机、主文件夹、回收站等
+    if (fileItem.isDesktopFile())
+    {
+        setToolTip(fileItem.mimeComment());
+    }
+    // 普通文件
+    else
+    {
+        setToolTip(fileItem.name());
+    }
+}
+
+void AppButton::setUrl(QUrl url)
+{
+    m_appBaseInfo.m_url = url;
+    getInfoFromUrl();
+}
+
+void AppButton::setShowVisualName(const bool &isShow)
+{
+    m_isShowName = isShow;
+
+    updateShowName();
+}
+
+void AppButton::reset()
+{
+    m_wid = 0;
+    getInfoFromUrl();
+    updateShowName();
 }
 
 void AppButton::contextMenuEvent(QContextMenuEvent *event)
@@ -121,85 +153,123 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                        { emit windowClose(m_wid); });
     }
 
-    emit isInFavorite(m_desktopFile, check_result);
+    emit isInFavorite(m_appBaseInfo.m_url.fileName(), check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to favorite"), this, [=]()
-                       { emit addToFavorite(m_desktopFile); });
+                       { emit addToFavorite(m_appBaseInfo.m_url.fileName()); });
     }
     else
     {
         menu.addAction(tr("Remove from favorite"), this, [=]()
-                       { emit removeFromFavorite(m_desktopFile); });
+                       { emit removeFromFavorite(m_appBaseInfo.m_url.fileName()); });
     }
 
-    emit isInTasklist(m_desktopFile, check_result);
+    emit isInTasklist(m_appBaseInfo.m_url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this, [=]()
-                       { emit addToTasklist(m_desktopFile); });
+                       { emit addToTasklist(m_appBaseInfo.m_url, this); });
     }
     else
     {
         menu.addAction(tr("Remove from tasklist"), this, [=]()
-                       { emit removeFromTasklist(m_desktopFile); });
+                       { emit removeFromTasklist(m_appBaseInfo.m_url); });
     }
 
     menu.exec(mapToGlobal(event->pos()));
+    update();
 }
 
 void AppButton::enterEvent(QEvent *event)
 {
+    StyledButton::enterEvent(event);
+
     // 鼠标移入，显示预览窗口
     if (0 == m_wid)
     {
         return;
     }
 
-    emit previewerShow(m_wmClass, m_wid);
-
-    StyleAppButton::enterEvent(event);
+    emit previewerShowChange(m_wid);
 }
 
 void AppButton::leaveEvent(QEvent *event)
 {
+    StyledButton::leaveEvent(event);
+
     // 鼠标移出，隐藏预览窗口
     if (0 == m_wid)
     {
         return;
     }
 
-    emit previewerHide(m_wmClass, m_wid);
-
-    StyleAppButton::leaveEvent(event);
+    emit previewerShowChange(m_wid);
 }
 
-void AppButton::addWindow(QByteArray wmClass, WId wid)
+void AppButton::paintEvent(QPaintEvent *event)
 {
-    if (wmClass != m_wmClass || m_wid == wid)
+    StyledButton::paintEvent(event);
+
+    int relationAppSize = 0;
+    emit getRelationAppSize(relationAppSize);
+    if (0 == relationAppSize)
     {
         return;
     }
+    auto stylePalette = Kiran::StylePalette::instance();
 
-    if (0 != m_wid)
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
+
+    // 底部横线
+    const int rectHeight = 3;  // 高度为 2
+
+    QRect bottomRect = rect();
+    bottomRect.adjust(0, rect().height() - rectHeight, 0, 0);
+    if (!m_hovered && !isChecked())
+    {
+        // 横线短一点
+        bottomRect.adjust(5, 0, -5, 0);
+    }
+    QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Checked,
+                                         Kiran::StylePalette::WidgetType::Widget,
+                                         Kiran::StylePalette::WidgetColorRule::Background);
+    painter.fillRect(bottomRect, bgColor);
+
+    // 如果有多个关联窗口，右侧增加覆盖层
+    if (1 == relationAppSize)
     {
         return;
     }
+    bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Active,
+                                  Kiran::StylePalette::WidgetType::Widget,
+                                  Kiran::StylePalette::WidgetColorRule::Border);
+    bgColor.setAlpha(125);
 
-    m_wid = wid;
+    if (!m_hovered && !isChecked())
+    {
+        // 横线短一点
+        bottomRect.adjust(bottomRect.width() - 10, 0, 0, 0);
+    }
+    else
+    {
+        // 整个右侧
+        //bottomRect = rect();
+        //bottomRect.adjust(rect().width() - 4, 0, 0, 0);
+
+        bottomRect.adjust(bottomRect.width() - 5, 0, 0, 0);
+    }
+
+    QPen pen = painter.pen();
+    pen.setColor(bgColor);
+    painter.setPen(pen);
+    painter.fillRect(bottomRect, bgColor);
 }
 
-void AppButton::removeWindow(QByteArray wmClass, WId wid)
+void AppButton::updateLayout()
 {
-    if (wmClass != m_wmClass)
-    {
-        return;
-    }
-
-    if (m_wid == wid)
-    {
-        m_wid = 0;
-    }
+    //    updateName();
 }
 
 void AppButton::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
@@ -220,10 +290,38 @@ void AppButton::changedWindow(WId wid, NET::Properties properties, NET::Properti
             // TODO: 已聚焦窗口，清除提醒 需要样式支持
         }
     }
+
+    if (properties.testFlag(NET::WMName))
+    {
+        updateShowName();
+    }
 }
 
-void AppButton::changedActiveWindow(WId wid)
+void AppButton::updateShowName()
 {
+    if (0 != m_wid)
+    {
+        m_visualName = WindowInfoHelper::getAppNameByWId(m_wid);
+        setToolTip(m_visualName);
+
+        auto size = m_import->getPanel()->getSize();
+        int orientation = m_import->getPanel()->getOrientation();
+
+        if (m_isShowName &&
+            (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+             orientation == PanelOrientation::PANEL_ORIENTATION_TOP))
+        {
+            setFixedSize(size * 3, size);
+            QString elideText = Utility::getElidedText(fontMetrics(), m_visualName, size * 2);
+            setText(elideText);
+            return;
+        }
+    }
+
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
+    setText("");
+    return;
 }
 
 void AppButton::buttonClicked()
@@ -231,20 +329,38 @@ void AppButton::buttonClicked()
     // 如果没有关联的窗口，则启动应用（固定到任务栏的应用）
     // 如果只有一个关联的窗口，则激活或最小化窗口
     // 如果由多个关联窗口，不用处理
-    if (0 == m_wid)
-    {
-        KService::Ptr service = KService::serviceByStorageId(m_desktopFile);
+    int relationAppSize = 0;
+    emit getRelationAppSize(relationAppSize);
 
-        if (service)
+    if (0 == relationAppSize)
+    {
+        KFileItem fileItem(m_appBaseInfo.m_url);
+        if (fileItem.isNull())
         {
+            KLOG_ERROR() << "get url info failed, url:" << m_appBaseInfo.m_url;
+            return;
+        }
+
+        if (fileItem.isDesktopFile())
+        {
+            KService::Ptr service = KService::serviceByStorageId(m_appBaseInfo.m_url.fileName());
             //启动应用
-            QProcess::startDetached(service->exec(), QStringList());
+            auto *job = new KIO::ApplicationLauncherJob(service);
+            job->start();
 
             //通知kactivitymanagerd
             KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
         }
+        else
+        {
+            bool ret = QDesktopServices::openUrl(m_appBaseInfo.m_url);
+            if (!ret)
+            {
+                KLOG_ERROR() << "start programe failed，url:" << m_appBaseInfo.m_url;
+            }
+        }
     }
-    else
+    else if (1 == relationAppSize)
     {
         if (WindowInfoHelper::isActived(m_wid))
         {
@@ -252,24 +368,16 @@ void AppButton::buttonClicked()
         }
         else
         {
-            WindowInfoHelper::activeWindow(m_wid);
+            WindowInfoHelper::activateWindow(m_wid);
         }
-    }
-}
-
-void AppButton::updateName()
-{
-    auto size = m_import->getPanel()->getSize();
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
-    {
-        setFixedSize(size * 3, size);
-        QString elideText = Utility::getElidedText(fontMetrics(), m_name, size * 2);
-        setText(elideText);
     }
     else
     {
-        setFixedSize(size, size);
-        setText("");
+        // 显示或隐藏预览
+        emit previewerShowChange(m_wid);
+
+        // 点击后check状态会变化，需要维持之前的状态
+        setChecked(!isChecked());
     }
 }
 

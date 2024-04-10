@@ -15,16 +15,11 @@
 #ifndef APPITEM_H
 #define APPITEM_H
 
-#include <kiran-color-block.h>
 #include <QAction>
-#include <QWidget>
 
-namespace Ui
-{
-class AppItem;
-}
+#include "lib/widgets/styled-button.h"
 
-class AppItem : public KiranColorBlock
+class AppItem : public StyledButton
 {
     Q_OBJECT
 
@@ -35,30 +30,34 @@ public:
     void setAppId(QString id);
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString &appId, bool &checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(const QString &appId, bool &checkResult);
+    void isInTasklist(const QUrl &url, bool &checkResult);
 
     // 添加到×/从×移除 桌面、收藏夹、任务栏
     void addToDesktop(const QString &appId);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    void addToTasklist(const QString &appId);
-    void removeFromTasklist(const QString &appId);
+    void addToTasklist(const QUrl &url);
+    void removeFromTasklist(const QUrl &url);
 
     // 运行应用
     void runApp(const QString &appId);
 
 private:
-    Ui::AppItem *m_ui;
-
     // 应用id
     QString m_appId;
+
+    // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
+    QPoint m_pressPoint;
 };
 
 #endif  // APPITEM_H

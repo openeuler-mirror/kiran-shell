@@ -1,24 +1,13 @@
 
 #pragma once
 
-#include <KWindowSystem>
-#include <QApplication>
 #include <QCalendarWidget>
-#include <QFocusEvent>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QLocale>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QProcess>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QTableView>
-#include <QTextCharFormat>
-#include <QWidget>
 
 #include "lunar.h"
+
+class QPushButton;
+class QLineEdit;
+class QLabel;
 
 namespace Kiran
 {

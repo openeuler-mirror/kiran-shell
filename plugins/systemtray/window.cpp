@@ -28,12 +28,14 @@
 #define REGISTERED_ITEMS QLatin1String("RegisteredStatusNotifierItems")
 #define REGISTERED_HOST QLatin1String("RegisterStatusNotifierHost")
 
+#define LAYOUT_MARGIN 10
+
 namespace Kiran
 {
 namespace Systemtray
 {
 Window::Window(IAppletImport *import, QWidget *parent)
-    : QWidget(parent),
+    : KiranColorBlock(parent),
       m_import(import),
       m_windowPopup(nullptr)
 {
@@ -42,17 +44,16 @@ Window::Window(IAppletImport *import, QWidget *parent)
     auto panelSize = m_import->getPanel()->getSize();
 
     auto direction = getLayoutDirection();
-    m_layoutBase = new QBoxLayout(direction);
-    m_layoutBase->setMargin(0);
+    m_layoutBase = new QBoxLayout(direction, this);
     m_layoutBase->setSpacing(0);
-    setLayout(m_layoutBase);
 
-    m_indicatorWidget = new KiranColorBlock(this);
+    m_indicatorWidget = new StyledButton(this);
+    m_indicatorWidget->setChecked(true);  // 显示不一样的样式
     m_indicatorWidget->setFixedSize(panelSize, panelSize);
     m_indicatorWidget->hide();
 
     // 托盘弹出窗口按钮
-    m_windowPopupButton = new QPushButton(this);
+    m_windowPopupButton = new StyledButton(this);
     m_windowPopupButton->setIcon(QIcon::fromTheme("ks-tray-box"));
 
     m_windowPopupButton->setFixedSize(panelSize, panelSize);
@@ -68,7 +69,7 @@ Window::Window(IAppletImport *import, QWidget *parent)
     connect(m_windowPopup, &WindowPopup::hideTrayBox, this, &Window::hideTrayBox);
     connect(m_windowPopup, &WindowPopup::dropEnded, this, &Window::dropEnd);
     connect(this, &Window::dropEnded, m_windowPopup, &WindowPopup::dropEnd);
-    connect(m_windowPopupButton, &QPushButton::clicked, this, [this]()
+    connect(m_windowPopupButton, &QPushButton::clicked, this, [this](bool checked)
             {
                 if (m_windowPopup->isHidden())
                 {
@@ -78,11 +79,11 @@ Window::Window(IAppletImport *import, QWidget *parent)
                 }
             });
 
-    refreshLayout();
+    updateLayout();
 
     // 布局更新
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(refreshLayout()));
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     // 托盘服务注册
     TrayServerInstance;
@@ -205,6 +206,7 @@ TrayItem *Window::itemAdd(QString serviceAndPath)
                 m_windowPopupButton->setEnabled(false);
             });
     m_services.insert(serviceAndPath, item);
+
     return item;
 }
 
@@ -238,6 +240,7 @@ void Window::hideTrayBox()
     // KLOG_INFO() << "Window::hideTrayBox";
     m_windowPopup->hide();
     m_windowPopupButton->setEnabled(true);
+    m_windowPopupButton->setChecked(false);
 }
 
 void Window::dropEnd(QString serviceAndPath)
@@ -269,16 +272,18 @@ void Window::updateItemLayout()
     auto size = m_import->getPanel()->getSize();
     if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
     {
-        setFixedSize(m_items.size() * size + size, size);
+        setFixedSize(m_items.size() * size + size + LAYOUT_MARGIN * 2, size);
     }
     else
     {
-        setFixedSize(size, m_items.size() * size + size);
+        setFixedSize(size, m_items.size() * size + size + LAYOUT_MARGIN * 2);
     }
     for (auto item : m_items)
     {
         m_layout->addWidget(item);
     }
+
+    updateTrayBoxPosition();
 }
 
 QList<TrayItem *> Window::getTrayItems()
@@ -359,7 +364,14 @@ void Window::dropEvent(QDropEvent *event)
         TrayItem *item = itemAdd(serviceAndPath);
         if (item)
         {
-            m_items.insert(m_currentDropIndex, item);
+            if (m_currentDropIndex >= m_items.size())
+            {
+                m_items.append(item);
+            }
+            else
+            {
+                m_items.insert(m_currentDropIndex, item);
+            }
             emit dropEnded(serviceAndPath);
         }
     }
@@ -368,7 +380,14 @@ void Window::dropEvent(QDropEvent *event)
         // 存在，调整位置
         TrayItem *item = m_services.value(serviceAndPath);
         m_items.removeAll(item);
-        m_items.insert(m_currentDropIndex, item);
+        if (m_currentDropIndex >= m_items.size())
+        {
+            m_items.append(item);
+        }
+        else
+        {
+            m_items.insert(m_currentDropIndex, item);
+        }
     }
 
     updateItemLayout();
@@ -376,7 +395,7 @@ void Window::dropEvent(QDropEvent *event)
     event->accept();
 }
 
-void Window::refreshLayout()
+void Window::updateLayout()
 {
     //横竖摆放
     auto direction = getLayoutDirection();
@@ -388,6 +407,15 @@ void Window::refreshLayout()
     m_layout->setAlignment(alignment);
     m_layoutBase->setAlignment(alignment);
     updateItemLayout();
+
+    if (QBoxLayout::Direction::LeftToRight == direction)
+    {
+        m_layoutBase->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
+    }
+    else
+    {
+        m_layoutBase->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
+    }
 }
 
 }  // namespace Systemtray

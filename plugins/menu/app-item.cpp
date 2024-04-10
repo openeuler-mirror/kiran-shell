@@ -12,27 +12,28 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-style/style-palette.h>
+#include <qt5-log-i.h>
 #include <KService/KService>
+#include <QDrag>
 #include <QIcon>
 #include <QMenu>
+#include <QMimeData>
 #include <QMouseEvent>
-#include <QProcess>
 
 #include "app-item.h"
-#include "lib/common/utility.h"
-#include "ui_app-item.h"
 
 AppItem::AppItem(QWidget *parent)
-    : KiranColorBlock(parent),
-      m_ui(new Ui::AppItem)
+    : StyledButton(parent)
 {
-    m_ui->setupUi(this);
-    m_ui->m_labelName->clear();
+    setFixedSize(90, 90);
+    setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
+    setCheckable(false);
 }
 
 AppItem::~AppItem()
 {
-    delete m_ui;
 }
 
 void AppItem::setAppId(QString id)
@@ -41,17 +42,8 @@ void AppItem::setAppId(QString id)
     KService::Ptr s = KService::serviceByMenuId(m_appId);
     if (s)
     {
-        //长度不够，显示省略号
-        //m_labelName不是固定大小，所以使用其他控件属性值计算其长度
-        QFontMetrics fontMetrics = m_ui->m_labelName->fontMetrics();
-        auto margins = m_ui->m_gridLayoutAppItem->contentsMargins();
-        int elidedTextLen = width() - margins.left() - margins.right();
-        QString elideText = Utility::getElidedText(fontMetrics, s->name(), elidedTextLen);
-        m_ui->m_labelName->setText(elideText);
-
-        auto pix = QIcon::fromTheme(s->icon()).pixmap(56, 56);
-        m_ui->m_labelIcon->setPixmap(pix);
-
+        setIcon(QIcon::fromTheme(s->icon()));
+        setText(s->name());
         setToolTip(s->comment());
     }
 }
@@ -84,19 +76,31 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     }
 
     check_result = false;
-    emit isInTasklist(m_appId, check_result);
+    KService::Ptr s = KService::serviceByMenuId(m_appId);
+    QUrl url = QUrl::fromLocalFile(s->entryPath());
+    emit isInTasklist(url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this, [=]()
-                       { emit addToTasklist(m_appId); });
+                       {
+                           KService::Ptr s = KService::serviceByMenuId(m_appId);
+                           QUrl url = QUrl::fromLocalFile(s->entryPath());
+                           emit addToTasklist(url);
+                       });
     }
     else
     {
         menu.addAction(tr("Remove from tasklist"), this, [=]()
-                       { emit removeFromTasklist(m_appId); });
+                       {
+                           KService::Ptr s = KService::serviceByMenuId(m_appId);
+                           QUrl url = QUrl::fromLocalFile(s->entryPath());
+                           emit removeFromTasklist(url);
+                       });
     }
 
     menu.exec(mapToGlobal(event->pos()));
+
+    update();
 }
 
 void AppItem::mouseReleaseEvent(QMouseEvent *event)
@@ -104,9 +108,35 @@ void AppItem::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton)
     {
         emit runApp(m_appId);
-
-        return;
     }
 
-    QWidget::mouseReleaseEvent(event);
+    StyledButton::mouseReleaseEvent(event);
+}
+
+void AppItem::mousePressEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton)
+    {
+        m_pressPoint = event->pos();
+    }
+}
+
+void AppItem::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton)
+    {
+        if (qAbs(event->pos().x() - m_pressPoint.x()) < 10 && qAbs(event->pos().y() - m_pressPoint.y()) < 10)
+        {
+            return;
+        }
+
+        QDrag *drag = new QDrag(this);
+        QMimeData *mimeData = new QMimeData;
+        KService::Ptr s = KService::serviceByMenuId(m_appId);
+        QByteArray data = QUrl::fromLocalFile(s->entryPath()).toString().toLocal8Bit();
+        mimeData->setData("text/uri-list", data);
+        drag->setMimeData(mimeData);
+        drag->setPixmap(icon().pixmap(40, 40));
+        drag->exec(Qt::MoveAction);
+    }
 }

@@ -19,18 +19,18 @@ class SettingProcess : public QObject
 {
     Q_OBJECT
 public:
-    static QVariant getValue(QString key);
-    static void setValue(QString key, const QVariant &value);
+    static QVariant getValue(const QString &key);
+    static void setValue(const QString &key, const QVariant &value);
 
-    static QVariant getValue(QString iniFile, QString key);
-    static void setValue(QString iniFile, QString key, const QVariant &value);
+    static QVariant getValue(const QString &iniFile, const QString &key);
+    static void setValue(const QString &iniFile, const QString &key, const QVariant &value);
 
-    static void addStringToKey(QString key, const QString &value);
-    static void addStringToKey(QString iniFile, QString key, const QString &value);
-    static void removeStringFromKey(QString key, const QString &value);
-    static void removeStringFromKey(QString iniFile, QString key, const QString &value);
-    static bool isStringInKey(QString key, const QString &value);
-    static bool isStringInKey(QString iniFile, QString key, const QString &value);
+    static void addValueToKey(const QString &key, const QVariant &value);
+    static void addValueToKey(const QString &iniFile, const QString &key, const QVariant &value);
+    static void removeValueFromKey(const QString &key, const QVariant &value);
+    static void removeValueFromKey(const QString &iniFile, const QString &key, const QVariant &value);
+    static bool isValueInKey(const QString &key, const QVariant &value);
+    static bool isValueInKey(const QString &iniFile, const QString &key, const QVariant &value);
 
 private:
     SettingProcess() {}

@@ -57,6 +57,7 @@ void Profile::init()
 
     auto panelUIDs = this->getPanelUIDs();
     // 如果面板数为0，则需要使用布局中的面板配置
+
     if (panelUIDs.size() == 0)
     {
         this->loadFromLayout();

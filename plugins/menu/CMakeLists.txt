@@ -53,7 +53,8 @@ target_link_libraries(
     KF5::KIOWidgets
     KF5::Activities
     KF5::ActivitiesStats
-    common)
+    common
+    widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

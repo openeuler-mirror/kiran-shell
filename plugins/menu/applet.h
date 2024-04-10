@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <kiran-color-block.h>
 #include <plugin-i.h>
 
-#include "lib/common/applet-button.h"
+#include "lib/widgets/applet-button.h"
+#include "lib/widgets/styled-button.h"
 
 namespace Kiran
 {
@@ -26,7 +28,7 @@ namespace Menu
 {
 class Window;
 
-class Applet : public AppletButton
+class Applet : public KiranColorBlock
 {
     Q_OBJECT
 
@@ -41,7 +43,13 @@ private Q_SLOTS:
 private:
     void updateWindowPosition();
 
+private slots:
+    // panel布局信息发生变化
+    void updateLayout();
+
 private:
+    StyledButton *m_appletButton;
+
     Window *m_window;
     IAppletImport *m_import;
 };

@@ -14,6 +14,7 @@
 
 #include <ks-i.h>
 #include <qt5-log-i.h>
+#include <QGridLayout>
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
@@ -21,15 +22,17 @@
 
 #include "applet.h"
 #include "ks-config.h"
+#include "lib/common/define.h"
 #include "window.h"
+
+#define LAYOUT_MARGIN 10
 
 namespace Kiran
 {
 namespace Menu
 {
 Applet::Applet(IAppletImport *import)
-    : AppletButton(import),
-      m_import(import)
+    : m_import(import)
 {
     static QTranslator translator;
     if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
@@ -44,10 +47,24 @@ Applet::Applet(IAppletImport *import)
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
-    connect(this, &QAbstractButton::clicked, this, &Applet::clickButton);
+    //    m_appletButton = new AppletButton(import);
+    m_appletButton = new StyledButton(this);
+    auto size = m_import->getPanel()->getSize();
+    int iconSize = size - BUTTON_BLANK_SPACE * 2;
+    m_appletButton->setIconSize(QSize(iconSize, iconSize));
 
-    setIconFromTheme(KS_ICON_MENU);
-    setToolTip(tr("Start Menu"));
+    connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
+    //    m_appletButton->setIconFromTheme(KS_ICON_MENU);
+    m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
+    m_appletButton->setToolTip(tr("Start Menu"));
+
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setSpacing(0);
+    layout->setContentsMargins(10, 0, 10, 0);
+    layout->addWidget(m_appletButton);
+
+    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
+    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 }
 
 Applet::~Applet()
@@ -66,13 +83,15 @@ void Applet::clickButton(bool checked)
     {
         updateWindowPosition();
         m_window->show();
+        m_appletButton->setEnabled(false);
     }
 }
 
 void Applet::hideMenu()
 {
     m_window->hide();
-    setChecked(false);
+    m_appletButton->setEnabled(true);
+    m_appletButton->setChecked(false);
 }
 
 void Applet::updateWindowPosition()
@@ -102,6 +121,21 @@ void Applet::updateWindowPosition()
     }
 
     m_window->move(mapToGlobal(windowPosition));
+}
+
+void Applet::updateLayout()
+{
+    QLayout *lay = layout();
+    int orientation = m_import->getPanel()->getOrientation();
+    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    {
+        lay->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
+    }
+    else
+    {
+        lay->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
+    }
 }
 
 }  // namespace Menu
