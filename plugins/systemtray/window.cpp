@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -37,7 +37,8 @@ namespace Systemtray
 Window::Window(IAppletImport *import, QWidget *parent)
     : KiranColorBlock(parent),
       m_import(import),
-      m_windowPopup(nullptr)
+      m_windowPopup(nullptr),
+      m_updateWindowPopupPosInProgress(false)
 {
     setAcceptDrops(true);
 
@@ -68,12 +69,13 @@ Window::Window(IAppletImport *import, QWidget *parent)
     m_windowPopup = new WindowPopup(import, this);
     connect(m_windowPopup, &WindowPopup::hideTrayBox, this, &Window::hideTrayBox);
     connect(m_windowPopup, &WindowPopup::dropEnded, this, &Window::dropEnd);
+    connect(m_windowPopup, &WindowPopup::updatePosition, this, &Window::startUpdateTrayBoxPos);
     connect(this, &Window::dropEnded, m_windowPopup, &WindowPopup::dropEnd);
     connect(m_windowPopupButton, &QPushButton::clicked, this, [this](bool checked)
             {
                 if (m_windowPopup->isHidden())
                 {
-                    updateTrayBoxPosition();
+                    startUpdateTrayBoxPos();
                     m_windowPopup->show();
                     m_windowPopupButton->setEnabled(false);
                 }
@@ -172,6 +174,10 @@ void Window::statusNotifierItemRegister(const QString &serviceAndPath)
         m_windowPopup->AddItem(serviceAndPath);
         return;
     }
+    if (m_services.contains(serviceAndPath))
+    {
+        return;
+    }
 
     auto item = itemAdd(serviceAndPath);
     if (item)
@@ -188,22 +194,26 @@ void Window::statusNotifierItemUnregister(const QString &serviceAndPath)
 
 TrayItem *Window::itemAdd(QString serviceAndPath)
 {
-    if (m_services.contains(serviceAndPath))
-    {
-        return nullptr;
-    }
-
     int index = serviceAndPath.indexOf('/');
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
     auto item = new TrayItem(service, path, this);
     auto size = m_import->getPanel()->getSize();
     item->setFixedSize(size, size);
-    connect(item, &TrayItem::startDrag, this, [this]()
+    connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {
-                updateTrayBoxPosition();
                 m_windowPopup->show();
                 m_windowPopupButton->setEnabled(false);
+                // 为什么不隐藏拖拽的item ？
+                // 存在一种情况，当图标被拖出去，没有放到正确的位置去
+                // 这种情况下，无法检测发生了什么
+                // 只能保持显示，等拖拽成功了之后，再隐藏删除
+                // 另：直接将图标拖到显示区域外，不会经过 dragLeaveEvent
+
+                //m_items.removeAll(dragItem);
+                //dragItem->hide();
+
+                updateItemLayout();
             });
     m_services.insert(serviceAndPath, item);
 
@@ -222,7 +232,19 @@ void Window::itemRemove(const QString &serviceAndPath)
     updateItemLayout();
 }
 
-void Window::updateTrayBoxPosition()
+void Window::startUpdateTrayBoxPos()
+{
+    if (!m_updateWindowPopupPosInProgress)
+    {
+        // 需要延迟处理，window大小变化后，只能获得之前的位置坐标
+        // 避免短时间内多次调用
+        m_updateWindowPopupPosInProgress = true;
+        QTimer::singleShot(100, this, [this]()
+                           { updateTrayBoxPos(); });
+    }
+}
+
+void Window::updateTrayBoxPos()
 {
     QPoint pos = mapToGlobal(m_windowPopupButton->pos());
     if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
@@ -233,6 +255,8 @@ void Window::updateTrayBoxPosition()
     {
         m_windowPopup->move(pos.x(), pos.y() - m_windowPopup->height() / 2 + m_windowPopupButton->height() / 2);
     }
+
+    m_updateWindowPopupPosInProgress = false;
 }
 
 void Window::hideTrayBox()
@@ -283,7 +307,7 @@ void Window::updateItemLayout()
         m_layout->addWidget(item);
     }
 
-    updateTrayBoxPosition();
+    startUpdateTrayBoxPos();
 }
 
 QList<TrayItem *> Window::getTrayItems()
@@ -298,6 +322,8 @@ WindowPopup *Window::getTrayBox()
 
 void Window::dragEnterEvent(QDragEnterEvent *event)
 {
+    KLOG_INFO() << "Window::dragEnterEvent";
+
     m_currentDropIndex = 0;
     if (!event->mimeData()->data("serviceAndPath").isEmpty())
     {
@@ -355,40 +381,23 @@ void Window::dropEvent(QDropEvent *event)
         return;
     }
 
-    m_items.removeAll(m_indicatorWidget);
-    m_indicatorWidget->hide();
-
     // 不存在，则是其他区域拖过来的
     if (!m_services.contains(serviceAndPath))
     {
         TrayItem *item = itemAdd(serviceAndPath);
-        if (item)
-        {
-            if (m_currentDropIndex >= m_items.size())
-            {
-                m_items.append(item);
-            }
-            else
-            {
-                m_items.insert(m_currentDropIndex, item);
-            }
-            emit dropEnded(serviceAndPath);
-        }
+        m_items.insert(m_currentDropIndex, item);
+        emit dropEnded(serviceAndPath);
     }
     else
     {
         // 存在，调整位置
         TrayItem *item = m_services.value(serviceAndPath);
-        m_items.removeAll(item);
-        if (m_currentDropIndex >= m_items.size())
-        {
-            m_items.append(item);
-        }
-        else
-        {
-            m_items.insert(m_currentDropIndex, item);
-        }
+        int oldIndex = m_items.indexOf(item);
+        m_items.move(oldIndex, m_currentDropIndex);
     }
+
+    m_items.removeAll(m_indicatorWidget);
+    m_indicatorWidget->hide();
 
     updateItemLayout();
 

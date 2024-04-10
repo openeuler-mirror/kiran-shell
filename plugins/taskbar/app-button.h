@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -46,6 +46,10 @@ protected:
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
 private slots:
     void updateLayout();
 
@@ -58,9 +62,16 @@ private:
 
     void getInfoFromUrl();
 
+    bool checkDropAccept(QPoint pos);
+    Qt::AlignmentFlag getLayoutAlignment();
+
+    void setDragFlag(bool flag);
+
 signals:
     // 显示、隐藏预览窗口
     void previewerShowChange(WId wid);
+    void previewerShow(WId wid);
+    void previewerHide(WId wid);
 
     // 通过按钮进行关闭
     void windowClose(WId wid);
@@ -78,6 +89,10 @@ signals:
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &result);
 
+    void mousePressed(QMouseEvent *event);
+    void mouseMoved(QMouseEvent *event);
+    void mouseReleased(QMouseEvent *event);
+
 private:
     IAppletImport *m_import;
 
@@ -88,6 +103,8 @@ private:
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测是否显示软件名称
     QString m_visualName;                     // 显示的文本
     bool m_isShowName;
+
+    bool m_dragFlag;  //当触发组拖动时，不响应按钮的点击事件
 };
 
 }  // namespace Taskbar

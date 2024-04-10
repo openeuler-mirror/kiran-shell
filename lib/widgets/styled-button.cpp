@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -117,9 +117,13 @@ void StyledButton::paintEvent(QPaintEvent *event)
     {
         const int margin = 3;
         int iconWH = iconSize().width();  // 此处使用iconSize，使用时能灵活设置
+        if (0 == iconWH)
+        {
+            iconWH = height() / 2;
+        }
         int textWidth = fontMetrics().horizontalAdvance(text());
-        int x = 0;
-        int y = 0;
+        int x = (width() - textWidth) / 2;
+        int y = (height() - iconWH) / 2;
 
         if (!icon().isNull())
         {

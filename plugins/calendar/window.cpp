@@ -14,6 +14,7 @@
 #include <QTableView>
 #include <QTextCharFormat>
 
+#include "lib/widgets/styled-button.h"
 #include "window.h"
 
 namespace Kiran
@@ -164,7 +165,8 @@ void Window::initTopSettingWidget()
         m_lunarYear->setText(curDateStr);
     }
 
-    m_settingBtn = new QPushButton(this);
+    m_settingBtn = new StyledButton(this);
+    m_settingBtn->setCheckable(false);
     m_settingBtn->setIcon(QIcon::fromTheme("ks-menu-settings-symbolic"));
     m_settingBtn->setStyleSheet("QPushButton{ border : none;}");
 
@@ -207,14 +209,22 @@ void Window::initDateChangeWidget()
     QVBoxLayout *vBodyLayout = qobject_cast<QVBoxLayout *>(layout());
     vBodyLayout->insertWidget(0, dayWidget);
 
-    m_subYearBtn = new QPushButton(this);
+    m_subYearBtn = new StyledButton(this);
     m_subYearBtn->setText("<<");
-    m_addYearBtn = new QPushButton(this);
+    m_subYearBtn->setCheckable(false);
+
+    m_addYearBtn = new StyledButton(this);
     m_addYearBtn->setText(">>");
-    m_subMonthBtn = new QPushButton(this);
+    m_addYearBtn->setCheckable(false);
+
+    m_subMonthBtn = new StyledButton(this);
     m_subMonthBtn->setText("<");
-    m_addMonthBtn = new QPushButton(this);
+    m_subMonthBtn->setCheckable(false);
+
+    m_addMonthBtn = new StyledButton(this);
     m_addMonthBtn->setText(">");
+    m_addMonthBtn->setCheckable(false);
+
     m_yearEdit = new QLineEdit(this);
     QLabel *yearLabel = new QLabel(this);
     m_monthEdit = new QLineEdit(this);
@@ -311,7 +321,7 @@ void Window::enterMonth()
 
 void Window::changeDateTimeBtnClicked()
 {
-    QPushButton *senderBtn = qobject_cast<QPushButton *>(sender());
+    StyledButton *senderBtn = qobject_cast<StyledButton *>(sender());
     if (senderBtn == m_subMonthBtn)
     {
         showPreviousMonth();

@@ -8,6 +8,7 @@
 class QPushButton;
 class QLineEdit;
 class QLabel;
+class StyledButton;
 
 namespace Kiran
 {
@@ -54,15 +55,15 @@ private:
     int m_currentMonth;
 
     //插件
-    QPushButton *m_subMonthBtn;
-    QPushButton *m_addMonthBtn;
-    QPushButton *m_subYearBtn;
-    QPushButton *m_addYearBtn;
+    StyledButton *m_subMonthBtn;
+    StyledButton *m_addMonthBtn;
+    StyledButton *m_subYearBtn;
+    StyledButton *m_addYearBtn;
 
     QPushButton *m_todayBtn;
     QLabel *m_lunarYear;
     QLabel *m_lunarDay;
-    QPushButton *m_settingBtn;
+    StyledButton *m_settingBtn;
 
     QLineEdit *m_yearEdit;
     QLineEdit *m_monthEdit;

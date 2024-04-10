@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -166,7 +166,7 @@ void TrayItem::mouseMoveEvent(QMouseEvent *event)
             return;
         }
 
-        emit startDrag();
+        emit startDrag(this);
 
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
@@ -176,7 +176,7 @@ void TrayItem::mouseMoveEvent(QMouseEvent *event)
         mimeData->setData("serviceAndPath", ba);
         drag->setMimeData(mimeData);
         drag->setPixmap(icon().pixmap(40, 40));
-        drag->exec(Qt::MoveAction);
+        drag->exec(Qt::CopyAction);
     }
 }
 

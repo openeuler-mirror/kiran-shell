@@ -418,7 +418,7 @@
          </property>
          <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item alignment="Qt::AlignBottom">
+           <item>
             <widget class="QLabel" name="m_labelUserName">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -428,16 +428,6 @@
              </property>
              <property name="text">
               <string>你好，root</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="StyledButton" name="m_btnDate">
-             <property name="text">
-              <string>111</string>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
              </property>
             </widget>
            </item>

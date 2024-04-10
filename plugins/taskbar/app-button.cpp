@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -24,6 +24,7 @@
 #include <KWindowSystem>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QProcess>
@@ -44,10 +45,12 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
     : StyledButton(parent),
       m_import(import),
       m_wid(0),
-      m_isShowName(false)
+      m_isShowName(false),
+      m_dragFlag(false)
 {
     AppGroup *appGroup = (AppGroup *)parent;
     connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
+    connect(appGroup, &AppGroup::moveGroupStarted, this, &AppButton::setDragFlag);
 
     connect(this, &QAbstractButton::clicked, this, &AppButton::buttonClicked);
 
@@ -117,6 +120,47 @@ void AppButton::getInfoFromUrl()
     }
 }
 
+bool AppButton::checkDropAccept(QPoint pos)
+{
+    // 位于中间2/4位置，可以接受drop
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+    QRect rect = geometry();
+    if (rect.contains(pos))
+    {
+        QRect rectCheck;
+        if (Qt::AlignLeft == alignment)
+        {
+            rectCheck = rect.adjusted(rect.width() / 4, 0, -rect.width() / 4, 0);
+        }
+        else
+        {
+            rectCheck = rect.adjusted(0, rect.height() / 4, 0, -rect.height() / 4);
+        }
+
+        if (rectCheck.contains(pos))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+Qt::AlignmentFlag AppButton::getLayoutAlignment()
+{
+    int orientation = m_import->getPanel()->getOrientation();
+    Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+                                   orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+                                      ? Qt::AlignLeft
+                                      : Qt::AlignTop;
+
+    return alignment;
+}
+
 void AppButton::setUrl(QUrl url)
 {
     m_appBaseInfo.m_url = url;
@@ -135,6 +179,12 @@ void AppButton::reset()
     m_wid = 0;
     getInfoFromUrl();
     updateShowName();
+}
+
+void AppButton::setDragFlag(bool flag)
+{
+    m_pressed = false;
+    m_dragFlag = flag;
 }
 
 void AppButton::contextMenuEvent(QContextMenuEvent *event)
@@ -177,6 +227,38 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                        { emit removeFromTasklist(m_appBaseInfo.m_url); });
     }
 
+    // 自带菜单
+    KService::Ptr s = KService::serviceByMenuId(m_appBaseInfo.m_url.fileName());
+    if (s.data())
+    {
+        bool firstAdd = true;
+        for (const KServiceAction &serviceAction : s->actions())
+        {
+            if (serviceAction.noDisplay())
+            {
+                continue;
+            }
+
+            if (firstAdd)
+            {
+                menu.addSeparator();
+                firstAdd = false;
+            }
+            QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
+                                             {
+                                                 auto *job = new KIO::ApplicationLauncherJob(serviceAction);
+                                                 job->start();
+
+                                                 //通知kactivitymanagerd
+                                                 KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
+                                             });
+            if (serviceAction.isSeparator())
+            {
+                action->setSeparator(true);
+            }
+        }
+    }
+
     menu.exec(mapToGlobal(event->pos()));
     update();
 }
@@ -191,7 +273,7 @@ void AppButton::enterEvent(QEvent *event)
         return;
     }
 
-    emit previewerShowChange(m_wid);
+    emit previewerShow(m_wid);
 }
 
 void AppButton::leaveEvent(QEvent *event)
@@ -204,7 +286,7 @@ void AppButton::leaveEvent(QEvent *event)
         return;
     }
 
-    emit previewerShowChange(m_wid);
+    emit previewerHide(m_wid);
 }
 
 void AppButton::paintEvent(QPaintEvent *event)
@@ -265,6 +347,33 @@ void AppButton::paintEvent(QPaintEvent *event)
     pen.setColor(bgColor);
     painter.setPen(pen);
     painter.fillRect(bottomRect, bgColor);
+}
+
+void AppButton::mousePressEvent(QMouseEvent *event)
+{
+    emit mousePressed(event);
+
+    StyledButton::mousePressEvent(event);
+}
+
+void AppButton::mouseMoveEvent(QMouseEvent *event)
+{
+    emit mouseMoved(event);
+
+    StyledButton::mouseMoveEvent(event);
+}
+
+void AppButton::mouseReleaseEvent(QMouseEvent *event)
+{
+    emit mouseReleased(event);
+
+    if (m_dragFlag)
+    {
+        m_dragFlag = false;
+        return;
+    }
+
+    StyledButton::mouseReleaseEvent(event);
 }
 
 void AppButton::updateLayout()

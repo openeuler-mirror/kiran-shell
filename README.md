@@ -11,6 +11,9 @@
   * kf5-kactivities-stats-devel
   * dbusmenu-qt5-devel
   * gsettings-qt-devel
+  * kiran-widgets-qt5-devel
+  * kiran-log-qt5-devel
+   
 
 ## 编译安装
 ```

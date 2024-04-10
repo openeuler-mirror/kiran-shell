@@ -17,9 +17,12 @@
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
+#include <KActivities/KActivities/ResourceInstance>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
+#include <KIO/ApplicationLauncherJob>
 #include <KIOCore/KFileItem>
+#include <KService/KService>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QPainter>
@@ -99,21 +102,11 @@ AppButtonContainer::~AppButtonContainer()
 
 void AppButtonContainer::dragEnterEvent(QDragEnterEvent *event)
 {
-    for (auto fmt : event->mimeData()->formats())
-    {
-        KLOG_INFO() << fmt << event->mimeData()->data(fmt);
-    }
-    m_currentDropIndex = 0;
+    m_currentDropIndex = -1;
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
     if (event->mimeData()->hasFormat("text/uri-list"))
     {
-        QList<QUrl> urls(event->mimeData()->urls());
-        for (auto url : urls)
-        {
-            m_indicatorWidget->setDragData(url);
-            event->accept();
-            return;
-        }
+        event->accept();
     }
     else
     {
@@ -124,23 +117,21 @@ void AppButtonContainer::dragEnterEvent(QDragEnterEvent *event)
 void AppButtonContainer::dragMoveEvent(QDragMoveEvent *event)
 {
     QPoint pos = event->pos();
-    int index = getInsertedIndex(pos);
-    if (-1 == index)
+    m_currentDropIndex = getInsertedIndex(pos);
+    if (-1 == m_currentDropIndex)
     {
         m_listAppGroupShow.removeAll(m_indicatorWidget);
         m_indicatorWidget->hide();
         updateLayout();
-        event->ignore();
+
+        event->accept();
         return;
     }
-
-    m_currentDropIndex = index;
 
     if (m_currentDropIndex != m_listAppGroupShow.indexOf(m_indicatorWidget))
     {
         m_listAppGroupShow.removeAll(m_indicatorWidget);
 
-        // 直接使用insert，效果一样，但是Qt有警告
         if (m_currentDropIndex >= m_listAppGroupShow.size())
         {
             m_listAppGroupShow.append(m_indicatorWidget);
@@ -160,7 +151,8 @@ void AppButtonContainer::dragMoveEvent(QDragMoveEvent *event)
 
 void AppButtonContainer::dragLeaveEvent(QDragLeaveEvent *event)
 {
-    m_currentDropIndex = 0;
+    //    KLOG_INFO() << "AppButtonContainer::dragLeaveEvent";
+    m_currentDropIndex = -1;
     m_listAppGroupShow.removeAll(m_indicatorWidget);
     m_indicatorWidget->hide();
     updateLayout();
@@ -170,10 +162,21 @@ void AppButtonContainer::dragLeaveEvent(QDragLeaveEvent *event)
 
 void AppButtonContainer::dropEvent(QDropEvent *event)
 {
+    KLOG_INFO() << "AppButtonContainer::dropEvent";
+
+    if (-1 == m_currentDropIndex)
+    {
+        // 打开文件
+        openFileByDrop(event);
+
+        event->accept();
+        return;
+    }
+
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
     if (!event->mimeData()->hasFormat("text/uri-list"))
     {
-        QWidget::dropEvent(event);
+        event->accept();
         return;
     }
 
@@ -189,13 +192,19 @@ void AppButtonContainer::dropEvent(QDropEvent *event)
         KFileItem fileItem(url);
         if (fileItem.isNull())
         {
-            event->ignore();
             continue;
         }
 
         appBaseinfo.m_url = url;
         break;
     }
+
+    if (appBaseinfo.m_url.isEmpty())
+    {
+        event->accept();
+        return;
+    }
+
     AppGroup *appGroup = genAppGroup(appBaseinfo);
 
     // 如果 appGroup 本来就在任务栏显示，调整位置，不锁定
@@ -241,7 +250,6 @@ void AppButtonContainer::dropEvent(QDropEvent *event)
     updateLayout();
 
     event->accept();
-    //    QWidget::dropEvent(event);
 }
 
 AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
@@ -290,6 +298,10 @@ AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
     connect(appGroup, &AppGroup::addToTasklist, this, &AppButtonContainer::addToTasklist);
     connect(appGroup, &AppGroup::removeFromTasklist, this, &AppButtonContainer::removeFromTasklist);
     connect(appGroup, &AppGroup::emptyGroup, this, &AppButtonContainer::removeGroup);
+
+    connect(appGroup, &AppGroup::moveGroupStarted, this, &AppButtonContainer::startMoveGroup, Qt::QueuedConnection);
+    connect(appGroup, &AppGroup::moveGroupEnded, this, &AppButtonContainer::endMoveGroup, Qt::QueuedConnection);
+    connect(appGroup, &AppGroup::groupMoved, this, &AppButtonContainer::moveGroup, Qt::QueuedConnection);
 
     return appGroup;
 }
@@ -366,6 +378,9 @@ void AppButtonContainer::updateLayout()
     {
         m_layout->addWidget(appGroup);
     }
+    // 强制重布局
+    // 解决鼠标拖动过程中，鼠标偏离控件，会导致布局不能及时更新
+    m_layout->activate();
 }
 
 void AppButtonContainer::updateLockApp()
@@ -579,6 +594,7 @@ void AppButtonContainer::removeGroup(AppGroup *group)
 
 int AppButtonContainer::getInsertedIndex(const QPoint &pos)
 {
+#if 1
     // 在按钮区域：
     //      活动插入按钮：序号不变
     //      普通按钮：左右或上下 1/4 范围内，得到序号
@@ -586,16 +602,25 @@ int AppButtonContainer::getInsertedIndex(const QPoint &pos)
     // 不在按钮区域：
     //      首尾区域，返回 0 或 最大值
 
-    // 在按钮区域
     if (m_indicatorWidget->geometry().contains(pos))
     {
-        return m_currentDropIndex;
+        return m_listAppGroupShow.indexOf(m_indicatorWidget);
     }
 
+    if (m_listAppGroupShow.isEmpty())
+    {
+        return 0;
+    }
+
+    // 在按钮区域
     Qt::AlignmentFlag alignment = getLayoutAlignment();
 
     for (int i = 0; i < m_listAppGroupShow.size(); i++)
     {
+        if (m_listAppGroupShow.at(i) == m_indicatorWidget)
+        {
+            continue;
+        }
         QRect rect = m_listAppGroupShow.at(i)->geometry();
         if (rect.contains(pos))
         {
@@ -617,25 +642,34 @@ int AppButtonContainer::getInsertedIndex(const QPoint &pos)
 
             if (rectPrev.contains(pos))
             {
+                // 这里包含两种情况
+                // 1. 本来就是当前位置的前一项
+                //    则接触到马上变位置
+                //    如果到next位置才变位置，则会导致一下变化太多
+                // 2. 本来位于中间位置
+                //    抢占位置i
+
                 return i;
             }
             else if (rectNext.contains(pos))
             {
+                // 这里包含两种情况
+                // 1. 本来就是当前位置的下一项
+                //    结果一致，i+1就是本来位置
+                // 2. 本来位于中间位置
+                //    抢占位置i+1
+
                 return i + 1;
             }
             else
             {
+                // 处于中间1/2处 打开文件
                 return -1;
             }
         }
     }
 
     // 不在按钮区域
-    if (m_listAppGroupShow.isEmpty())
-    {
-        return 0;
-    }
-
     if (Qt::AlignLeft == alignment)
     {
         if (pos.x() < m_listAppGroupShow.first()->pos().x())
@@ -653,6 +687,175 @@ int AppButtonContainer::getInsertedIndex(const QPoint &pos)
         }
 
         return m_listAppGroupShow.size();
+    }
+#else
+
+    // 在按钮区域
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+
+    for (int i = 0; i < m_listAppGroupShow.size(); i++)
+    {
+        QRect rect = m_listAppGroupShow.at(i)->geometry();
+        if (rect.contains(pos))
+        {
+            return i;
+        }
+    }
+
+    // 不在按钮区域
+    if (Qt::AlignLeft == alignment)
+    {
+        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size() - 1;
+    }
+    else
+    {
+        if (pos.y() < m_listAppGroupShow.first()->pos().y())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size() - 1;
+    }
+
+#endif
+}
+
+int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
+{
+    // 设正在移动的按钮组为a，正在检测是否让出位置的按钮组为b
+    // a到达b一半位置时，调整移动项序号
+    // 调整后，b刚好调整一个a的距离，保证a始终位于b的一侧
+
+    QRect moveRect = appGroup->geometry();
+
+    // 在按钮区域
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+
+    for (int i = 0; i < m_listAppGroupShow.size(); i++)
+    {
+        // 先计算其他的，如果找不到，再在循环外计算空白占位项
+        if (m_listAppGroupShow.at(i) == m_indicatorWidget)
+        {
+            continue;
+        }
+
+        QRect rect = m_listAppGroupShow.at(i)->geometry();
+        if (moveRect.intersected(rect).isNull())
+        {
+            // 不存在交值
+            continue;
+        }
+
+        QRect rectPrev;
+        QRect rectNext;
+        if (Qt::AlignLeft == alignment)
+        {
+            // 左右 1/2
+            rectPrev = rect.adjusted(0, 0, -rect.width() / 2, 0);
+            rectNext = rect.adjusted(rect.width() / 2, 0, 0, 0);
+        }
+        else
+        {
+            // 上下 1/2
+            rectPrev = rect.adjusted(0, 0, 0, -rect.height() / 2);
+            rectNext = rect.adjusted(0, rect.height() / 2, 0, 0);
+        }
+
+        // 根据交值，判断是否两侧都有
+        QRect intersectedRectPrev = rectPrev.intersected(moveRect);
+        QRect intersectedRectNext = rectNext.intersected(moveRect);
+        if (intersectedRectPrev.isNull() || intersectedRectNext.isNull())
+        {
+            // 只在一侧，不调整位置
+            return m_listAppGroupShow.indexOf(m_indicatorWidget);
+        }
+
+        int areaPrev = intersectedRectPrev.width() * intersectedRectPrev.height();
+        int areaNext = intersectedRectNext.width() * intersectedRectNext.height();
+        if (areaPrev == areaNext)
+        {
+            // 只在一侧，不调整位置
+            return m_listAppGroupShow.indexOf(m_indicatorWidget);
+        }
+        else
+        {
+            // KLOG_INFO() << "两侧均有交值，取代该位置" << i << QTime::currentTime() << moveRect << rect;
+            // 两侧均有交值，取代该位置
+            return i;
+        }
+    }
+
+    if (!m_indicatorWidget->geometry().intersected(moveRect).isNull())
+    {
+        // 仅与空白项有交值，不调整位置
+        return m_listAppGroupShow.indexOf(m_indicatorWidget);
+    }
+
+    // 不在按钮区域
+    QPoint pos = appGroup->geometry().center();
+    if (Qt::AlignLeft == alignment)
+    {
+        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size() - 1;
+    }
+    else
+    {
+        if (pos.y() < m_listAppGroupShow.first()->pos().y())
+        {
+            return 0;
+        }
+
+        return m_listAppGroupShow.size() - 1;
+    }
+}
+
+void AppButtonContainer::startMoveGroup(AppGroup *appGroup)
+{
+    int index = m_listAppGroupShow.indexOf(appGroup);
+    if (-1 == index)
+    {
+        return;
+    }
+    m_listAppGroupShow.removeAll(appGroup);
+    m_listAppGroupShow.insert(index, m_indicatorWidget);
+    m_indicatorWidget->show();
+    m_indicatorWidget->setFixedSize(appGroup->size());
+    updateLayout();
+}
+
+void AppButtonContainer::endMoveGroup(AppGroup *appGroup)
+{
+    if (m_listAppGroupShow.contains(appGroup))
+    {
+        return;
+    }
+    int index = m_listAppGroupShow.indexOf(m_indicatorWidget);
+    m_listAppGroupShow.removeAll(m_indicatorWidget);
+    m_listAppGroupShow.insert(index, appGroup);
+    m_indicatorWidget->hide();
+    auto size = m_import->getPanel()->getSize();
+    m_indicatorWidget->setFixedSize(size, size);
+    updateLayout();
+}
+
+void AppButtonContainer::moveGroup(AppGroup *appGroup)
+{
+    int newIndex = getMovedIndex(appGroup);
+    int oldIndex = m_listAppGroupShow.indexOf(m_indicatorWidget);
+    if (newIndex != oldIndex)
+    {
+        // KLOG_INFO() << "moveGroup" << oldIndex << newIndex << m_listAppGroupShow.size();
+        m_listAppGroupShow.move(oldIndex, newIndex);
+        updateLayout();
     }
 }
 
@@ -675,6 +878,44 @@ QBoxLayout::Direction AppButtonContainer::getLayoutDirection()
                          ? QBoxLayout::Direction::LeftToRight
                          : QBoxLayout::Direction::TopToBottom;
     return direction;
+}
+
+void AppButtonContainer::openFileByDrop(QDropEvent *event)
+{
+    QByteArray mimeData = event->mimeData()->data("text/uri-list");
+    if (!event->mimeData()->hasFormat("text/uri-list"))
+    {
+        return;
+    }
+
+    QList<QUrl> urls(event->mimeData()->urls());
+    if (urls.isEmpty())
+    {
+        return;
+    }
+
+    QUrl appUrl;
+    QPoint pos = event->pos();
+    for (auto appGroup : m_listAppGroupShow)
+    {
+        if (appGroup->geometry().contains(pos))
+        {
+            appUrl = appGroup->getUrl();
+        }
+    }
+
+    KService::Ptr service = KService::serviceByStorageId(appUrl.fileName());
+    if (!service.data())
+    {
+        return;
+    }
+
+    auto *job = new KIO::ApplicationLauncherJob(service);
+    job->setUrls(urls);
+    job->start();
+
+    //通知kactivitymanagerd
+    KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
 }
 
 }  // namespace Taskbar

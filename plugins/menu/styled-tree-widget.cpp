@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -38,9 +38,6 @@ StyledTreeWidget::StyledTreeWidget(QWidget *parent)
     setIndentation(0);
 
     setMouseTracking(true);
-
-    //    setDragEnabled(true);                          // 启用拖拽功能
-    //    setDragDropMode(QAbstractItemView::DragOnly);  // 设置拖拽模式为仅拖拽，不允许放置
 }
 
 void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
@@ -62,10 +59,11 @@ void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
 
 void StyledTreeWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton)
+    if (event->buttons() & Qt::LeftButton)
     {
         m_pressPoint = event->pos();
     }
+
     QTreeWidget::mousePressEvent(event);
 }
 
@@ -89,9 +87,11 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
             mimeData->setData("text/uri-list", data);
             drag->setMimeData(mimeData);
             drag->setPixmap(item->icon(0).pixmap(40, 40));
-            drag->exec(Qt::MoveAction);
+            drag->exec(Qt::CopyAction);
         }
     }
+
+    QTreeWidget::mouseMoveEvent(event);
 }
 
 QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const

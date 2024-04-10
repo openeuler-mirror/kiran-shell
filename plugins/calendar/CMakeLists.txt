@@ -40,7 +40,7 @@ target_link_libraries(
   Qt5::Gui
   Qt5::DBus
   KF5::WindowSystem
-)
+  widgets)
 
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})

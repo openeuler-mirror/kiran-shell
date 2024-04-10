@@ -2,28 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
-    <name>Kiran::Calendar::Applet</name>
-    <message>
-        <location filename="../plugins/calendar/applet.cpp" line="213"/>
-        <source>年</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugins/calendar/applet.cpp" line="214"/>
-        <location filename="../plugins/calendar/applet.cpp" line="215"/>
-        <source>月</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>Kiran::Calendar::Window</name>
     <message>
-        <location filename="../plugins/calendar/window.cpp" line="100"/>
+        <location filename="../plugins/calendar/window.cpp" line="117"/>
         <source>%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/window.cpp" line="131"/>
+        <location filename="../plugins/calendar/window.cpp" line="148"/>
         <source>Today</source>
         <translatorcomment>今天</translatorcomment>
         <translation>今天</translation>
@@ -31,16 +17,6 @@
 </context>
 <context>
     <name>Lunar</name>
-    <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="367"/>
-        <source>闰</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="383"/>
-        <source>年</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../plugins/calendar/lunar.cpp" line="463"/>
         <source>元旦</source>

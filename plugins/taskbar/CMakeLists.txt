@@ -21,7 +21,8 @@ add_library(
     ${TARGET_NAME} SHARED
     ${H_FILES}
     ${CPP_FILES}
-    ${UI_FILES})
+    ${UI_FILES}
+    ${QM_FILES})
 
 target_include_directories(
     ${TARGET_NAME} PRIVATE
@@ -49,4 +50,5 @@ target_link_libraries(
     common
     widgets)
 
+install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

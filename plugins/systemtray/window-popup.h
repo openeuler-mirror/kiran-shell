@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -63,6 +63,7 @@ private:
     // 拖拽相关，计算位置
     int getInsertIndex(const QPoint &pos);
     void calculateRowCol(const int &totalSize, int &row, int &col);
+    void updateDragPos(const QPoint &pos);
 
     // 托盘项位置更新
     void updateItemLayout();
@@ -78,6 +79,7 @@ private:
 signals:
     void hideTrayBox();
     void dropEnded(QString serviceAndPath);
+    void updatePosition();
 
 private:
     IAppletImport *m_import;
