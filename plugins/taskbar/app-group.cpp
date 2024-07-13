@@ -124,7 +124,7 @@ void AppGroup::init()
 {
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
-    m_layout->setSpacing(1);
+    m_layout->setSpacing(8);
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
@@ -208,6 +208,11 @@ void AppGroup::mouseReleaseEvent(QMouseEvent *event)
 void AppGroup::addWindow(QByteArray wmClass, WId wid)
 {
     if (m_mapWidButton.contains(wid))
+    {
+        return;
+    }
+
+    if (wmClass != m_appBaseInfo.m_wmClass)
     {
         return;
     }

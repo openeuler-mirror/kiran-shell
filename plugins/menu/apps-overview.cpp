@@ -23,6 +23,7 @@
 #include <QMap>
 #include <QMenu>
 #include <QProcess>
+#include <KSycoca>
 
 #include "apps-overview.h"
 #include "ui_apps-overview.h"
@@ -66,6 +67,14 @@ void AppsOverview::init()
     }
 
     m_ui->m_lineEditSearch->setPlaceholderText(tr("Search application"));
+
+    QPalette p = m_ui->m_lineEditSearch->palette();
+
+    m_ui->m_lineEditSearch->setPalette(p);
+
+
+    connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
+
 }
 
 void AppsOverview::loadApps()
@@ -186,6 +195,11 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
         item->setText(0, s->name());
         item->setData(0, Qt::UserRole, s->storageId());
     }
+}
+
+void AppsOverview::updateApp()
+{
+    KLOG_INFO() << "AppsOverview::updateApp";
 }
 
 void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)

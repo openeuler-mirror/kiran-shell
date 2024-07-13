@@ -15,10 +15,10 @@
 #pragma once
 
 #include <plugin-i.h>
-#include <style-palette.h>
 #include <QBoxLayout>
-#include <QMenu>
 #include <QWidget>
+
+class QFrame;
 
 namespace Kiran
 {
@@ -40,11 +40,9 @@ public:
     virtual int getSize() Q_DECL_OVERRIDE;
     virtual int getOrientation() Q_DECL_OVERRIDE;
 
-public slots:
-    void loadStylesheet(Kiran::PaletteType paletteType);
-
 protected:
     void contextMenuEvent(QContextMenuEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
 private:
     void init();
@@ -53,7 +51,6 @@ private:
     QString orientationEnum2Str(const int& orientation);
 
     QScreen* getScreen();
-    void updateShow();
     void updateGeometry();
     void updateLayout();
     QBoxLayout::Direction getLayoutDirection();
@@ -64,5 +61,7 @@ signals:
 private:
     ProfilePanel* m_profilePanel;  //面板配置
     QBoxLayout* m_appletsLayout;
+
+    QList<QFrame*> m_lineFrame;
 };
 }  // namespace Kiran

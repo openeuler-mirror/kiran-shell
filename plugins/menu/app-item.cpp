@@ -12,7 +12,6 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>

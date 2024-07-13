@@ -12,7 +12,6 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
 #include <ks-i.h>
 #include <qt5-log-i.h>
 #include <unistd.h>
@@ -32,9 +31,6 @@
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
-//#include <kiran-style/kiran-style-public-define.h>
-#include <kiran-style/style-global-define.h>
-#include <kiran-style/style-property.h>
 #include <QKeyEvent>
 
 #include "app-item.h"
@@ -83,29 +79,6 @@ Window::~Window()
     delete m_ui;
 }
 
-void Window::changeTheme()
-{
-    // FIXME: 等主题库开发好后，使用主题库提供的接口实现
-    QList<QAbstractButton *> btnsWithSvg = {
-        m_ui->m_btnFavoriteAppIcon,
-        m_ui->m_btnPopularAppIcon,
-        m_ui->m_btnAppsOverview,
-        m_ui->m_btnHomeDir,
-        m_ui->m_btnPower,
-        m_ui->m_btnRecentFilesOverview,
-        m_ui->m_btnRunCommand,
-        m_ui->m_btnSearchFiles,
-        m_ui->m_btnSettings,
-        m_ui->m_btnSystemMonitor};
-
-    for (QAbstractButton *btn : btnsWithSvg)
-    {
-        QImage image = btn->icon().pixmap(btn->iconSize()).toImage();
-        image.invertPixels(QImage::InvertRgb);
-        btn->setIcon(QPixmap::fromImage(image));
-    }
-}
-
 void Window::init()
 {
     initUI();
@@ -131,14 +104,6 @@ void Window::initUI()
     //常用应用图标
     m_ui->m_btnPopularAppIcon->setFlat(true);
     m_ui->m_btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-
-    //主题
-    if (PALETTE_DARK != Kiran::StylePalette::instance()->paletteType())
-    {
-        //默认黑色，如果进入程序的时候不是黑色，需要变换一次
-        changeTheme();
-    }
-    QObject::connect(Kiran::StylePalette::instance(), &Kiran::StylePalette::themeChanged, this, &Window::changeTheme);
 
     //应用列表和文件列表切换
     QButtonGroup *overviewSelections = new QButtonGroup(this);
@@ -269,13 +234,19 @@ void Window::initQuickStart()
 
                 if (power->canLockScreen())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-menu-lock-symbolic"), tr("Lock screen"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC), tr("Lock screen"), this, [=]()
                                          { power->lockScreen(); });
+                }
+
+                if (power->canLogout())
+                {
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_LOGOUT), tr("Logout"), this, [=]()
+                                         { power->logout(); });
                 }
 
                 if (power->canSwitchUser())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-switch_user"), tr("Switch user"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SWITCH_USER), tr("Switch user"), this, [=]()
                                          {
                                              if (power->getGraphicalNtvs() >= power->getNtvsTotal())
                                              {
@@ -289,33 +260,27 @@ void Window::initQuickStart()
                                          });
                 }
 
-                if (power->canLogout())
-                {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-logout"), tr("Logout"), this, [=]()
-                                         { power->logout(); });
-                }
-
                 if (power->canSuspend())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-suspend"), tr("Suspend"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SUSPEND), tr("Suspend"), this, [=]()
                                          { power->suspend(); });
                 }
 
                 if (power->canHibernate())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-hibernate"), tr("Hibernate"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_HIBERNATE), tr("Hibernate"), this, [=]()
                                          { power->hibernate(); });
                 }
 
                 if (power->canReboot())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-reboot"), tr("Reboot"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_REBOOT), tr("Reboot"), this, [=]()
                                          { power->reboot(); });
                 }
 
                 if (power->canShutdown())
                 {
-                    power_menu.addAction(QIcon::fromTheme("ks-power-shutdown"), tr("Shutdown"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SHUTDOWN), tr("Shutdown"), this, [=]()
                                          { power->shutdown(); });
                 }
 
@@ -412,6 +377,30 @@ void Window::removeFromTasklist(const QUrl &url)
 void Window::addToDesktop(const QString &appId)
 {
     // TODO:添加到桌面
+    QStringList desktopPaths = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
+
+    if (desktopPaths.isEmpty())
+    {
+        KLOG_WARNING() << "Desktop path not found.";
+        return;
+    }
+    QString desktopPath = desktopPaths.first();
+
+    KService::Ptr s = KService::serviceByStorageId(appId);
+    if (s)
+    {
+        QString fileName = QFileInfo(s->entryPath()).fileName();
+        QString destPath = QDir::toNativeSeparators(desktopPath + QDir::separator() + fileName);
+        QFile::copy(s->entryPath(), destPath);
+        if (!QFile(destPath).exists())
+        {
+            KLOG_WARNING() << "Desktop file copy failed, from" << s->entryPath() << "to" << destPath;
+            return;
+        }
+        QFile::Permissions permissions = QFileInfo(destPath).permissions();
+        permissions |= QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther;
+        QFile::setPermissions(destPath, permissions);
+    }
 }
 
 void Window::updateUserInfo()

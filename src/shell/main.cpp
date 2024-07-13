@@ -25,6 +25,8 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_QPA_PLATFORMTHEME", "kiran-next");
+
     auto argv0 = QFileInfo(argv[0]);
     auto programName = argv0.baseName();
 

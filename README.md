@@ -13,7 +13,7 @@
   * gsettings-qt-devel
   * kiran-widgets-qt5-devel
   * kiran-log-qt5-devel
-   
+  * xcb-util-image-devel
 
 ## 编译安装
 ```

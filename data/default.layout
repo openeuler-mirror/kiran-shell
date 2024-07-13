@@ -3,7 +3,7 @@ expand=true
 orientation=top
 size=40
 monitor=-1
-applets=menu,workspace,taskbar,systemtray,clock,showdesktop
+applets=menu,workspace,taskbar,systemtray,clock,showdesktop,spacer
 
 [Applet menu]
 type=plugin
@@ -17,9 +17,22 @@ id=taskbar
 panel=top
 position=2
 
+[Applet spacer]
+type=plugin
+id=spacer
+panel=top
+position=3
+
 [Applet systemtray]
 type=plugin
 id=systemtray
+panel=top
+panel-right-stick=true
+position=3
+
+[Applet spacer1]
+type=plugin
+id=spacer
 panel=top
 panel-right-stick=true
 position=2

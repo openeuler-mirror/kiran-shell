@@ -42,6 +42,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    //    void paintEvent(QPaintEvent *event) override;
 
 private:
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽

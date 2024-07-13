@@ -45,21 +45,21 @@ Showdesktop::Showdesktop(IAppletImport *import)
     updateLayout();
 
     setToolTip(tr("Show desktop"));
+    setCheckable(false);
 }
 
 void Showdesktop::updateLayout()
 {
     int orientation = m_import->getPanel()->getOrientation();
+    auto size = m_import->getPanel()->getSize();
 
     if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
     {
-        auto size = m_import->getPanel()->getSize();
         setFixedSize(size / 4, size);
     }
     else
     {
-        auto size = m_import->getPanel()->getSize();
         setFixedSize(size, size / 4);
     }
 }

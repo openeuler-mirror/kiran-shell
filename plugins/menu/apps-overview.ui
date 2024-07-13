@@ -13,23 +13,55 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="KiranSearchBox" name="m_lineEditSearch"/>
-   </item>
-   <item>
-    <widget class="StyledTreeWidget" name="m_treeWidgetApps">
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="headerHidden">
-      <bool>true</bool>
-     </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="KiranColorBlock" name="widget" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="KiranSearchBox" name="m_lineEditSearch"/>
+      </item>
+      <item>
+       <widget class="StyledTreeWidget" name="m_treeWidgetApps">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="headerHidden">
+         <bool>true</bool>
+        </property>
+        <column>
+         <property name="text">
+          <string notr="true">1</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>KiranColorBlock</class>
+   <extends>QWidget</extends>
+   <header>kiran-color-block.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>KiranSearchBox</class>
    <extends>QLineEdit</extends>

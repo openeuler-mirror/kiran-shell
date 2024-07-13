@@ -15,11 +15,12 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}
     ${KLOG_QT5_INCLUDE_DIRS}
-    ${KIRAN_STYLE_HELPER_INCLUDE_DIRS})
+)
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
     Qt5::Core
     Qt5::Widgets
     ${KLOG_QT5_LIBRARIES}
-    ${KIRAN_STYLE_LIBRARIES})
+    kiran-integration-theme
+)

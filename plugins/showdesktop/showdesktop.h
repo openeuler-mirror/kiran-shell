@@ -17,13 +17,15 @@
 #include <plugin-i.h>
 #include <QPushButton>
 
+#include "lib/widgets/styled-button.h"
+
 class QMouseEvent;
 
 namespace Kiran
 {
 class IAppletImport;
 
-class Showdesktop : public QPushButton
+class Showdesktop : public StyledButton
 {
     Q_OBJECT
 

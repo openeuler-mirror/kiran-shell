@@ -14,7 +14,8 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}
-    ${KLOG_QT5_INCLUDE_DIRS})
+    ${KLOG_QT5_INCLUDE_DIRS}
+)
 
 target_link_libraries(
     ${TARGET_NAME} PUBLIC
@@ -22,4 +23,5 @@ target_link_libraries(
     Qt5::Widgets
     KF5::WindowSystem
     KF5::Service
-    ${KLOG_QT5_LIBRARIES})
+    ${KLOG_QT5_LIBRARIES}
+)

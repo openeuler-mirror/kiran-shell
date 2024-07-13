@@ -13,7 +13,7 @@
  */
 
 #include <kiran-color-block.h>
-#include <kiran-style/style-palette.h>
+
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
@@ -53,9 +53,11 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
 {
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
-    m_layout->setContentsMargins(0, 0, 0, 0);
-    m_layout->setSpacing(0);
+    m_layout->setContentsMargins(4, 4, 4, 4);
+    m_layout->setSpacing(8);
     setLayout(m_layout);
+
+    setRadius(0);
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
@@ -365,13 +367,19 @@ void AppButtonContainer::updateLayout()
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
+    auto size = m_import->getPanel()->getSize();
+
     if (QBoxLayout::Direction::LeftToRight == direction)
     {
-        m_layout->setContentsMargins(10, 0, 10, 0);
+        // 清理之前设置的fixed大小
+        setMaximumWidth(QWIDGETSIZE_MAX);
+        // 重新设置
+        setFixedHeight(size);
     }
     else
     {
-        m_layout->setContentsMargins(0, 10, 0, 10);
+        setMaximumHeight(QWIDGETSIZE_MAX);
+        setFixedWidth(size);
     }
     //    KLOG_INFO() << "m_listAppGroupShow" << m_listAppGroupShow << m_indicatorWidget;
     for (auto appGroup : m_listAppGroupShow)

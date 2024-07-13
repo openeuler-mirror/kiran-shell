@@ -31,13 +31,12 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/include
     ${KLOG_QT5_INCLUDE_DIRS}
-    ${KIRAN_STYLE_HELPER_INCLUDE_DIRS}
-    ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS})
+    ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS}
+)
 
 target_link_libraries(
     ${TARGET_NAME} PRIVATE
     ${KLOG_QT5_LIBRARIES}
-    ${KIRAN_STYLE_LIBRARIES}
     ${KIRAN_WIDGETS_QT5_LIBRARIES}
     Qt5::Widgets
     Qt5::DBus
@@ -47,8 +46,10 @@ target_link_libraries(
     KF5::ActivitiesStats
     KF5::KIOCore
     KF5::KIOWidgets
+    kiran-integration-theme
     common
-    widgets)
+    widgets
+)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

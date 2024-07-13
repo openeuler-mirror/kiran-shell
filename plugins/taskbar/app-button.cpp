@@ -1,18 +1,18 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2.
- * You may obtain a copy of Mulan PSL v2 at:
+ * You can use this software according to the terms and conditions of the Mulan
+ * PSL v2. You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- * See the Mulan PSL v2 for more details.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY
+ * KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE. See the
+ * Mulan PSL v2 for more details.
  *
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
+#include <kiran-integration/theme/palette.h>
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
@@ -22,13 +22,16 @@
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <KWindowSystem>
+#include <QColor>
 #include <QDesktopServices>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QProcess>
 #include <QSettings>
+#include <QTimer>
 
 #include "app-button.h"
 #include "app-group.h"
@@ -42,11 +45,7 @@ namespace Kiran
 namespace Taskbar
 {
 AppButton::AppButton(IAppletImport *import, QWidget *parent)
-    : StyledButton(parent),
-      m_import(import),
-      m_wid(0),
-      m_isShowName(false),
-      m_dragFlag(false)
+    : StyledButton(parent), m_import(import), m_wid(0), m_isShowName(false), m_dragFlag(false)
 {
     AppGroup *appGroup = (AppGroup *)parent;
     connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
@@ -56,7 +55,8 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
 
     auto panelSize = m_import->getPanel()->getSize();
     int iconSize = panelSize - BUTTON_BLANK_SPACE * 2;
-    setIconSize(QSize(iconSize, iconSize));
+    //    setIconSize(QSize(iconSize, iconSize));
+    setIconSize(QSize(24, 24));
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 }
 
@@ -70,7 +70,8 @@ void AppButton::setAppInfo(const QByteArray &wmClass, const WId &wid)
 {
     m_appBaseInfo.m_url = WindowInfoHelper::getUrlByWId(wid);
 
-    //    KLOG_INFO() << "AppButton::setAppInfo" << wmClass << wid << m_appBaseInfo.m_url;
+    //    KLOG_INFO() << "AppButton::setAppInfo" << wmClass << wid <<
+    //    m_appBaseInfo.m_url;
     m_appBaseInfo.m_wmClass = wmClass;
     m_wid = wid;
 
@@ -106,9 +107,17 @@ void AppButton::getInfoFromUrl()
         return;
     }
 
-    //    KLOG_INFO() << "AppButton::getInfoFromUrl" << m_appBaseInfo.m_url << fileItem.iconName() << fileItem.mimeComment();
+    //    KLOG_INFO() << "AppButton::getInfoFromUrl" << m_appBaseInfo.m_url <<
+    //    fileItem.iconName() << fileItem.mimeComment();
 
-    setIcon(QIcon::fromTheme(fileItem.iconName()));  // 图标正确，除了桌面的计算机、主文件夹、回收站等
+    QIcon icon = QIcon::fromTheme(fileItem.iconName());
+    if (icon.isNull())
+    {
+        // 支持某些desktop文件不规范的情况，如 icon=xx.png
+        icon = QIcon::fromTheme(QFileInfo(fileItem.iconName()).baseName());
+    }
+
+    setIcon(icon);  // 图标正确，除了桌面的计算机、主文件夹、回收站等
     if (fileItem.isDesktopFile())
     {
         setToolTip(fileItem.mimeComment());
@@ -153,10 +162,11 @@ bool AppButton::checkDropAccept(QPoint pos)
 Qt::AlignmentFlag AppButton::getLayoutAlignment()
 {
     int orientation = m_import->getPanel()->getOrientation();
-    Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                                   orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                                      ? Qt::AlignLeft
-                                      : Qt::AlignTop;
+    Qt::AlignmentFlag alignment =
+        (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+            ? Qt::AlignLeft
+            : Qt::AlignTop;
 
     return alignment;
 }
@@ -195,36 +205,51 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
     if (0 == m_wid)
     {
         menu.addAction(tr("Run app"), this, [=]()
-                       { buttonClicked(); });
+                       {
+                           buttonClicked();
+                       });
     }
     else
     {
-        menu.addAction(tr("Close all windows"), this, [=]()
-                       { emit windowClose(m_wid); });
+        menu.addAction(tr("Close all windows"), this,
+                       [=]()
+                       {
+                           emit windowClose(m_wid);
+                       });
     }
 
     emit isInFavorite(m_appBaseInfo.m_url.fileName(), check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to favorite"), this, [=]()
-                       { emit addToFavorite(m_appBaseInfo.m_url.fileName()); });
+                       {
+                           emit addToFavorite(m_appBaseInfo.m_url.fileName());
+                       });
     }
     else
     {
         menu.addAction(tr("Remove from favorite"), this, [=]()
-                       { emit removeFromFavorite(m_appBaseInfo.m_url.fileName()); });
+                       {
+                           emit removeFromFavorite(m_appBaseInfo.m_url.fileName());
+                       });
     }
 
     emit isInTasklist(m_appBaseInfo.m_url, check_result);
     if (!check_result)
     {
-        menu.addAction(tr("Add to tasklist"), this, [=]()
-                       { emit addToTasklist(m_appBaseInfo.m_url, this); });
+        menu.addAction(tr("Add to tasklist"), this,
+                       [=]()
+                       {
+                           emit addToTasklist(m_appBaseInfo.m_url, this);
+                       });
     }
     else
     {
-        menu.addAction(tr("Remove from tasklist"), this, [=]()
-                       { emit removeFromTasklist(m_appBaseInfo.m_url); });
+        menu.addAction(tr("Remove from tasklist"), this,
+                       [=]()
+                       {
+                           emit removeFromTasklist(m_appBaseInfo.m_url);
+                       });
     }
 
     // 自带菜单
@@ -244,14 +269,17 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                 menu.addSeparator();
                 firstAdd = false;
             }
-            QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
-                                             {
-                                                 auto *job = new KIO::ApplicationLauncherJob(serviceAction);
-                                                 job->start();
+            QAction *action = menu.addAction(
+                QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this,
+                [=]()
+                {
+                    auto *job = new KIO::ApplicationLauncherJob(serviceAction);
+                    job->start();
 
-                                                 //通知kactivitymanagerd
-                                                 KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
-                                             });
+                    //通知kactivitymanagerd
+                    KActivities::ResourceInstance::notifyAccessed(
+                        QUrl(QStringLiteral("applications:") + s->storageId()));
+                });
             if (serviceAction.isSeparator())
             {
                 action->setSeparator(true);
@@ -273,7 +301,11 @@ void AppButton::enterEvent(QEvent *event)
         return;
     }
 
+    emit previewerHide(0);
+
     emit previewerShow(m_wid);
+
+    QToolButton::enterEvent(event);
 }
 
 void AppButton::leaveEvent(QEvent *event)
@@ -286,37 +318,136 @@ void AppButton::leaveEvent(QEvent *event)
         return;
     }
 
-    emit previewerHide(m_wid);
+    QTimer::singleShot(400, this, [this]()
+                       {
+                           emit previewerHide(m_wid);
+                       });
+    QToolButton::leaveEvent(event);
 }
 
 void AppButton::paintEvent(QPaintEvent *event)
 {
-    StyledButton::paintEvent(event);
+    //    StyledButton::paintEvent(event);
 
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
+
+    auto palette = Kiran::Theme::Palette::getDefault();
+
+    QPainterPath path;
+    path.addRoundedRect(rect(), 4, 4);
+
+    // 背景绘制
+    QColor bgColor;
+    if (isChecked())
+    {
+        // 选中
+        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN,
+                                    Kiran::Theme::Palette::WIDGET);
+        painter.setBrush(bgColor);
+    }
+
+    if (m_pressed)
+    {
+        // 点击
+        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN,
+                                    Kiran::Theme::Palette::WIDGET);
+        painter.setBrush(bgColor);
+    }
+    else if (m_hovered)
+    {
+        // 悬停
+        bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER,
+                                    Kiran::Theme::Palette::WIDGET);
+        painter.setBrush(bgColor);
+    }
+    else
+    {
+        // 正常
+        bgColor = Qt::transparent;
+    }
+
+    QPen pen = painter.pen();
+    painter.setPen(Qt::NoPen);
+
+    painter.drawPath(path);
+
+    painter.setPen(pen);
+
+    // 图标文字绘制
+    if (text().isEmpty())
+    {
+        // 仅图标
+        int x = (width() - iconSize().width()) / 2;
+        int y = (height() - iconSize().height()) / 2;
+        QPixmap pixmap = icon().pixmap(iconSize());
+        painter.drawPixmap(x, y, iconSize().width(), iconSize().height(), pixmap);
+    }
+    else
+    {
+        // 图标 + 文字
+        // 在底部面板为40的情况下，进行等比计算
+        // 宽=40×4=160
+        // 高=32
+        // 图标+文字=136
+        // 图标文字间隔=8
+
+        const int designPanelSize = 40;
+        const int designWidth = 160;
+        const int designHeight = 32;
+        const int designIconTextWidth = 136;
+        const int designIconTextMargin = 8;
+
+        int x = (width() - width() * designIconTextWidth / designWidth) / 2;
+        int y = (height() - iconSize().height()) / 2;
+        QPixmap pixmap = icon().pixmap(iconSize());
+        painter.drawPixmap(x, y, iconSize().width(), iconSize().height(), pixmap);
+
+        int realMargin = height() * designIconTextMargin / designHeight;
+        int textX = x + iconSize().width() + realMargin;
+        int realIconTextWidth = width() * designIconTextWidth / designWidth;
+        int textWidth = realIconTextWidth - realMargin - iconSize().width();
+
+        painter.drawText(textX, y, textWidth, iconSize().height(),
+                         Qt::AlignLeft | Qt::AlignVCenter, text());
+    }
+
+    // 底部横条
     int relationAppSize = 0;
     emit getRelationAppSize(relationAppSize);
     if (0 == relationAppSize)
     {
         return;
     }
-    auto stylePalette = Kiran::StylePalette::instance();
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
-
-    // 底部横线
-    const int rectHeight = 3;  // 高度为 2
+    const int rectHeight = 2;  // 高度为 2
 
     QRect bottomRect = rect();
-    bottomRect.adjust(0, rect().height() - rectHeight, 0, 0);
+    if (text().isEmpty())
+    {
+        // 在底部面板为40的情况下，进行等比计算
+        // 横条宽为 按钮宽/2
+        bottomRect.adjust(rect().width() / 4, rect().height() - rectHeight,
+                          -rect().width() / 4, 0);
+    }
+    else
+    {
+        const int designIconTextWidth = 136;
+        const int designWidth = 160;
+
+        int realIconTextWidth = width() * designIconTextWidth / designWidth;
+        int adjustX = (width() - realIconTextWidth) / 2;
+        bottomRect.adjust(adjustX, rect().height() - rectHeight, -adjustX, 0);
+    }
+
     if (!m_hovered && !isChecked())
     {
         // 横线短一点
-        bottomRect.adjust(5, 0, -5, 0);
+        //        bottomRect.adjust(5, 0, -5, 0);
     }
-    QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Checked,
-                                         Kiran::StylePalette::WidgetType::Widget,
-                                         Kiran::StylePalette::WidgetColorRule::Background);
+    bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED,
+                                Kiran::Theme::Palette::WIDGET);
+
     painter.fillRect(bottomRect, bgColor);
 
     // 如果有多个关联窗口，右侧增加覆盖层
@@ -324,28 +455,22 @@ void AppButton::paintEvent(QPaintEvent *event)
     {
         return;
     }
-    bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Active,
-                                  Kiran::StylePalette::WidgetType::Widget,
-                                  Kiran::StylePalette::WidgetColorRule::Border);
+
+    bgColor = palette->getColor(Kiran::Theme::Palette::ACTIVE,
+                                Kiran::Theme::Palette::WIDGET);
+
     bgColor.setAlpha(125);
 
     if (!m_hovered && !isChecked())
     {
         // 横线短一点
-        bottomRect.adjust(bottomRect.width() - 10, 0, 0, 0);
+        bottomRect.adjust(bottomRect.width() / 2, 0, 0, 0);
     }
     else
     {
-        // 整个右侧
-        //bottomRect = rect();
-        //bottomRect.adjust(rect().width() - 4, 0, 0, 0);
-
-        bottomRect.adjust(bottomRect.width() - 5, 0, 0, 0);
+        bottomRect.adjust(bottomRect.width() / 5 * 4, 0, 0, 0);
     }
 
-    QPen pen = painter.pen();
-    pen.setColor(bgColor);
-    painter.setPen(pen);
     painter.fillRect(bottomRect, bgColor);
 }
 
@@ -381,7 +506,8 @@ void AppButton::updateLayout()
     //    updateName();
 }
 
-void AppButton::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+void AppButton::changedWindow(WId wid, NET::Properties properties,
+                              NET::Properties2 properties2)
 {
     if (m_wid != wid)
     {
@@ -408,27 +534,29 @@ void AppButton::changedWindow(WId wid, NET::Properties properties, NET::Properti
 
 void AppButton::updateShowName()
 {
+    auto panelSize = m_import->getPanel()->getSize();
+    int height = panelSize / 40.f * 32;
+
     if (0 != m_wid)
     {
         m_visualName = WindowInfoHelper::getAppNameByWId(m_wid);
         setToolTip(m_visualName);
 
-        auto size = m_import->getPanel()->getSize();
         int orientation = m_import->getPanel()->getOrientation();
 
         if (m_isShowName &&
             (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
              orientation == PanelOrientation::PANEL_ORIENTATION_TOP))
         {
-            setFixedSize(size * 3, size);
-            QString elideText = Utility::getElidedText(fontMetrics(), m_visualName, size * 2);
+            setFixedSize(panelSize * 4, height);
+            QString elideText =
+                Utility::getElidedText(fontMetrics(), m_visualName, height * 2);
             setText(elideText);
             return;
         }
     }
 
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(size, size);
+    setFixedSize(height, height);
     setText("");
     return;
 }
@@ -452,13 +580,15 @@ void AppButton::buttonClicked()
 
         if (fileItem.isDesktopFile())
         {
-            KService::Ptr service = KService::serviceByStorageId(m_appBaseInfo.m_url.fileName());
+            KService::Ptr service =
+                KService::serviceByStorageId(m_appBaseInfo.m_url.fileName());
             //启动应用
             auto *job = new KIO::ApplicationLauncherJob(service);
             job->start();
 
             //通知kactivitymanagerd
-            KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+            KActivities::ResourceInstance::notifyAccessed(
+                QUrl(QStringLiteral("applications:") + service->storageId()));
         }
         else
         {

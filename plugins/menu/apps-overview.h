@@ -55,6 +55,9 @@ private:
     void recursiveService(KServiceGroup* serviceGroup, const QString& filter = "", QTreeWidgetItem* parent = nullptr);
     //增加应用
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+
+    void updateApp();
+
 signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString& appId, bool& checkResult);

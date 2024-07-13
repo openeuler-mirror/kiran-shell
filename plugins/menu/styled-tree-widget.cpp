@@ -12,12 +12,13 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
+#include <kiran-integration/theme/palette.h>
 #include <KService/KService>
 #include <QDrag>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPalette>
 #include <QTreeWidgetItem>
 
 #include "styled-tree-widget.h"
@@ -38,6 +39,11 @@ StyledTreeWidget::StyledTreeWidget(QWidget *parent)
     setIndentation(0);
 
     setMouseTracking(true);
+
+    //    setAttribute(Qt::WA_TranslucentBackground);
+    QPalette p = this->palette();
+    p.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
+    setPalette(p);
 }
 
 void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
@@ -94,6 +100,15 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
     QTreeWidget::mouseMoveEvent(event);
 }
 
+//void StyledTreeWidget::paintEvent(QPaintEvent *event)
+//{
+//    //    QPainter painter(this);
+//    //    QColor bgColor = Qt::transparent;
+//    //    painter.fillRect(rect(), Qt::red);
+
+//    QTreeWidget::paintEvent(event);
+//}
+
 QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize size = QStyledItemDelegate::sizeHint(option, index);
@@ -103,22 +118,19 @@ QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelInd
 
 void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    auto stylePalette = Kiran::StylePalette::instance();
+    auto palette = Kiran::Theme::Palette::getDefault();
 
     // 选中底色
     if (option.state & QStyle::State_Selected)
     {
-        QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Checked,
-                                             Kiran::StylePalette::WidgetType::Widget,
-                                             Kiran::StylePalette::WidgetColorRule::Background);
+        QColor bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
+
         painter->fillRect(option.rect, bgColor);
     }
     // 鼠标移入底色
     if (option.state & QStyle::State_MouseOver)
     {
-        QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Hover,
-                                             Kiran::StylePalette::WidgetType::Widget,
-                                             Kiran::StylePalette::WidgetColorRule::Background);
+        QColor bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
         painter->fillRect(option.rect, bgColor);
     }
 

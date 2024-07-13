@@ -53,9 +53,9 @@ int StatusNotifierWatcher::ProtocolVersion() const
 
 void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner)
 {
-    //Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
-    //If it was registered, oldOwner will contain an empty string,
-    //whereas if it was unregistered, newOwner will contain an empty string
+    // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
+    // If it was registered, oldOwner will contain an empty string,
+    // whereas if it was unregistered, newOwner will contain an empty string
 
     KLOG_INFO() << "Service" << service << "status change, old owner:" << oldOwner << "new:" << newOwner;
 

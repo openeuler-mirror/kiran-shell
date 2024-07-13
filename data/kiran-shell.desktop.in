@@ -1,0 +1,15 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=Krian Shell
+Comment=Krian Shell
+Icon=mate-panel
+Exec=kiran-shell
+StartupNotify=true
+Terminal=false
+Categories=Qt;System;Core;Panel;kiran;shell
+NoDisplay=true
+X-MATE-AutoRestart=true
+X-MATE-Autostart-Phase=Panel
+X-MATE-Provides=panel
+X-MATE-Autostart-Notify=true

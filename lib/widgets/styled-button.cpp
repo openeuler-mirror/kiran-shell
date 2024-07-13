@@ -12,10 +12,11 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
+#include <kiran-integration/theme/palette.h>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 
 #include "lib/common/utility.h"
 #include "styled-button.h"
@@ -67,36 +68,28 @@ void StyledButton::mouseReleaseEvent(QMouseEvent *event)
 
 void StyledButton::paintEvent(QPaintEvent *event)
 {
-    auto stylePalette = Kiran::StylePalette::instance();
-
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
+
+    auto palette = Kiran::Theme::Palette::getDefault();
 
     // 背景绘制
     QColor bgColor;
     if (isChecked())
     {
         // 选中
-        bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Active,
-                                      Kiran::StylePalette::WidgetType::Widget,
-                                      Kiran::StylePalette::WidgetColorRule::Background);
-        painter.fillRect(rect(), bgColor);
+        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
     }
 
-    /*if (m_pressed)
+    if (m_pressed)
     {
-        // 点击，没有对应的颜色，暂时不用
-        bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Active,
-                                      Kiran::StylePalette::WidgetType::Widget,
-                                      Kiran::StylePalette::WidgetColorRule::Background);
+        // 点击
+        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
     }
-    else */
-    if (m_hovered)
+    else if (m_hovered)
     {
         // 悬停
-        bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Hover,
-                                      Kiran::StylePalette::WidgetType::Widget,
-                                      Kiran::StylePalette::WidgetColorRule::Background);
+        bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
     }
     else
     {
@@ -104,10 +97,16 @@ void StyledButton::paintEvent(QPaintEvent *event)
         bgColor = Qt::transparent;
     }
 
-    painter.fillRect(rect(), bgColor);
+    painter.setBrush(bgColor);
 
-    // QToolButton::paintEvent(event);
+    QPainterPath path;
+    path.addRoundedRect(rect(), 4, 4);
+    QPen pen = painter.pen();
+    painter.setPen(Qt::NoPen);
 
+    painter.drawPath(path);
+
+    painter.setPen(pen);
     // 图标文字绘制
     switch (toolButtonStyle())
     {

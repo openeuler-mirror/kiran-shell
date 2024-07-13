@@ -232,7 +232,7 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return desktopFile;
     }
 
-    KLOG_WARNING() << "can't find url by Wid";
+    KLOG_WARNING() << "can't find url by Wid:" << wid;
 
     return desktopFile;
 }

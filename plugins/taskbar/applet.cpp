@@ -12,7 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
+
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>

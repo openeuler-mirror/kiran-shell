@@ -131,6 +131,10 @@ void TrayItem::contextMenuEvent(QContextMenuEvent *event)
     {
         m_trayItemProxy->contextMenu(QCursor::pos().x(), QCursor::pos().y());
     }
+
+    m_hovered = false;
+    m_pressed = false;
+    update();
 }
 
 void TrayItem::mousePressEvent(QMouseEvent *event)

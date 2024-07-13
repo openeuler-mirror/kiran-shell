@@ -20,8 +20,6 @@
 #include <QPushButton>
 #include <QWidget>
 
-#include <style-palette.h>
-
 #include <KActivities/KActivities/Consumer>
 #include <KActivities/KActivities/ResourceInstance>
 #include <KActivities/Stats/ResultModel>
@@ -65,7 +63,6 @@ private:
     //快速启动初始化
     void initQuickStart();
 
-    void changeTheme();
     void clear(QStackedWidget* stackedWidget);
 
     //启动应用
