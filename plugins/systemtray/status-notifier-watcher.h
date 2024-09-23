@@ -21,7 +21,7 @@
 #include "statusnotifierwatcherinterface.h"
 
 class QDBusServiceWatcher;
-
+class QProcess;
 class StatusNotifierWatcher : public QObject, protected QDBusContext
 {
     Q_OBJECT
@@ -63,8 +63,13 @@ private:
 
     void registerServer();
 
+    void startXembedSniProxy();
+    void killXembedSniProxy();
+
 private:
     QDBusServiceWatcher *m_serviceWatcher;
 
     QStringList m_registeredServices;
+
+    QProcess *m_xembedSniProxy;
 };

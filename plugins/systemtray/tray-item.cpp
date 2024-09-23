@@ -201,16 +201,15 @@ void TrayItem::init()
     }
 
     // 图标
-    busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
     // 标准中不存在，但Qt和KDE实现中有
     busdata = m_trayItemProxy->getProperty(QLatin1String("IconThemePath"));
     m_iconThemePath = busdata.variant().toString();
-
     getIcon(BASE_ICON);
     getIcon(ATTENTION_ICON);
     getIcon(OVERLAY_ICON);
 
     // 状态
+    busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
     QString status = busdata.variant().toString();
     if (!status.isEmpty())
     {

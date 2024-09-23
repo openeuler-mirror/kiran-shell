@@ -33,6 +33,9 @@
 kiran-shell
 ```
 
+### 默认使用kiran-shell  
+将 /usr/share/kiran-session-manager/sessions/kiran.session 中的 kiran-panel 修改为 kiran-shell
+
 ## 目录结构
 
 - lib: 维护通用代码
