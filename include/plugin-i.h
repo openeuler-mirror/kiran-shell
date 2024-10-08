@@ -30,7 +30,6 @@ public:
 
 class IPanel
 {
-
 public:
     virtual int getSize() = 0;
     virtual int getOrientation() = 0;

@@ -115,7 +115,9 @@ void WindowPreviewer::startUpdatePreviewer()
         // 避免短时间内多次调用
         m_updateInProgress = true;
         QTimer::singleShot(200, this, [this]()
-                           { updatePreviewer(); });
+                           {
+                               updatePreviewer();
+                           });
     }
 }
 

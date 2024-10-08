@@ -15,15 +15,15 @@
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>
+#include <QCoreApplication>
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
 #include <QTranslator>
-#include <QCoreApplication>
 
 #include "applet.h"
-#include "window.h"
 #include "ks-config.h"
+#include "window.h"
 
 namespace Kiran
 {

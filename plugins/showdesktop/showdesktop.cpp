@@ -37,7 +37,9 @@ Showdesktop::Showdesktop(IAppletImport *import)
     }
 
     connect(this, &QPushButton::clicked, this, [=]()
-            { KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop()); });
+            {
+                KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
+            });
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));

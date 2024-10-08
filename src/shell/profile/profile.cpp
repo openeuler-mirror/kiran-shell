@@ -183,10 +183,14 @@ QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
 
     // 各插件按gsettings中的顺序排列
     std::sort(applets.begin(), applets.end(), [](ProfileApplet* a, ProfileApplet* b)
-              { return a->getPosition() < b->getPosition(); });
+              {
+                  return a->getPosition() < b->getPosition();
+              });
 
     std::sort(applets_right.begin(), applets_right.end(), [](ProfileApplet* a, ProfileApplet* b)
-              { return a->getPosition() > b->getPosition(); });
+              {
+                  return a->getPosition() > b->getPosition();
+              });
     applets.append(applets_right);
 
     return applets;

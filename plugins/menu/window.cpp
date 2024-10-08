@@ -23,6 +23,7 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QFile>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QPainter>
 #include <QPainterPath>
@@ -31,7 +32,6 @@
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
-#include <QKeyEvent>
 
 #include "app-item.h"
 #include "apps-overview.h"
@@ -207,7 +207,9 @@ void Window::initUserInfo()
 
     //点击头像
     connect(m_ui->m_btnUserPhoto, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("kiran-control-panel", {"-c", "account-management"}); });
+            {
+                QProcess::startDetached("kiran-control-panel", {"-c", "account-management"});
+            });
 }
 
 void Window::initQuickStart()
@@ -216,15 +218,25 @@ void Window::initQuickStart()
     //TODO: mate相关的需要更改成自研
 
     connect(m_ui->m_btnRunCommand, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("mate-panel", {"--run-dialog"}); });
+            {
+                QProcess::startDetached("mate-panel", {"--run-dialog"});
+            });
     connect(m_ui->m_btnSearchFiles, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("mate-search-tool", {}); });
+            {
+                QProcess::startDetached("mate-search-tool", {});
+            });
     connect(m_ui->m_btnHomeDir, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("caja", {}); });
+            {
+                QProcess::startDetached("caja", {});
+            });
     connect(m_ui->m_btnSettings, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("kiran-control-panel", {}); });
+            {
+                QProcess::startDetached("kiran-control-panel", {});
+            });
     connect(m_ui->m_btnSystemMonitor, &QPushButton::clicked, this, [=]()
-            { QProcess::startDetached("mate-system-monitor", {}); });
+            {
+                QProcess::startDetached("mate-system-monitor", {});
+            });
 
     //电源选项
     auto power = Power::getDefault();
@@ -235,13 +247,17 @@ void Window::initQuickStart()
                 if (power->canLockScreen())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC), tr("Lock screen"), this, [=]()
-                                         { power->lockScreen(); });
+                                         {
+                                             power->lockScreen();
+                                         });
                 }
 
                 if (power->canLogout())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_LOGOUT), tr("Logout"), this, [=]()
-                                         { power->logout(); });
+                                         {
+                                             power->logout();
+                                         });
                 }
 
                 if (power->canSwitchUser())
@@ -263,25 +279,33 @@ void Window::initQuickStart()
                 if (power->canSuspend())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SUSPEND), tr("Suspend"), this, [=]()
-                                         { power->suspend(); });
+                                         {
+                                             power->suspend();
+                                         });
                 }
 
                 if (power->canHibernate())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_HIBERNATE), tr("Hibernate"), this, [=]()
-                                         { power->hibernate(); });
+                                         {
+                                             power->hibernate();
+                                         });
                 }
 
                 if (power->canReboot())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_REBOOT), tr("Reboot"), this, [=]()
-                                         { power->reboot(); });
+                                         {
+                                             power->reboot();
+                                         });
                 }
 
                 if (power->canShutdown())
                 {
                     power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SHUTDOWN), tr("Shutdown"), this, [=]()
-                                         { power->shutdown(); });
+                                         {
+                                             power->shutdown();
+                                         });
                 }
 
                 int x = m_ui->m_widgetNavigations->x() + m_ui->m_widgetNavigations->width();

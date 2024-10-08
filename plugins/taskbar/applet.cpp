@@ -12,7 +12,6 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <qt5-log-i.h>

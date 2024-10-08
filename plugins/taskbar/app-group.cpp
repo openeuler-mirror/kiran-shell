@@ -145,7 +145,9 @@ void AppGroup::init()
     // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
     m_settingFileWatcher.addPath(QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path());
     connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
-            { updateLayout(); });
+            {
+                updateLayout();
+            });
 
     m_buttonFixed->setAppInfo(m_appBaseInfo);
 
@@ -377,7 +379,9 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
     connect(appButton, &AppButton::addToTasklist, this, [this](const QUrl url)
-            { emit addToTasklist(url, this); });
+            {
+                emit addToTasklist(url, this);
+            });
     connect(appButton, &AppButton::removeFromTasklist, this, &AppGroup::removeFromTasklist);
     connect(appButton, &AppButton::getRelationAppSize, this, &AppGroup::getRelationAppSize, Qt::DirectConnection);
 

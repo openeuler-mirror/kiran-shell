@@ -16,6 +16,7 @@
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>
+#include <KSycoca>
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QCursor>
@@ -23,7 +24,6 @@
 #include <QMap>
 #include <QMenu>
 #include <QProcess>
-#include <KSycoca>
 
 #include "apps-overview.h"
 #include "ui_apps-overview.h"
@@ -72,9 +72,7 @@ void AppsOverview::init()
 
     m_ui->m_lineEditSearch->setPalette(p);
 
-
     connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
-
 }
 
 void AppsOverview::loadApps()
@@ -241,20 +239,28 @@ void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int co
 
         QMenu menu;
         menu.addAction(tr("Run app"), this, [=]()
-                       { emit runApp(appId); });
+                       {
+                           emit runApp(appId);
+                       });
         menu.addAction(tr("Add to desktop"), this, [=]()
-                       { emit addToDesktop(appId); });
+                       {
+                           emit addToDesktop(appId);
+                       });
 
         emit isInFavorite(appId, isCheckOK);
         if (!isCheckOK)
         {
             menu.addAction(tr("Add to favorite"), this, [=]()
-                           { emit addToFavorite(appId); });
+                           {
+                               emit addToFavorite(appId);
+                           });
         }
         else
         {
             menu.addAction(tr("Remove from favorite"), this, [=]()
-                           { emit removeFromFavorite(appId); });
+                           {
+                               emit removeFromFavorite(appId);
+                           });
         }
 
         isCheckOK = false;

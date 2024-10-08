@@ -27,7 +27,10 @@ class AppManager : public QObject
     Q_OBJECT
 
 public:
-    static AppManager *getInstance() { return m_instance; };
+    static AppManager *getInstance()
+    {
+        return m_instance;
+    };
     static void globalInit(WindowManager *windowManager);
     static void globalDeinit();
 

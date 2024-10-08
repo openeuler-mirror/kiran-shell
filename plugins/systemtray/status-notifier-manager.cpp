@@ -36,7 +36,7 @@ StatusNotifierManager::~StatusNotifierManager()
     QDBusConnection::sessionBus().unregisterService(SERVICE_NAME);
 }
 
-QString StatusNotifierManager::GetGeometry(const QString &id)
+QString StatusNotifierManager::GetGeometry(const QString& id)
 {
     static const QMap<QString, QString> nameWithId = {
         {"kiran-network-status-icon", "~04-network"},

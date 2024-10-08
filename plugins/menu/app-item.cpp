@@ -67,20 +67,28 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     bool check_result = false;
 
     menu.addAction(tr("Run app"), this, [=]()
-                   { emit runApp(m_appId); });
+                   {
+                       emit runApp(m_appId);
+                   });
     menu.addAction(tr("Add to desktop"), this, [=]()
-                   { emit addToDesktop(m_appId); });
+                   {
+                       emit addToDesktop(m_appId);
+                   });
 
     emit isInFavorite(m_appId, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to favorite"), this, [=]()
-                       { emit addToFavorite(m_appId); });
+                       {
+                           emit addToFavorite(m_appId);
+                       });
     }
     else
     {
         menu.addAction(tr("Remove from favorite"), this, [=]()
-                       { emit removeFromFavorite(m_appId); });
+                       {
+                           emit removeFromFavorite(m_appId);
+                       });
     }
 
     check_result = false;
