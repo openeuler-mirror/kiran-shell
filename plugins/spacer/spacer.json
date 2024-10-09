@@ -1,0 +1,8 @@
+{
+    "plugin_id": "spacer",
+    "applets": [
+        {
+            "applet_id": "spacer"
+        }
+    ]
+}

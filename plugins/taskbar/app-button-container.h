@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -75,8 +75,16 @@ private:
     Qt::AlignmentFlag getLayoutAlignment();
     QBoxLayout::Direction getLayoutDirection();
 
+    void openFileByDrop(QDropEvent *event);
+
     // 拖拽相关，计算位置
     int getInsertedIndex(const QPoint &pos);
+    int getMovedIndex(AppGroup *appGroup);
+
+    // 按钮组 拖拽移动
+    void startMoveGroup(AppGroup *appGroup);
+    void endMoveGroup(AppGroup *appGroup);
+    void moveGroup(AppGroup *appGroup);
 
 signals:
     //  打开或关闭窗口软件

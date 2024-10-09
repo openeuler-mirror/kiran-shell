@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -73,9 +73,7 @@ void WindowPopup::AddItem(QString serviceAndPath)
     }
 
     auto *item = itemAdd(serviceAndPath);
-
     m_items.append(item);
-    m_services.insert(serviceAndPath, item);
     updateItemLayout();
 }
 
@@ -94,6 +92,9 @@ void WindowPopup::dragEnterEvent(QDragEnterEvent *event)
     m_currentDropIndex = 0;
     if (!event->mimeData()->data("serviceAndPath").isEmpty())
     {
+        QPoint pos = event->pos();
+        updateDragPos(pos);
+
         event->accept();
     }
     else
@@ -105,24 +106,7 @@ void WindowPopup::dragEnterEvent(QDragEnterEvent *event)
 void WindowPopup::dragMoveEvent(QDragMoveEvent *event)
 {
     QPoint pos = event->pos();
-    int index = getInsertIndex(pos);
-
-    if (index != m_items.indexOf(m_indicatorWidget))
-    {
-        m_items.removeAll(m_indicatorWidget);
-        if (index >= m_items.size())
-        {
-            m_items.append(m_indicatorWidget);
-        }
-        else
-        {
-            m_items.insert(index, m_indicatorWidget);
-        }
-        m_indicatorWidget->show();
-    }
-
-    m_currentDropIndex = index;
-    updateItemLayout();
+    updateDragPos(pos);
 
     event->accept();
 }
@@ -132,6 +116,7 @@ void WindowPopup::dragLeaveEvent(QDragLeaveEvent *event)
     m_currentDropIndex = 0;
     m_items.removeAll(m_indicatorWidget);
     m_indicatorWidget->hide();
+
     updateItemLayout();
 
     event->accept();
@@ -146,15 +131,11 @@ void WindowPopup::dropEvent(QDropEvent *event)
         return;
     }
 
-    m_items.removeAll(m_indicatorWidget);
-    m_indicatorWidget->hide();
-
     // 不存在，则是其他区域拖过来的
     if (!m_services.contains(serviceAndPath))
     {
         TrayItem *item = itemAdd(serviceAndPath);
         m_items.insert(m_currentDropIndex, item);
-        m_services.insert(serviceAndPath, item);
         emit dropEnded(serviceAndPath);
 
         addWindowPopupItem(serviceAndPath);
@@ -165,6 +146,9 @@ void WindowPopup::dropEvent(QDropEvent *event)
         m_items.removeAll(item);
         m_items.insert(m_currentDropIndex, item);
     }
+
+    m_items.removeAll(m_indicatorWidget);
+    m_indicatorWidget->hide();
 
     updateItemLayout();
 
@@ -222,6 +206,8 @@ void WindowPopup::updateItemLayout()
             m_layout->addWidget(m_items.at(index), row, col);
         }
     }
+
+    emit updatePosition();
 }
 
 void WindowPopup::calculateRowCol(const int &totalSize, int &row, int &col)
@@ -244,6 +230,35 @@ void WindowPopup::calculateRowCol(const int &totalSize, int &row, int &col)
     }
 }
 
+void WindowPopup::updateDragPos(const QPoint &pos)
+{
+    if (1 == m_items.size())
+    {
+        m_items.removeAll(m_indicatorWidget);
+        m_items.append(m_indicatorWidget);
+    }
+    int index = getInsertIndex(pos);
+
+    if (index != m_items.indexOf(m_indicatorWidget))
+    {
+        m_items.removeAll(m_indicatorWidget);
+
+        if (index >= m_items.size())
+        {
+            m_items.append(m_indicatorWidget);
+        }
+        else
+        {
+            m_items.insert(index, m_indicatorWidget);
+        }
+
+        m_indicatorWidget->show();
+    }
+
+    m_currentDropIndex = index;
+    updateItemLayout();
+}
+
 TrayItem *WindowPopup::itemAdd(QString serviceAndPath)
 {
     int index = serviceAndPath.indexOf('/');
@@ -252,6 +267,14 @@ TrayItem *WindowPopup::itemAdd(QString serviceAndPath)
     TrayItem *item = new TrayItem(service, path, this);
     auto size = m_import->getPanel()->getSize();
     item->setFixedSize(size, size);
+
+    connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
+            {
+                //m_items.removeAll(dragItem);
+                //dragItem->hide();
+                updateItemLayout();
+            });
+    m_services.insert(serviceAndPath, item);
 
     return item;
 }

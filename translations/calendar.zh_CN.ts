@@ -2,45 +2,15 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
-    <name>Kiran::Calendar::Applet</name>
-    <message>
-        <location filename="../plugins/calendar/applet.cpp" line="213"/>
-        <source>年</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugins/calendar/applet.cpp" line="214"/>
-        <location filename="../plugins/calendar/applet.cpp" line="215"/>
-        <source>月</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>Kiran::Calendar::Window</name>
     <message>
-        <location filename="../plugins/calendar/window.cpp" line="100"/>
-        <source>%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugins/calendar/window.cpp" line="131"/>
         <source>Today</source>
         <translatorcomment>今天</translatorcomment>
-        <translation>今天</translation>
+        <translation type="vanished">今天</translation>
     </message>
 </context>
 <context>
     <name>Lunar</name>
-    <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="367"/>
-        <source>闰</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="383"/>
-        <source>年</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../plugins/calendar/lunar.cpp" line="463"/>
         <source>元旦</source>
@@ -200,6 +170,41 @@
         <location filename="../plugins/calendar/lunar.cpp" line="602"/>
         <location filename="../plugins/calendar/lunar.cpp" line="606"/>
         <source>除夕</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Window</name>
+    <message>
+        <location filename="../plugins/calendar/window.cpp" line="125"/>
+        <source>Today</source>
+        <translation type="unfinished">今天</translation>
+    </message>
+    <message>
+        <location filename="../plugins/calendar/window.ui" line="17"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugins/calendar/window.ui" line="77"/>
+        <location filename="../plugins/calendar/window.ui" line="123"/>
+        <location filename="../plugins/calendar/window.ui" line="169"/>
+        <location filename="../plugins/calendar/window.ui" line="188"/>
+        <location filename="../plugins/calendar/window.ui" line="297"/>
+        <location filename="../plugins/calendar/window.ui" line="316"/>
+        <source>PushButton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugins/calendar/window.ui" line="84"/>
+        <location filename="../plugins/calendar/window.ui" line="233"/>
+        <source>y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../plugins/calendar/window.ui" line="91"/>
+        <location filename="../plugins/calendar/window.ui" line="261"/>
+        <source>m</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

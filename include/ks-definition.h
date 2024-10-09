@@ -25,9 +25,13 @@ namespace Kiran
 class KSDefer
 {
 public:
-    KSDefer(std::function<void(QString)> func, QString funName) : m_func(func),
-                                                                  m_funName(funName) {}
-    ~KSDefer() { m_func(m_funName); }
+    KSDefer(std::function<void(QString)> func, QString funName)
+        : m_func(func),
+          m_funName(funName) {}
+    ~KSDefer()
+    {
+        m_func(m_funName);
+    }
 
 private:
     std::function<void(QString)> m_func;

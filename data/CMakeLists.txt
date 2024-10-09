@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
 # gschema.xml
 install(
@@ -13,3 +13,8 @@ install(
 # layout
 install(FILES ${PROJECT_SOURCE_DIR}/data/default.layout
         DESTINATION ${KS_INSTALL_DATADIR}/layouts)
+
+configure_file(${PROJECT_SOURCE_DIR}/data/kiran-shell.desktop.in
+               ${PROJECT_BINARY_DIR}/data/kiran-shell.desktop)
+install(FILES ${PROJECT_BINARY_DIR}/data/kiran-shell.desktop
+        DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/applications/)

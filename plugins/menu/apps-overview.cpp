@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2 
@@ -15,9 +15,12 @@
 #include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
+#include <KIO/ApplicationLauncherJob>
+#include <KSycoca>
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QCursor>
+#include <QFileInfo>
 #include <QMap>
 #include <QMenu>
 #include <QProcess>
@@ -64,6 +67,12 @@ void AppsOverview::init()
     }
 
     m_ui->m_lineEditSearch->setPlaceholderText(tr("Search application"));
+
+    QPalette p = m_ui->m_lineEditSearch->palette();
+
+    m_ui->m_lineEditSearch->setPalette(p);
+
+    connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
 }
 
 void AppsOverview::loadApps()
@@ -136,15 +145,15 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
     }
     else if (entry->isType(KST_KService))
     {
-        KService *service = static_cast<KService *>(entry);
+        KService *s = static_cast<KService *>(entry);
 
         // 过滤不需要显示的APP
-        if (service->noDisplay())
+        if (s->noDisplay())
         {
             return;
         }
         // X-KIRAN-NoDisplay 是kiran桌面配置的不需要显示的应用
-        auto kiranNoDisplay = service->property("X-KIRAN-NoDisplay", QVariant::Bool);
+        auto kiranNoDisplay = s->property("X-KIRAN-NoDisplay", QVariant::Bool);
         if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
         {
             return;
@@ -159,6 +168,18 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
             }
         }
 
+        // 无图标不显示
+        QIcon icon = QIcon::fromTheme(s->icon());
+        if (icon.isNull())
+        {
+            // 支持某些desktop文件不规范的情况，如 icon=xx.png
+            icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName());
+        }
+        if (icon.isNull())
+        {
+            return;
+        }
+
         if (!parent)
         {
             parent = m_ui->m_treeWidgetApps->topLevelItem(m_ui->m_treeWidgetApps->topLevelItemCount() - 1);
@@ -168,10 +189,15 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
             }
         }
         QTreeWidgetItem *item = new QTreeWidgetItem(parent);
-        item->setIcon(0, QIcon::fromTheme(service->icon()));
-        item->setText(0, service->name());
-        item->setData(0, Qt::UserRole, service->storageId());
+        item->setIcon(0, icon);
+        item->setText(0, s->name());
+        item->setData(0, Qt::UserRole, s->storageId());
     }
+}
+
+void AppsOverview::updateApp()
+{
+    KLOG_INFO() << "AppsOverview::updateApp";
 }
 
 void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)
@@ -213,20 +239,28 @@ void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int co
 
         QMenu menu;
         menu.addAction(tr("Run app"), this, [=]()
-                       { emit runApp(appId); });
+                       {
+                           emit runApp(appId);
+                       });
         menu.addAction(tr("Add to desktop"), this, [=]()
-                       { emit addToDesktop(appId); });
+                       {
+                           emit addToDesktop(appId);
+                       });
 
         emit isInFavorite(appId, isCheckOK);
         if (!isCheckOK)
         {
             menu.addAction(tr("Add to favorite"), this, [=]()
-                           { emit addToFavorite(appId); });
+                           {
+                               emit addToFavorite(appId);
+                           });
         }
         else
         {
             menu.addAction(tr("Remove from favorite"), this, [=]()
-                           { emit removeFromFavorite(appId); });
+                           {
+                               emit removeFromFavorite(appId);
+                           });
         }
 
         isCheckOK = false;
@@ -250,6 +284,34 @@ void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int co
                                QUrl url = QUrl::fromLocalFile(s->entryPath());
                                emit removeFromTasklist(url);
                            });
+        }
+
+        // 自带菜单
+        bool firstAdd = true;
+        for (const KServiceAction &serviceAction : s->actions())
+        {
+            if (serviceAction.noDisplay())
+            {
+                continue;
+            }
+
+            if (firstAdd)
+            {
+                menu.addSeparator();
+                firstAdd = false;
+            }
+            QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
+                                             {
+                                                 auto *job = new KIO::ApplicationLauncherJob(serviceAction);
+                                                 job->start();
+
+                                                 //通知kactivitymanagerd
+                                                 KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
+                                             });
+            if (serviceAction.isSeparator())
+            {
+                action->setSeparator(true);
+            }
         }
 
         menu.exec(QCursor::pos());

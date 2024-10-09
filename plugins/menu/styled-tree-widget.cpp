@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -12,12 +12,13 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-style/style-palette.h>
+#include <kiran-integration/theme/palette.h>
 #include <KService/KService>
 #include <QDrag>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPalette>
 #include <QTreeWidgetItem>
 
 #include "styled-tree-widget.h"
@@ -39,8 +40,10 @@ StyledTreeWidget::StyledTreeWidget(QWidget *parent)
 
     setMouseTracking(true);
 
-    //    setDragEnabled(true);                          // 启用拖拽功能
-    //    setDragDropMode(QAbstractItemView::DragOnly);  // 设置拖拽模式为仅拖拽，不允许放置
+    //    setAttribute(Qt::WA_TranslucentBackground);
+    QPalette p = this->palette();
+    p.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
+    setPalette(p);
 }
 
 void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
@@ -62,10 +65,11 @@ void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
 
 void StyledTreeWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton)
+    if (event->buttons() & Qt::LeftButton)
     {
         m_pressPoint = event->pos();
     }
+
     QTreeWidget::mousePressEvent(event);
 }
 
@@ -89,10 +93,21 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
             mimeData->setData("text/uri-list", data);
             drag->setMimeData(mimeData);
             drag->setPixmap(item->icon(0).pixmap(40, 40));
-            drag->exec(Qt::MoveAction);
+            drag->exec(Qt::CopyAction);
         }
     }
+
+    QTreeWidget::mouseMoveEvent(event);
 }
+
+//void StyledTreeWidget::paintEvent(QPaintEvent *event)
+//{
+//    //    QPainter painter(this);
+//    //    QColor bgColor = Qt::transparent;
+//    //    painter.fillRect(rect(), Qt::red);
+
+//    QTreeWidget::paintEvent(event);
+//}
 
 QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
@@ -103,22 +118,19 @@ QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelInd
 
 void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    auto stylePalette = Kiran::StylePalette::instance();
+    auto palette = Kiran::Theme::Palette::getDefault();
 
     // 选中底色
     if (option.state & QStyle::State_Selected)
     {
-        QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Checked,
-                                             Kiran::StylePalette::WidgetType::Widget,
-                                             Kiran::StylePalette::WidgetColorRule::Background);
+        QColor bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
+
         painter->fillRect(option.rect, bgColor);
     }
     // 鼠标移入底色
     if (option.state & QStyle::State_MouseOver)
     {
-        QColor bgColor = stylePalette->color(Kiran::StylePalette::ColorState::Hover,
-                                             Kiran::StylePalette::WidgetType::Widget,
-                                             Kiran::StylePalette::WidgetColorRule::Background);
+        QColor bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
         painter->fillRect(option.rect, bgColor);
     }
 

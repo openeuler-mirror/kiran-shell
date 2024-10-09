@@ -30,7 +30,7 @@
     <number>3</number>
    </property>
    <item>
-    <widget class="QWidget" name="m_widgetNavigations" native="true">
+    <widget class="KiranColorBlock" name="m_widgetNavigations" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -107,8 +107,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-apps-list-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-apps-list-symbolic"/>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -145,8 +144,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-recent-files-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-recent-files-symbolic"/>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -194,8 +192,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-run-command-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-run-command-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -229,8 +226,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-search-files-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-search-files-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -264,8 +260,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-home-dir-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-home-dir-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -299,8 +294,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-settings-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-settings-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -334,8 +328,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-system-monitor-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-system-monitor-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -369,8 +362,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="ks-menu-power-symbolic">
-            <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+           <iconset theme="kcp-ks-menu-power-symbolic"/>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -408,7 +400,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QWidget" name="m_widgetUserInfo" native="true">
+       <widget class="KiranColorBlock" name="m_widgetUserInfo" native="true">
         <layout class="QGridLayout" name="gridLayout_2">
          <property name="leftMargin">
           <number>30</number>
@@ -418,7 +410,7 @@
          </property>
          <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item alignment="Qt::AlignBottom">
+           <item>
             <widget class="QLabel" name="m_labelUserName">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -428,16 +420,6 @@
              </property>
              <property name="text">
               <string>你好，root</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="StyledButton" name="m_btnDate">
-             <property name="text">
-              <string>111</string>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -472,7 +454,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="m_widgetPopularApp" native="true">
+       <widget class="KiranColorBlock" name="m_widgetPopularApp" native="true">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -531,7 +513,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="m_widgetFavoriteApp" native="true">
+       <widget class="KiranColorBlock" name="m_widgetFavoriteApp" native="true">
         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
          <property name="topMargin">
           <number>9</number>
@@ -595,7 +577,7 @@
               <x>0</x>
               <y>0</y>
               <width>321</width>
-              <height>412</height>
+              <height>415</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="m_gridLayoutFavoriteApp"/>
@@ -613,8 +595,14 @@
  <customwidgets>
   <customwidget>
    <class>StyledButton</class>
-   <extends>QPushButton</extends>
+   <extends>QToolButton</extends>
    <header>lib/widgets/styled-button.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KiranColorBlock</class>
+   <extends>QWidget</extends>
+   <header>kiran-color-block.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

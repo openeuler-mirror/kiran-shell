@@ -11,7 +11,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(KS REQUIRED)
 find_package(PkgConfig REQUIRED)
-#find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets DBus LinguistTools)
+# find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets DBus
+# LinguistTools)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets DBus LinguistTools)
 find_package(dbusmenu-qt5 REQUIRED)
 find_package(KF5WindowSystem)
@@ -21,7 +22,7 @@ find_package(KF5Activities)
 find_package(KF5ActivitiesStats)
 
 pkg_search_module(KLOG_QT5 REQUIRED klog-qt5)
-pkg_search_module(KIRAN_STYLE_HELPER REQUIRED kiran-style-helper)
+pkg_search_module(KIRAN_STYLE_HELPER REQUIRED kiran-integration-theme)
 pkg_search_module(KIRAN_WIDGETS_QT5 REQUIRED kiranwidgets-qt5)
 pkg_search_module(GSETTINGS_QT REQUIRED gsettings-qt)
 
@@ -32,3 +33,4 @@ add_subdirectory(resources)
 add_subdirectory(lib)
 add_subdirectory(src)
 add_subdirectory(plugins)
+add_subdirectory(third_party)

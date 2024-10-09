@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -50,7 +50,6 @@ AppGroup::AppGroup(IAppletImport *import, QWidget *parent)
 
     init();
 
-    m_buttonFixed->setIcon(QIcon::fromTheme("application-x-executable"));
     m_buttonFixed->show();
 }
 
@@ -71,7 +70,7 @@ void AppGroup::setLocked(bool lockFlag)
 
 void AppGroup::setDragData(const QUrl &url)
 {
-    KLOG_INFO() << "AppGroup::setDragData" << url << m_buttonFixed;
+    //    KLOG_INFO() << "AppGroup::setDragData" << url << m_buttonFixed;
     if (m_buttonFixed)
     {
         m_buttonFixed->setUrl(url);
@@ -91,17 +90,27 @@ void AppGroup::getRelationAppSize(int &size)
     }
 }
 
+void AppGroup::showPreviewer(WId wid)
+{
+    AppButton *button = (AppButton *)sender();
+    QPoint center = mapToGlobal(button->geometry().center());
+    emit previewerShow(wid, center);
+}
+
+void AppGroup::hidePreviewer(WId wid)
+{
+    emit previewerHide(wid);
+}
+
 void AppGroup::changePreviewerShow(WId wid)
 {
     if (m_appPreviewer->isHidden())
     {
-        AppButton *button = (AppButton *)sender();
-        QPoint center = mapToGlobal(button->geometry().center());
-        emit previewerShow(wid, center);
+        showPreviewer(wid);
     }
     else
     {
-        emit previewerHide(wid);
+        hidePreviewer(wid);
     }
 }
 
@@ -115,7 +124,7 @@ void AppGroup::init()
 {
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
-    m_layout->setSpacing(1);
+    m_layout->setSpacing(8);
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
@@ -136,7 +145,9 @@ void AppGroup::init()
     // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
     m_settingFileWatcher.addPath(QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path());
     connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
-            { updateLayout(); });
+            {
+                updateLayout();
+            });
 
     m_buttonFixed->setAppInfo(m_appBaseInfo);
 
@@ -147,37 +158,63 @@ void AppGroup::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
-        m_pressPoint = event->pos();
+        dragStartPosition = event->globalPos();
+        buttonStartPosition = geometry().topLeft();
     }
-
-    QWidget::mousePressEvent(event);
 }
 
 void AppGroup::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
-        if (qAbs(event->pos().x() - m_pressPoint.x()) < 10 && qAbs(event->pos().y() - m_pressPoint.y()) < 10)
+        // 防误触
+        if (qAbs(event->globalPos().x() - dragStartPosition.x()) < 10 && qAbs(event->globalPos().y() - dragStartPosition.y()) < 10)
         {
             QWidget::mouseMoveEvent(event);
             return;
         }
 
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData;
-        QByteArray ba;
-        ba.append(m_appBaseInfo.m_url.toString().toLocal8Bit());
-        mimeData->setData("text/uri-list", ba);
-        drag->setMimeData(mimeData);
-        drag->exec(Qt::MoveAction);
-    }
+        // 提升，显示在最前面
+        raise();
+        emit moveGroupStarted(this);
+        m_appPreviewer->hide();
 
-    QWidget::mouseMoveEvent(event);
+        // 鼠标移动偏移量
+        QPoint delta = event->globalPos() - dragStartPosition;
+
+        // 移动到新位置
+        Qt::AlignmentFlag alignment = getLayoutAlignment();
+        if (Qt::AlignLeft == alignment)
+        {
+            move(buttonStartPosition.x() + delta.x(), buttonStartPosition.y());
+        }
+        else
+        {
+            move(buttonStartPosition.x(), buttonStartPosition.y() + delta.y());
+        }
+
+        emit groupMoved(this);
+
+        event->accept();
+    }
+}
+
+void AppGroup::mouseReleaseEvent(QMouseEvent *event)
+{
+    //    KLOG_INFO() << "AppGroup::mouseReleaseEvent";
+    event->accept();
+
+    emit moveGroupEnded(this);
 }
 
 void AppGroup::addWindow(QByteArray wmClass, WId wid)
 {
     if (m_mapWidButton.contains(wid))
+    {
+        return;
+    }
+
+    if (wmClass != m_appBaseInfo.m_wmClass)
     {
         return;
     }
@@ -333,6 +370,8 @@ AppButton *AppGroup::newAppBtn()
 {
     AppButtonContainer *appButtonContainer = (AppButtonContainer *)parent();
     AppButton *appButton = new AppButton(m_import, this);
+    connect(appButton, &AppButton::previewerShow, this, &AppGroup::showPreviewer);
+    connect(appButton, &AppButton::previewerHide, this, &AppGroup::hidePreviewer);
     connect(appButton, &AppButton::previewerShowChange, this, &AppGroup::changePreviewerShow);
     connect(appButton, &AppButton::windowClose, this, &AppGroup::closeWindow);
     connect(appButton, &AppButton::isInFavorite, this, &AppGroup::isInFavorite, Qt::DirectConnection);
@@ -340,9 +379,17 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
     connect(appButton, &AppButton::addToTasklist, this, [this](const QUrl url)
-            { emit addToTasklist(url, this); });
+            {
+                emit addToTasklist(url, this);
+            });
     connect(appButton, &AppButton::removeFromTasklist, this, &AppGroup::removeFromTasklist);
     connect(appButton, &AppButton::getRelationAppSize, this, &AppGroup::getRelationAppSize, Qt::DirectConnection);
+
+    // 点击反向穿透，用于支持拖拽
+    // 当子控件能点击时，父控件无法收到点击事件
+    connect(appButton, &AppButton::mousePressed, this, &AppGroup::mousePressEvent);
+    connect(appButton, &AppButton::mouseMoved, this, &AppGroup::mouseMoveEvent);
+    connect(appButton, &AppButton::mouseReleased, this, &AppGroup::mouseReleaseEvent);
 
     // 需要显示时才显示
     appButton->hide();

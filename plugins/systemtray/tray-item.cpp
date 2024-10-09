@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -131,6 +131,10 @@ void TrayItem::contextMenuEvent(QContextMenuEvent *event)
     {
         m_trayItemProxy->contextMenu(QCursor::pos().x(), QCursor::pos().y());
     }
+
+    m_hovered = false;
+    m_pressed = false;
+    update();
 }
 
 void TrayItem::mousePressEvent(QMouseEvent *event)
@@ -166,7 +170,7 @@ void TrayItem::mouseMoveEvent(QMouseEvent *event)
             return;
         }
 
-        emit startDrag();
+        emit startDrag(this);
 
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
@@ -176,7 +180,7 @@ void TrayItem::mouseMoveEvent(QMouseEvent *event)
         mimeData->setData("serviceAndPath", ba);
         drag->setMimeData(mimeData);
         drag->setPixmap(icon().pixmap(40, 40));
-        drag->exec(Qt::MoveAction);
+        drag->exec(Qt::CopyAction);
     }
 }
 
@@ -197,16 +201,15 @@ void TrayItem::init()
     }
 
     // 图标
-    busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
     // 标准中不存在，但Qt和KDE实现中有
     busdata = m_trayItemProxy->getProperty(QLatin1String("IconThemePath"));
     m_iconThemePath = busdata.variant().toString();
-
     getIcon(BASE_ICON);
     getIcon(ATTENTION_ICON);
     getIcon(OVERLAY_ICON);
 
     // 状态
+    busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
     QString status = busdata.variant().toString();
     if (!status.isEmpty())
     {

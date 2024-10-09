@@ -1,28 +1,34 @@
-
+/**
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
+ * kiran-shell is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     yangfeng <yangfeng@kylinsec.com.cn>
+ */
 #pragma once
 
-#include <QCalendarWidget>
+#include <QDialog>
 
-#include "lunar.h"
-
-class QPushButton;
-class QLineEdit;
-class QLabel;
-
-namespace Kiran
+namespace Ui
 {
-namespace Calendar
-{
-class Window : public QCalendarWidget
+class Window;
+}
+
+class Window : public QDialog
 {
     Q_OBJECT
 
 public:
-    Window();
+    explicit Window(QWidget *parent = nullptr);
     ~Window();
 
 protected:
-    void paintCell(QPainter *painter, const QRect &rect, const QDate &date) const override;
     void wheelEvent(QWheelEvent *event) override;
     void showEvent(QShowEvent *event) override;
     bool eventFilter(QObject *object, QEvent *event) override;
@@ -33,11 +39,11 @@ private:
     //日期修改导航栏加载
     void initDateChangeWidget();
 
-private slots:
-    //今天按钮操作
-    void gotoToday();
     //设置按钮操作
     void settingBtnClicked();
+    //今天按钮操作
+    void gotoToday();
+
     //输入年份操作
     void enterYear();
     //输入月份操作
@@ -49,23 +55,9 @@ signals:
     void windowDeactivated();
 
 private:
+    Ui::Window *m_ui;
+
     //当前页面年月
     int m_currentYear;
     int m_currentMonth;
-
-    //插件
-    QPushButton *m_subMonthBtn;
-    QPushButton *m_addMonthBtn;
-    QPushButton *m_subYearBtn;
-    QPushButton *m_addYearBtn;
-
-    QPushButton *m_todayBtn;
-    QLabel *m_lunarYear;
-    QLabel *m_lunarDay;
-    QPushButton *m_settingBtn;
-
-    QLineEdit *m_yearEdit;
-    QLineEdit *m_monthEdit;
 };
-}  // namespace Calendar
-}  // namespace Kiran

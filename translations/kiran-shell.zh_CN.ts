@@ -4,42 +4,40 @@
 <context>
     <name>Kiran::Panel</name>
     <message>
-        <location filename="../src/shell/panel.cpp" line="95"/>
         <source>Tasklist</source>
-        <translation>任务栏</translation>
+        <translation type="vanished">任务栏</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="96"/>
+        <location filename="../src/shell/panel.cpp" line="99"/>
         <source>Show application name</source>
         <translation>显示应用名称</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="105"/>
         <source>Panel</source>
-        <translation>面板</translation>
+        <translation type="vanished">面板</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="106"/>
+        <location filename="../src/shell/panel.cpp" line="65"/>
         <source>Position</source>
         <translation>调整位置</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="107"/>
+        <location filename="../src/shell/panel.cpp" line="66"/>
         <source>Top</source>
         <translation>上</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="108"/>
+        <location filename="../src/shell/panel.cpp" line="67"/>
         <source>Bottom</source>
         <translation>下</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="109"/>
+        <location filename="../src/shell/panel.cpp" line="68"/>
         <source>Left</source>
         <translation>左</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="110"/>
+        <location filename="../src/shell/panel.cpp" line="69"/>
         <source>Right</source>
         <translation>右</translation>
     </message>

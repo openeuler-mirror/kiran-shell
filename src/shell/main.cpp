@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-shell is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -25,13 +25,15 @@
 
 int main(int argc, char *argv[])
 {
+    //    qputenv("QT_QPA_PLATFORMTHEME", "kiran-next");
+
     auto argv0 = QFileInfo(argv[0]);
     auto programName = argv0.baseName();
 
-    //    if (klog_qt5_init(QString(), "kylinsec-session", PROJECT_NAME, programName) < 0)
-    //    {
-    //        fprintf(stderr, "Failed to init kiran-log.");
-    //    }
+    // if (klog_qt5_init(QString(), "", PROJECT_NAME, programName) < 0)
+    // {
+    //     fprintf(stderr, "Failed to init kiran-log.");
+    // }
 
     qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
 

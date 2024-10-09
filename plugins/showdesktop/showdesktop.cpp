@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2 
@@ -37,7 +37,9 @@ Showdesktop::Showdesktop(IAppletImport *import)
     }
 
     connect(this, &QPushButton::clicked, this, [=]()
-            { KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop()); });
+            {
+                KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
+            });
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
@@ -45,21 +47,21 @@ Showdesktop::Showdesktop(IAppletImport *import)
     updateLayout();
 
     setToolTip(tr("Show desktop"));
+    setCheckable(false);
 }
 
 void Showdesktop::updateLayout()
 {
     int orientation = m_import->getPanel()->getOrientation();
+    auto size = m_import->getPanel()->getSize();
 
     if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
     {
-        auto size = m_import->getPanel()->getSize();
         setFixedSize(size / 4, size);
     }
     else
     {
-        auto size = m_import->getPanel()->getSize();
         setFixedSize(size, size / 4);
     }
 }

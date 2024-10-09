@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -14,21 +14,23 @@
 
 #pragma once
 
+#include <kiran-color-block.h>
 #include <ks-i.h>
 #include <plugin-i.h>
 #include <QPushButton>
 
-#include "ks-config.h"
-#include "window.h"
-
+class Window;
 class QDBusInterface;
 class QTimer;
+class StyledButton;
 
 namespace Kiran
 {
 namespace Calendar
 {
-class Applet : public QPushButton
+class CalendarButton;
+
+class Applet : public KiranColorBlock
 {
     Q_OBJECT
 
@@ -36,13 +38,8 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void enterEvent(QEvent *event) override;
-
 private slots:
     void timeInfoChanged();
-    void hideWindow();
     // panel布局信息发生变化
     void updateLayout();
 
@@ -51,9 +48,14 @@ private:
     void timeUpdate();
     void updateWindowPosition();
 
+    void clickButton();
+    void hideWindow();
+
 private:
     IAppletImport *m_import;
-    Window *m_calendar;
+
+    CalendarButton *m_calendarButton;
+    Window *m_window;
 
     QTimer *m_timeUpdateTimer;
     //DBus 监控时间设置

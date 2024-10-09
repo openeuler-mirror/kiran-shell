@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2 
@@ -25,7 +25,7 @@
 #include "lib/common/define.h"
 #include "window.h"
 
-#define LAYOUT_MARGIN 10
+#define LAYOUT_MARGIN 4
 
 namespace Kiran
 {
@@ -44,14 +44,18 @@ Applet::Applet(IAppletImport *import)
         QCoreApplication::installTranslator(&translator);
     }
 
+    //    setRadius(0);
+
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
-    //    m_appletButton = new AppletButton(import);
-    m_appletButton = new StyledButton(this);
     auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
+
+    m_appletButton = new StyledButton(this);
     int iconSize = size - BUTTON_BLANK_SPACE * 2;
-    m_appletButton->setIconSize(QSize(iconSize, iconSize));
+    //    m_appletButton->setIconSize(QSize(iconSize, iconSize));
+    m_appletButton->setIconSize(QSize(24, 24));
 
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
     //    m_appletButton->setIconFromTheme(KS_ICON_MENU);
@@ -59,12 +63,13 @@ Applet::Applet(IAppletImport *import)
     m_appletButton->setToolTip(tr("Start Menu"));
 
     QGridLayout *layout = new QGridLayout(this);
+    layout->setMargin(4);
     layout->setSpacing(0);
-    layout->setContentsMargins(10, 0, 10, 0);
     layout->addWidget(m_appletButton);
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    updateLayout();
 }
 
 Applet::~Applet()
@@ -125,17 +130,25 @@ void Applet::updateWindowPosition()
 
 void Applet::updateLayout()
 {
-    QLayout *lay = layout();
-    int orientation = m_import->getPanel()->getOrientation();
-    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-    {
-        lay->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
-    }
-    else
-    {
-        lay->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
-    }
+    // 清理之前设置的fixed大小
+    //    setMaximumWidth(QWIDGETSIZE_MAX);
+
+    //    auto size = m_import->getPanel()->getSize();
+    //    auto *lay = layout();
+    //    int orientation = m_import->getPanel()->getOrientation();
+    //    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+    //        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    //    {
+    //        lay->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
+
+    //        setFixedSize(size + LAYOUT_MARGIN * 2, size);
+    //    }
+    //    else
+    //    {
+    //        lay->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
+
+    //        setFixedSize(size, size + LAYOUT_MARGIN * 2);
+    //    }
 }
 
 }  // namespace Menu

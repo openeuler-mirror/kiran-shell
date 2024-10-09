@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2.
- * You may obtain a copy of Mulan PSL v2 at:
+ * kiran-shell is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan
+ * PSL v2. You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- * See the Mulan PSL v2 for more details.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY
+ * KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE. See the
+ * Mulan PSL v2 for more details.
  *
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
@@ -35,13 +35,12 @@ namespace Kiran
 namespace Systemtray
 {
 Window::Window(IAppletImport *import, QWidget *parent)
-    : KiranColorBlock(parent),
-      m_import(import),
-      m_windowPopup(nullptr)
+    : KiranColorBlock(parent), m_import(import), m_windowPopup(nullptr), m_updateWindowPopupPosInProgress(false)
 {
     setAcceptDrops(true);
+    setRadius(0);
 
-    auto panelSize = m_import->getPanel()->getSize();
+    auto size = m_import->getPanel()->getSize() / 40 * 32;
 
     auto direction = getLayoutDirection();
     m_layoutBase = new QBoxLayout(direction, this);
@@ -49,14 +48,14 @@ Window::Window(IAppletImport *import, QWidget *parent)
 
     m_indicatorWidget = new StyledButton(this);
     m_indicatorWidget->setChecked(true);  // 显示不一样的样式
-    m_indicatorWidget->setFixedSize(panelSize, panelSize);
+    m_indicatorWidget->setFixedSize(size, size);
     m_indicatorWidget->hide();
 
     // 托盘弹出窗口按钮
     m_windowPopupButton = new StyledButton(this);
-    m_windowPopupButton->setIcon(QIcon::fromTheme("ks-tray-box"));
+    m_windowPopupButton->setIcon(QIcon::fromTheme(KS_ICON_TRAY_BOX));
 
-    m_windowPopupButton->setFixedSize(panelSize, panelSize);
+    m_windowPopupButton->setFixedSize(size, size);
     m_layoutBase->addWidget(m_windowPopupButton);
 
     m_layout = new QBoxLayout(direction);
@@ -68,12 +67,15 @@ Window::Window(IAppletImport *import, QWidget *parent)
     m_windowPopup = new WindowPopup(import, this);
     connect(m_windowPopup, &WindowPopup::hideTrayBox, this, &Window::hideTrayBox);
     connect(m_windowPopup, &WindowPopup::dropEnded, this, &Window::dropEnd);
+    connect(m_windowPopup, &WindowPopup::updatePosition, this,
+            &Window::startUpdateTrayBoxPos);
     connect(this, &Window::dropEnded, m_windowPopup, &WindowPopup::dropEnd);
-    connect(m_windowPopupButton, &QPushButton::clicked, this, [this](bool checked)
+    connect(m_windowPopupButton, &QPushButton::clicked, this,
+            [this](bool checked)
             {
                 if (m_windowPopup->isHidden())
                 {
-                    updateTrayBoxPosition();
+                    startUpdateTrayBoxPos();
                     m_windowPopup->show();
                     m_windowPopupButton->setEnabled(false);
                 }
@@ -90,23 +92,32 @@ Window::Window(IAppletImport *import, QWidget *parent)
 
     // 托盘显示服务注册
     static int statusNotifierHostIndex = 1;
-    m_statusNotifierHostName = QString("org.kde.StatusNotifierHost-%1-%2").arg(QCoreApplication::applicationPid()).arg(statusNotifierHostIndex++);
+    m_statusNotifierHostName = QString("org.kde.StatusNotifierHost-%1-%2")
+                                   .arg(QCoreApplication::applicationPid())
+                                   .arg(statusNotifierHostIndex++);
     QDBusConnection::sessionBus().registerService(m_statusNotifierHostName);
 
     // 托盘服务监控
-    m_statusNotifierWatcherInterface = new org::kde::StatusNotifierWatcher(SERVICE_NAME, WATCHER_PATH, QDBusConnection::sessionBus(), this);
-    connect(m_statusNotifierWatcherInterface, &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemRegistered, this, &Window::statusNotifierItemRegister);
-    connect(m_statusNotifierWatcherInterface, &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemUnregistered, this, &Window::statusNotifierItemUnregister);
+    m_statusNotifierWatcherInterface = new org::kde::StatusNotifierWatcher(
+        SERVICE_NAME, WATCHER_PATH, QDBusConnection::sessionBus(), this);
+    connect(m_statusNotifierWatcherInterface,
+            &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemRegistered,
+            this, &Window::statusNotifierItemRegister);
+    connect(m_statusNotifierWatcherInterface,
+            &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemUnregistered,
+            this, &Window::statusNotifierItemUnregister);
 
     // 此步骤需要，虽然本程序不管理host，但为了确保当StatusNotifierWatcher服务由其他进程控制时，若需要管理host能识别到本程序
-    m_statusNotifierWatcherInterface->RegisterStatusNotifierHost(m_statusNotifierHostName);
+    m_statusNotifierWatcherInterface->RegisterStatusNotifierHost(
+        m_statusNotifierHostName);
 
     getRegisteredItems();
 
     // 用于支持自研托盘应用左键
     // FIXME:后续删除
     // NOTE:只有第一个托盘会注册成功，用于获取托盘项坐标
-    // 放在这里才能访问到界面，不适合放在TrayServerInstance里，TrayServerInstance 是对应整个程序的
+    // 放在这里才能访问到界面，不适合放在TrayServerInstance里，TrayServerInstance
+    // 是对应整个程序的
     m_statusNotifierManager = new StatusNotifierManager(this);
 }
 
@@ -134,22 +145,24 @@ QBoxLayout::Direction Window::getLayoutDirection()
 Qt::AlignmentFlag Window::getLayoutAlignment()
 {
     int orientation = m_import->getPanel()->getOrientation();
-    Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                                   orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                                      ? Qt::AlignLeft
-                                      : Qt::AlignTop;
+    Qt::AlignmentFlag alignment =
+        (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+            ? Qt::AlignLeft
+            : Qt::AlignTop;
 
     return alignment;
 }
 
 void Window::getRegisteredItems()
 {
-    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierWatcherInterface->service(),
-                                                      m_statusNotifierWatcherInterface->path(),
-                                                      FREEDESKTOP_PROPERTIES,
-                                                      QLatin1String("Get"));
+    QDBusMessage msg = QDBusMessage::createMethodCall(
+        m_statusNotifierWatcherInterface->service(),
+        m_statusNotifierWatcherInterface->path(), FREEDESKTOP_PROPERTIES,
+        QLatin1String("Get"));
     msg << m_statusNotifierWatcherInterface->interface() << REGISTERED_ITEMS;
-    QDBusPendingCall call = m_statusNotifierWatcherInterface->connection().asyncCall(msg);
+    QDBusPendingCall call =
+        m_statusNotifierWatcherInterface->connection().asyncCall(msg);
     call.waitForFinished();
     if (call.isValid())
     {
@@ -172,6 +185,10 @@ void Window::statusNotifierItemRegister(const QString &serviceAndPath)
         m_windowPopup->AddItem(serviceAndPath);
         return;
     }
+    if (m_services.contains(serviceAndPath))
+    {
+        return;
+    }
 
     auto item = itemAdd(serviceAndPath);
     if (item)
@@ -188,22 +205,26 @@ void Window::statusNotifierItemUnregister(const QString &serviceAndPath)
 
 TrayItem *Window::itemAdd(QString serviceAndPath)
 {
-    if (m_services.contains(serviceAndPath))
-    {
-        return nullptr;
-    }
-
     int index = serviceAndPath.indexOf('/');
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
     auto item = new TrayItem(service, path, this);
-    auto size = m_import->getPanel()->getSize();
+    auto size = m_import->getPanel()->getSize() / 40 * 32;
     item->setFixedSize(size, size);
-    connect(item, &TrayItem::startDrag, this, [this]()
+    connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {
-                updateTrayBoxPosition();
                 m_windowPopup->show();
                 m_windowPopupButton->setEnabled(false);
+                // 为什么不隐藏拖拽的item ？
+                // 存在一种情况，当图标被拖出去，没有放到正确的位置去
+                // 这种情况下，无法检测发生了什么
+                // 只能保持显示，等拖拽成功了之后，再隐藏删除
+                // 另：直接将图标拖到显示区域外，不会经过 dragLeaveEvent
+
+                // m_items.removeAll(dragItem);
+                // dragItem->hide();
+
+                updateItemLayout();
             });
     m_services.insert(serviceAndPath, item);
 
@@ -222,17 +243,36 @@ void Window::itemRemove(const QString &serviceAndPath)
     updateItemLayout();
 }
 
-void Window::updateTrayBoxPosition()
+void Window::startUpdateTrayBoxPos()
+{
+    if (!m_updateWindowPopupPosInProgress)
+    {
+        // 需要延迟处理，window大小变化后，只能获得之前的位置坐标
+        // 避免短时间内多次调用
+        m_updateWindowPopupPosInProgress = true;
+        QTimer::singleShot(100, this, [this]()
+                           {
+                               updateTrayBoxPos();
+                           });
+    }
+}
+
+void Window::updateTrayBoxPos()
 {
     QPoint pos = mapToGlobal(m_windowPopupButton->pos());
     if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
     {
-        m_windowPopup->move(pos.x() - m_windowPopup->width() / 2 + m_windowPopupButton->width() / 2, pos.y());
+        m_windowPopup->move(pos.x() - m_windowPopup->width() / 2 +
+                                m_windowPopupButton->width() / 2,
+                            pos.y());
     }
     else
     {
-        m_windowPopup->move(pos.x(), pos.y() - m_windowPopup->height() / 2 + m_windowPopupButton->height() / 2);
+        m_windowPopup->move(pos.x(), pos.y() - m_windowPopup->height() / 2 +
+                                         m_windowPopupButton->height() / 2);
     }
+
+    m_updateWindowPopupPosInProgress = false;
 }
 
 void Window::hideTrayBox()
@@ -269,21 +309,24 @@ void Window::updateItemLayout()
     Utility::clearLayout(m_layout);
 
     // 大小增加一个size，用于托盘弹出窗口按钮
-    auto size = m_import->getPanel()->getSize();
+    auto itemWidth = m_import->getPanel()->getSize() / 40 * 32;
+    auto height = m_import->getPanel()->getSize();
     if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
     {
-        setFixedSize(m_items.size() * size + size + LAYOUT_MARGIN * 2, size);
+        setFixedSize(m_items.size() * itemWidth + itemWidth + LAYOUT_MARGIN * 2,
+                     height);
     }
     else
     {
-        setFixedSize(size, m_items.size() * size + size + LAYOUT_MARGIN * 2);
+        setFixedSize(height,
+                     m_items.size() * itemWidth + itemWidth + LAYOUT_MARGIN * 2);
     }
     for (auto item : m_items)
     {
         m_layout->addWidget(item);
     }
 
-    updateTrayBoxPosition();
+    startUpdateTrayBoxPos();
 }
 
 QList<TrayItem *> Window::getTrayItems()
@@ -298,6 +341,8 @@ WindowPopup *Window::getTrayBox()
 
 void Window::dragEnterEvent(QDragEnterEvent *event)
 {
+    KLOG_INFO() << "Window::dragEnterEvent";
+
     m_currentDropIndex = 0;
     if (!event->mimeData()->data("serviceAndPath").isEmpty())
     {
@@ -355,40 +400,23 @@ void Window::dropEvent(QDropEvent *event)
         return;
     }
 
-    m_items.removeAll(m_indicatorWidget);
-    m_indicatorWidget->hide();
-
     // 不存在，则是其他区域拖过来的
     if (!m_services.contains(serviceAndPath))
     {
         TrayItem *item = itemAdd(serviceAndPath);
-        if (item)
-        {
-            if (m_currentDropIndex >= m_items.size())
-            {
-                m_items.append(item);
-            }
-            else
-            {
-                m_items.insert(m_currentDropIndex, item);
-            }
-            emit dropEnded(serviceAndPath);
-        }
+        m_items.insert(m_currentDropIndex, item);
+        emit dropEnded(serviceAndPath);
     }
     else
     {
         // 存在，调整位置
         TrayItem *item = m_services.value(serviceAndPath);
-        m_items.removeAll(item);
-        if (m_currentDropIndex >= m_items.size())
-        {
-            m_items.append(item);
-        }
-        else
-        {
-            m_items.insert(m_currentDropIndex, item);
-        }
+        int oldIndex = m_items.indexOf(item);
+        m_items.move(oldIndex, m_currentDropIndex);
     }
+
+    m_items.removeAll(m_indicatorWidget);
+    m_indicatorWidget->hide();
 
     updateItemLayout();
 
@@ -410,11 +438,11 @@ void Window::updateLayout()
 
     if (QBoxLayout::Direction::LeftToRight == direction)
     {
-        m_layoutBase->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
+        m_layoutBase->setContentsMargins(LAYOUT_MARGIN, 4, LAYOUT_MARGIN, 4);
     }
     else
     {
-        m_layoutBase->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
+        m_layoutBase->setContentsMargins(4, LAYOUT_MARGIN, 4, LAYOUT_MARGIN);
     }
 }
 

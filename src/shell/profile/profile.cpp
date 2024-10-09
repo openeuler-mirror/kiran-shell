@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2 
@@ -183,10 +183,14 @@ QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
 
     // 各插件按gsettings中的顺序排列
     std::sort(applets.begin(), applets.end(), [](ProfileApplet* a, ProfileApplet* b)
-              { return a->getPosition() < b->getPosition(); });
+              {
+                  return a->getPosition() < b->getPosition();
+              });
 
     std::sort(applets_right.begin(), applets_right.end(), [](ProfileApplet* a, ProfileApplet* b)
-              { return a->getPosition() > b->getPosition(); });
+              {
+                  return a->getPosition() > b->getPosition();
+              });
     applets.append(applets_right);
 
     return applets;

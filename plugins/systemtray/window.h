@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -62,7 +62,8 @@ private:
     void itemRemove(const QString &serviceAndPath);
 
     // 托盘弹出窗口位置更新
-    void updateTrayBoxPosition();
+    void startUpdateTrayBoxPos();
+    void updateTrayBoxPos();
     void hideTrayBox();
 
     // 拖拽到托盘弹出窗口结束
@@ -93,6 +94,7 @@ private:
     // 托盘弹出窗口
     StyledButton *m_windowPopupButton;
     WindowPopup *m_windowPopup;
+    bool m_updateWindowPopupPosInProgress;
 
     // 拖拽相关
     int m_currentDropIndex;

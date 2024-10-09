@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2. 
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2 
@@ -19,8 +19,6 @@
 #include <QDBusReply>
 #include <QPushButton>
 #include <QWidget>
-
-#include <style-palette.h>
 
 #include <KActivities/KActivities/Consumer>
 #include <KActivities/KActivities/ResourceInstance>
@@ -65,7 +63,6 @@ private:
     //快速启动初始化
     void initQuickStart();
 
-    void changeTheme();
     void clear(QStackedWidget* stackedWidget);
 
     //启动应用

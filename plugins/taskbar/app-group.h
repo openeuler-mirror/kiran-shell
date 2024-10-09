@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -85,6 +85,7 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
     void init();
@@ -99,6 +100,8 @@ private:
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &size);
 
+    void showPreviewer(WId wid);
+    void hidePreviewer(WId wid);
     void changePreviewerShow(WId wid);
 
     // 窗口关闭
@@ -138,6 +141,11 @@ signals:
     void addToTasklist(const QUrl &url, AppGroup *appGroup);
     void removeFromTasklist(const QUrl &url);
 
+    // 拖拽移动
+    void moveGroupStarted(AppGroup *);
+    void moveGroupEnded(AppGroup *);
+    void groupMoved(AppGroup *);
+
 private:
     IAppletImport *m_import;
 
@@ -154,7 +162,8 @@ private:
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
-    QPoint m_pressPoint;
+    QPoint dragStartPosition;    // 鼠标按下时的全局坐标
+    QPoint buttonStartPosition;  // 按钮在父窗口中的位置
 };
 }  // namespace Taskbar
 }  // namespace Kiran

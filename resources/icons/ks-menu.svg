@@ -6,27 +6,15 @@
       }
 
       .cls-2 {
-        fill: #8d92f2;
-      }
-
-      .cls-2, .cls-3 {
+        fill: #fff;
         fill-rule: evenodd;
-      }
-
-      .cls-3 {
-        fill: url(#linear-gradient-2);
       }
     </style>
     <linearGradient id="linear-gradient" x1="30" y1="60" x2="30" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#7178ef"/>
       <stop offset="1" stop-color="#6bd6fd"/>
     </linearGradient>
-    <linearGradient id="linear-gradient-2" x1="30" y1="45" x2="30" y2="13" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#d7f2ff"/>
-      <stop offset="1" stop-color="#feffff"/>
-    </linearGradient>
   </defs>
-  <rect id="矩形_1074_拷贝" data-name="矩形 1074 拷贝" class="cls-1" width="60" height="60" rx="20" ry="20"/>
-  <path id="矩形_1074_拷贝_3" data-name="矩形 1074 拷贝 3" class="cls-2" d="M40,60H20A20,20,0,0,1,0,40V38A20,20,0,0,0,20,58H40A20,20,0,0,0,60,38v2A20,20,0,0,1,40,60Z"/>
-  <path id="形状_1" data-name="形状 1" class="cls-3" d="M24.339,23.917c5.077-1.392,23.3-8.84,22.67,7.448,0,0-1.669-8.979-11.822-5.429s-15.647,5.916-16.9,1.392c0,0-4.1.209-4.729-3.341s7.163-5.012,7.163-5.012,0.481-5.569,7.264-5.986,12.277,6.752,12.277,6.752a14.048,14.048,0,0,0-13-2.158C19.889,20.158,19.263,25.309,24.339,23.917Zm0.473,8.148c10.153-3.55,15.647-5.916,16.9-1.392,0,0,4.1-.209,4.729,3.341s-7.163,5.012-7.163,5.012-0.48,5.569-7.264,5.986S19.736,38.26,19.736,38.26a14.048,14.048,0,0,0,13,2.158c7.371-2.575,8-7.726,2.921-6.334s-23.3,8.84-22.67-7.448C12.99,26.636,14.659,35.615,24.812,32.065Z"/>
+  <rect id="矩形_1074_拷贝" data-name="矩形 1074 拷贝" class="cls-1" width="60" height="60" rx="12" ry="12"/>
+  <path id="形状_2_拷贝_8" data-name="形状 2 拷贝 8" class="cls-2" d="M35.021,26.6L43.09,46,27.414,32.243,9,45.905l7.167-26.113A4.5,4.5,0,0,0,13.455,14H28.563l-8.135,6.932h5.908L11.518,36.884l24.6-18.232H31.372L37.86,14H52Z"/>
 </svg>
