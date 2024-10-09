@@ -2,7 +2,7 @@
     <schema id="com.kylinsec.kiran.shell" path="/com/kylinsec/kiran/shell/general/">
         <key name="default-layout" type="s">
             <default>'default'</default>
-            <description>The default shell layout to use when panels are created or resetted.</description>
+            <description>The default shell layout to use when panels are created or reset.</description>
         </key>
 
         <key name="panel-uids" type="as">
