@@ -128,9 +128,6 @@ void AppGroup::init()
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
-
     AppButtonContainer *appButtonContainer = (AppButtonContainer *)parent();
     connect(appButtonContainer, &AppButtonContainer::windowAdded, this, &AppGroup::addWindow);
     connect(appButtonContainer, &AppButtonContainer::windowRemoved, this, &AppGroup::removeWindow);
@@ -141,13 +138,6 @@ void AppGroup::init()
 
     m_appPreviewer = new AppPreviewer(m_import, this);
     connect(m_appPreviewer, &AppPreviewer::windowClose, this, &AppGroup::closeWindow);
-
-    // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
-    m_settingFileWatcher.addPath(QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path());
-    connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
-            {
-                updateLayout();
-            });
 
     m_buttonFixed->setAppInfo(m_appBaseInfo);
 

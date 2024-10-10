@@ -82,6 +82,9 @@ public:
 
     void setDragData(const QUrl &url);
 
+    // 由父控件统一调用
+    void updateLayout();
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -106,9 +109,6 @@ private:
 
     // 窗口关闭
     void closeWindow(WId wid);
-
-private slots:
-    void updateLayout();
 
 private:
     // 新建app按钮
@@ -158,8 +158,6 @@ private:
     AppButton *m_buttonFixed;  // 固定按钮，用于锁定显示、拖拽显示
 
     AppPreviewer *m_appPreviewer;  // 应用预览窗口
-
-    QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint dragStartPosition;    // 鼠标按下时的全局坐标

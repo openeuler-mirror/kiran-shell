@@ -42,6 +42,9 @@ namespace KAStats = KActivities::Stats;
 using namespace KAStats;
 using namespace KAStats::Terms;
 
+static const int appMargin = 4;
+static const int appSpacing = 8;
+
 namespace Kiran
 {
 namespace Taskbar
@@ -49,18 +52,40 @@ namespace Taskbar
 AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
       m_import(import),
-      m_indicatorWidget(nullptr)
+      m_indicatorWidget(nullptr),
+      m_curPageIndex(-1)
 {
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
-    m_layout->setContentsMargins(4, 4, 4, 4);
-    m_layout->setSpacing(8);
+    m_layout->setMargin(appMargin);
+    m_layout->setSpacing(appSpacing);
     setLayout(m_layout);
 
     setRadius(0);
 
+    // 翻页按钮
+    m_upPageBtn = new StyledButton(this);
+    m_upPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC));
+    m_upPageBtn->hide();
+    m_downPageBtn = new StyledButton(this);
+    m_downPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_DOWN_PAGE_SYMBOLIC));
+    m_downPageBtn->hide();
+    connect(m_upPageBtn, &QAbstractButton::clicked, [this]()
+            {
+                int showPageIndex = m_curPageIndex - 1;
+                if (showPageIndex < 0)
+                {
+                    showPageIndex = 0;
+                }
+                updateLayout(showPageIndex);
+            });
+    connect(m_downPageBtn, &QAbstractButton::clicked, [this]()
+            {
+                updateLayout(m_curPageIndex + 1);
+            });
+
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
 
     updateLockApp();
 
@@ -73,7 +98,12 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
     m_settingFileWatcher.addPath(settingDir);
     connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
             {
+                for (auto appGroup : m_listAppGroupShow)
+                {
+                    appGroup->updateLayout();
+                }
                 updateLockApp();
+                updateLayout();
             });
 
     m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
@@ -83,7 +113,11 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
 
     connect(parent, &Applet::windowAdded, this, &AppButtonContainer::addWindow);
     connect(parent, &Applet::windowRemoved, this, &AppButtonContainer::windowRemoved);
-    connect(parent, &Applet::activeWindowChanged, this, &AppButtonContainer::activeWindowChanged);
+    connect(parent, &Applet::activeWindowChanged, [this](WId wid)
+            {
+                updateLayout();
+                emit activeWindowChanged(wid);
+            });
 
     // 等待应用加载
     QTimer::singleShot(1000, this, [this]()
@@ -256,6 +290,25 @@ void AppButtonContainer::dropEvent(QDropEvent *event)
     event->accept();
 }
 
+void AppButtonContainer::showEvent(QShowEvent *event)
+{
+    updateLayout();
+}
+
+void AppButtonContainer::resizeEvent(QResizeEvent *event)
+{
+    updateLayout();
+}
+
+void AppButtonContainer::updateLayoutByProfile()
+{
+    for (auto appGroup : m_listAppGroupShow)
+    {
+        appGroup->updateLayout();
+    }
+    updateLayout();
+}
+
 AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
 {
     AppGroup *appGroup = nullptr;
@@ -358,7 +411,7 @@ void AppButtonContainer::addWindow(WId wid)
     updateLayout();
 }
 
-void AppButtonContainer::updateLayout()
+void AppButtonContainer::updateLayout(int showPageIndex)
 {
     Utility::clearLayout(m_layout, false, false);
 
@@ -383,11 +436,146 @@ void AppButtonContainer::updateLayout()
         setMaximumHeight(QWIDGETSIZE_MAX);
         setFixedWidth(size);
     }
-    //    KLOG_INFO() << "m_listAppGroupShow" << m_listAppGroupShow << m_indicatorWidget;
+
+    int appSizeCount = appMargin * 2;  //　累计app宽或高
+
+    m_appPage.clear();
+    m_appPage.push_back(QList<AppGroup *>());  //　新建空页
+
+    int totalSize = width();
+    if (QBoxLayout::Direction::LeftToRight != direction)
+    {
+        totalSize = height();
+    }
+
+    int pageBtnSize = m_upPageBtn->width() * 2;
     for (auto appGroup : m_listAppGroupShow)
     {
+        // 为什么先调整大小?
+        // 1.AppButton大小变化 2.当前窗口缩放时,引起AppGroup缩放
+        // 以上缩放不会马上应用到实际大小,导致获取大小有偏差
+        appGroup->adjustSize();
+        //        KLOG_INFO() <<"appGroup show size:" appGroup->size();
+
+        int addSize = 0;
+        if (QBoxLayout::Direction::LeftToRight == direction)
+        {
+            addSize += appGroup->width();
+        }
+        else
+        {
+            addSize += appGroup->height();
+        }
+        addSize += appSpacing;
+
+        // 如果是第一页最后一个app,不需要提前将翻页按钮大小计算进去,可能不需要显示翻页按钮
+        if (1 == m_appPage.size() && appGroup == m_listAppGroupShow.last())
+        {
+            if (appSizeCount + addSize > totalSize)
+            {
+                m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
+                appSizeCount = appMargin * 2;
+            }
+        }
+        else
+        {
+            if (appSizeCount + addSize + m_upPageBtn->width() * 2 > totalSize)
+            {
+                m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
+                appSizeCount = appMargin * 2;
+            }
+        }
+
+        appSizeCount += addSize;
+        m_appPage.last().push_back(appGroup);
+    }
+
+    // 计算当前页面序号
+    // 获取当前激活窗口信息
+    // 判断位于哪页，就是当前页面序号
+    if (-1 == showPageIndex)
+    {
+        // 未指定显示哪页,按照窗口激活情况进行显示
+        if (1 == m_appPage.size())
+        {
+            m_curPageIndex = 0;
+        }
+        else
+        {
+            QByteArray wmClass;
+            auto wid = WindowInfoHelper::activeWindow();
+            if (0 != wid)
+            {
+                wmClass = WindowInfoHelper::getWmClassByWId(wid);
+            }
+            if (wmClass.isEmpty() || !m_mapAppGroupOpened.contains(wmClass))
+            {
+                m_curPageIndex = 0;
+            }
+            else
+            {
+                auto appGroup = m_mapAppGroupOpened[wmClass];
+                for (m_curPageIndex = 0; m_curPageIndex < m_appPage.size(); m_curPageIndex++)
+                {
+                    if (m_appPage[m_curPageIndex].contains(appGroup))
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        // 指定了显示哪页
+        if (showPageIndex >= m_appPage.size())
+        {
+            m_curPageIndex = m_appPage.size() - 1;
+        }
+        else
+        {
+            m_curPageIndex = showPageIndex;
+        }
+    }
+
+    // 显示对应页
+    for (auto appGroup : m_appPage[m_curPageIndex])
+    {
+        appGroup->show();
         m_layout->addWidget(appGroup);
     }
+
+    // 其他应用隐藏
+    for (auto appGroup : m_listAppGroupShow)
+    {
+        if (!m_appPage[m_curPageIndex].contains(appGroup))
+        {
+            appGroup->hide();
+        }
+    }
+
+    // 翻页按钮
+    if (m_appPage.size() > 1)
+    {
+        QBoxLayout *layoutPage = new QBoxLayout(direction);
+        layoutPage->setMargin(0);
+        layoutPage->setSpacing(0);
+        layoutPage->addWidget(m_upPageBtn);
+        layoutPage->addWidget(m_downPageBtn);
+        layoutPage->setDirection(direction);
+        layoutPage->setAlignment(alignment);
+
+        m_layout->addStretch(1);
+        m_layout->addItem(layoutPage);
+        m_upPageBtn->show();
+        m_downPageBtn->show();
+    }
+    else
+    {
+        m_upPageBtn->hide();
+        m_downPageBtn->hide();
+    }
+
     // 强制重布局
     // 解决鼠标拖动过程中，鼠标偏离控件，会导致布局不能及时更新
     m_layout->activate();
@@ -409,8 +597,6 @@ void AppButtonContainer::updateLockApp()
             removeLockApp(appGroup->getUrl());
         }
     }
-
-    updateLayout();
 }
 
 void AppButtonContainer::addLockApp(const QUrl &url)
@@ -741,20 +927,23 @@ int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
     // a到达b一半位置时，调整移动项序号
     // 调整后，b刚好调整一个a的距离，保证a始终位于b的一侧
 
+    // 还需要考虑分页情况
+
     QRect moveRect = appGroup->geometry();
 
     // 在按钮区域
     Qt::AlignmentFlag alignment = getLayoutAlignment();
 
-    for (int i = 0; i < m_listAppGroupShow.size(); i++)
+    for (int i = 0; i < m_appPage[m_curPageIndex].size(); i++)
     {
+        auto appGroup = m_appPage[m_curPageIndex].at(i);
         // 先计算其他的，如果找不到，再在循环外计算空白占位项
-        if (m_listAppGroupShow.at(i) == m_indicatorWidget)
+        if (appGroup == m_indicatorWidget)
         {
             continue;
         }
 
-        QRect rect = m_listAppGroupShow.at(i)->geometry();
+        QRect rect = appGroup->geometry();
         if (moveRect.intersected(rect).isNull())
         {
             // 不存在交值
@@ -796,7 +985,7 @@ int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
         {
             // KLOG_INFO() << "两侧均有交值，取代该位置" << i << QTime::currentTime() << moveRect << rect;
             // 两侧均有交值，取代该位置
-            return i;
+            return m_listAppGroupShow.indexOf(appGroup);
         }
     }
 
@@ -810,21 +999,21 @@ int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
     QPoint pos = appGroup->geometry().center();
     if (Qt::AlignLeft == alignment)
     {
-        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        if (pos.x() < m_appPage[m_curPageIndex].first()->pos().x())
         {
-            return 0;
+            return m_listAppGroupShow.indexOf(m_appPage[m_curPageIndex].first());
         }
 
-        return m_listAppGroupShow.size() - 1;
+        return m_listAppGroupShow.indexOf(m_appPage[m_curPageIndex].last());
     }
     else
     {
         if (pos.y() < m_listAppGroupShow.first()->pos().y())
         {
-            return 0;
+            return m_listAppGroupShow.indexOf(m_appPage[m_curPageIndex].first());
         }
 
-        return m_listAppGroupShow.size() - 1;
+        return m_listAppGroupShow.indexOf(m_appPage[m_curPageIndex].last());
     }
 }
 
@@ -839,7 +1028,7 @@ void AppButtonContainer::startMoveGroup(AppGroup *appGroup)
     m_listAppGroupShow.insert(index, m_indicatorWidget);
     m_indicatorWidget->show();
     m_indicatorWidget->setFixedSize(appGroup->size());
-    updateLayout();
+    updateLayout(m_curPageIndex);
 }
 
 void AppButtonContainer::endMoveGroup(AppGroup *appGroup)
@@ -854,7 +1043,7 @@ void AppButtonContainer::endMoveGroup(AppGroup *appGroup)
     m_indicatorWidget->hide();
     auto size = m_import->getPanel()->getSize();
     m_indicatorWidget->setFixedSize(size, size);
-    updateLayout();
+    updateLayout(m_curPageIndex);
 }
 
 void AppButtonContainer::moveGroup(AppGroup *appGroup)
@@ -865,7 +1054,7 @@ void AppButtonContainer::moveGroup(AppGroup *appGroup)
     {
         // KLOG_INFO() << "moveGroup" << oldIndex << newIndex << m_listAppGroupShow.size();
         m_listAppGroupShow.move(oldIndex, newIndex);
-        updateLayout();
+        updateLayout(m_curPageIndex);
     }
 }
 

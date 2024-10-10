@@ -22,7 +22,6 @@ namespace Kiran
 #define KS_ICON_MENU_APPS_LIST_SYMBOLIC "kcp-ks-menu-apps-list-symbolic"
 #define KS_ICON_MENU_RECENT_FILES_SYMBOLIC "kcp-ks-menu-recent-files-symbolic"
 #define KS_ICON_MENU_SETTINGS_SYMBOLIC "kcp-ks-menu-settings-symbolic"
-//#define KS_ICON_MENU_LOCK_SYMBOLIC "kcp-ks-menu-lock-symbolic"
 #define KS_ICON_MENU_LOCK_SYMBOLIC "kcp-ks-power-lock_screen"
 #define KS_ICON_POWER_SWITCH_USER "kcp-ks-power-switch_user"
 #define KS_ICON_POWER_LOGOUT "kcp-ks-power-logout"
@@ -31,6 +30,8 @@ namespace Kiran
 #define KS_ICON_POWER_REBOOT "kcp-ks-power-reboot"
 #define KS_ICON_POWER_SHUTDOWN "kcp-ks-power-shutdown"
 #define KS_ICON_TRAY_BOX "kcp-ks-tray-box"
+#define KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC "kcp-ks-tasklist-previous-symbolic"
+#define KS_ICON_TASKLIST_DOWN_PAGE_SYMBOLIC "kcp-ks-tasklist-next-symbolic"
 
 enum PanelOrientation
 {
