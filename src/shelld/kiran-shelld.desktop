@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=kiran-shelld
+Name[zh_CN]=kiran-shell后台服务
+Comment=kiran-shelld
+Comment[zh_CN]=kiran-shell后台服务
+Exec=kiran-shelld
+Type=Application
+NoDisplay=true
