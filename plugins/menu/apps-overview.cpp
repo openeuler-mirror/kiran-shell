@@ -80,37 +80,19 @@ void AppsOverview::loadApps()
     m_ui->m_treeWidgetApps->clear();
 
     KServiceGroup::Ptr group = KServiceGroup::root();
-    recursiveService(group.data());
+    auto groups = group->groupEntries();
+    for (auto it = groups.begin(); it != groups.end(); it++)
+    {
+        KSycocaEntry *p = it->data();
+        //        KLOG_INFO() << "KServiceGroup:" << p->name();
+        addGroup(p);
+    }
 
     //展开应用列表
     m_ui->m_treeWidgetApps->expandAll();
 }
 
-void AppsOverview::recursiveService(KServiceGroup *serviceGroup, const QString &filter, QTreeWidgetItem *parent)
-{
-    KServiceGroup::List list = serviceGroup->entries();
-
-    //    KLOG_INFO() << "entry number: " << list.size() << "group: " << serviceGroup->name();
-
-    // Iterate over all entries in the group
-    for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
-    {
-        KSycocaEntry *p = it->data();
-        //        KLOG_INFO() << "type: " << p->sycocaType();
-        addItem(p, filter, parent);
-
-        if (p->isType(KST_KServiceGroup))
-        {
-            KServiceGroup *g = static_cast<KServiceGroup *>(p);
-            recursiveService(g, filter, parent);
-        }
-        else if (p->isType(KST_KServiceSeparator))
-        {
-        }
-    }
-}
-
-void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
+void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
 {
     //动态翻译
     static const QMap<QString, const char *> TR_NOOP_STRING = {
@@ -123,76 +105,94 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
         {"System Tools", QT_TR_NOOP("System Tools")},
         {"Other", QT_TR_NOOP("Other")}};
 
-    if (entry->isType(KST_KServiceGroup))
+    if (!filter.isEmpty())
     {
-        if (!filter.isEmpty())
-        {
-            return;
-        }
+        return;
+    }
 
-        KServiceGroup *g = static_cast<KServiceGroup *>(entry);
-        if (g->entries().size() <= 0 || g->noDisplay())
-        {
-            return;
-        }
+    KServiceGroup *g = static_cast<KServiceGroup *>(entry);
+    if (g->entries().size() <= 0 || g->noDisplay())
+    {
+        return;
+    }
 
+    KLOG_INFO() << "addGroup:" << g->name() << g->caption() << "parent ptr:" << parent << g->entries().size();
+
+    // 中间层级省略,显示一级目录
+    if (!parent)
+    {
         QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetApps);
         item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-        //        KLOG_INFO() << "propertyNames:" << g->name() << g->caption() << g->icon() << g->comment() << g->noDisplay() << g->baseGroupName();
-
         item->setText(0, TR_NOOP_STRING.contains(g->caption()) ? tr(TR_NOOP_STRING[g->caption()]) : g->caption());
-        m_ui->m_treeWidgetApps->addTopLevelItem(item);
+        parent = item;
     }
-    else if (entry->isType(KST_KService))
+
+    KLOG_INFO() << "KServiceGroup:" << g->name() << g->caption() << "group ptr:" << parent;
+
+    KServiceGroup::List list = g->entries();
+    for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
     {
-        KService *s = static_cast<KService *>(entry);
+        KSycocaEntry *p = it->data();
+        if (p->isType(KST_KServiceGroup))
+        {
+            addGroup(p, filter, parent);
+        }
+        else if (p->isType(KST_KService))
+        {
+            addItem(p, filter, parent);
+        }
+    }
+}
 
-        // 过滤不需要显示的APP
-        if (s->noDisplay())
+void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
+{
+    KService *s = static_cast<KService *>(entry);
+
+    // 过滤不需要显示的APP
+    if (s->noDisplay())
+    {
+        return;
+    }
+    // X-KIRAN-NoDisplayg 是kiran桌面配置的不需要显示的应用
+    auto kiranNoDisplay = s->property("X-KIRAN-NoDisplay", QVariant::Bool);
+    if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
+    {
+        return;
+    }
+
+    if (!filter.isEmpty())
+    {
+        //TODO: 支持拼音搜索
+        if (!entry->name().contains(filter, Qt::CaseInsensitive))
         {
             return;
         }
-        // X-KIRAN-NoDisplay 是kiran桌面配置的不需要显示的应用
-        auto kiranNoDisplay = s->property("X-KIRAN-NoDisplay", QVariant::Bool);
-        if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
-        {
-            return;
-        }
+    }
 
-        if (!filter.isEmpty())
-        {
-            //TODO: 支持拼音搜索
-            if (!entry->name().contains(filter, Qt::CaseInsensitive))
-            {
-                return;
-            }
-        }
+    // 无图标不显示
+    QIcon icon = QIcon::fromTheme(s->icon());
+    if (icon.isNull())
+    {
+        // 支持某些desktop文件不规范的情况，如 icon=xx.png
+        icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName(), QIcon::fromTheme(QStringLiteral("unknown")));
+    }
+    if (icon.isNull())
+    {
+        return;
+    }
 
-        // 无图标不显示
-        QIcon icon = QIcon::fromTheme(s->icon());
-        if (icon.isNull())
-        {
-            // 支持某些desktop文件不规范的情况，如 icon=xx.png
-            icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName());
-        }
-        if (icon.isNull())
-        {
-            return;
-        }
-
+    if (!parent)
+    {
+        parent = m_ui->m_treeWidgetApps->topLevelItem(m_ui->m_treeWidgetApps->topLevelItemCount() - 1);
         if (!parent)
         {
-            parent = m_ui->m_treeWidgetApps->topLevelItem(m_ui->m_treeWidgetApps->topLevelItemCount() - 1);
-            if (!parent)
-            {
-                return;
-            }
+            return;
         }
-        QTreeWidgetItem *item = new QTreeWidgetItem(parent);
-        item->setIcon(0, icon);
-        item->setText(0, s->name());
-        item->setData(0, Qt::UserRole, s->storageId());
     }
+    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
+    item->setIcon(0, icon);
+    item->setText(0, s->name());
+    item->setData(0, Qt::UserRole, s->storageId());
 }
 
 void AppsOverview::updateApp()
@@ -212,12 +212,15 @@ void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int co
         if (item->isExpanded())
         {
             //折叠
-            m_ui->m_treeWidgetApps->collapseAll();
+            //            m_ui->m_treeWidgetApps->collapseAll();
+            item->setExpanded(false);
         }
         else
         {
             //展开后滚动到最上面
-            m_ui->m_treeWidgetApps->expandAll();
+            //            m_ui->m_treeWidgetApps->expandAll();
+            item->setExpanded(true);
+
             m_ui->m_treeWidgetApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
         }
     }
@@ -336,7 +339,7 @@ void AppsOverview::on_m_lineEditSearch_textChanged(const QString &arg1)
     m_ui->m_treeWidgetApps->addTopLevelItem(item);
 
     KServiceGroup::Ptr group = KServiceGroup::root();
-    recursiveService(group.data(), arg1, item);
+    addGroup(group.data(), arg1, item);
 
     m_ui->m_treeWidgetApps->expandAll();
 }

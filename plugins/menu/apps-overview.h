@@ -53,10 +53,9 @@ private:
 
     // 加载应用
     void loadApps();
-    // 遍历应用列表
-    void recursiveService(KServiceGroup* serviceGroup, const QString& filter = "", QTreeWidgetItem* parent = nullptr);
     // 增加应用
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+    void addGroup(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
 
 signals:
     // 查询是否在收藏夹中
