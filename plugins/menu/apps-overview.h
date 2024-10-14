@@ -15,6 +15,7 @@
 #pragma once
 
 #include <KService/KServiceGroup>
+#include <QFileSystemWatcher>
 #include <QTreeWidgetItem>
 #include <QWidget>
 
@@ -54,8 +55,11 @@ private:
     // 加载应用
     void loadApps();
     // 增加应用
-    void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
     void addGroup(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+    void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+
+    void updateNewApp();
+    void clearNewApp();
 
 signals:
     // 查询是否在收藏夹中
@@ -75,6 +79,9 @@ signals:
 
 private:
     Ui::AppsOverview* m_ui;
+
+    QSet<QString> m_appIds;                   // 缓存所有的应用id
+    QFileSystemWatcher m_settingFileWatcher;  // 用于检测新应用变化
 };
 }  // namespace Menu
 }  // namespace Kiran

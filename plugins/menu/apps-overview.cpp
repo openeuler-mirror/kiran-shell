@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -26,6 +26,8 @@
 #include <QProcess>
 
 #include "apps-overview.h"
+#include "lib/common/define.h"
+#include "lib/common/setting-process.h"
 #include "ui_apps-overview.h"
 
 namespace Kiran
@@ -49,22 +51,15 @@ AppsOverview::~AppsOverview()
 void AppsOverview::init()
 {
     //    m_ui->m_treeWidgetApps->clear();
-    //禁用双击展开
+    // 禁用双击展开
     m_ui->m_treeWidgetApps->setExpandsOnDoubleClick(false);
-    //隐藏小三角
+    // 隐藏小三角
     m_ui->m_treeWidgetApps->setRootIsDecorated(false);
-    //载入应用列表
+    // 载入应用列表
     loadApps();
 
-    //剔除列表下为空的顶级项
-    for (int i = 0; i < m_ui->m_treeWidgetApps->topLevelItemCount(); i++)
-    {
-        auto item = m_ui->m_treeWidgetApps->topLevelItem(i);
-        if (0 == item->childCount())
-        {
-            delete m_ui->m_treeWidgetApps->takeTopLevelItem(i);
-        }
-    }
+    // 清理配置文件中的新应用
+    clearNewApp();
 
     m_ui->m_lineEditSearch->setPlaceholderText(tr("Search application"));
 
@@ -73,11 +68,17 @@ void AppsOverview::init()
     m_ui->m_lineEditSearch->setPalette(p);
 
     connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
+
+    QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
+    // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
+    m_settingFileWatcher.addPath(settingDir);
+    connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, &AppsOverview::updateNewApp);
 }
 
 void AppsOverview::loadApps()
 {
     m_ui->m_treeWidgetApps->clear();
+    m_appIds.clear();
 
     KServiceGroup::Ptr group = KServiceGroup::root();
     auto groups = group->groupEntries();
@@ -88,13 +89,25 @@ void AppsOverview::loadApps()
         addGroup(p);
     }
 
-    //展开应用列表
+    // 展开应用列表
     m_ui->m_treeWidgetApps->expandAll();
+
+    // 剔除列表下为空的顶级项
+    for (int i = 0; i < m_ui->m_treeWidgetApps->topLevelItemCount(); i++)
+    {
+        auto item = m_ui->m_treeWidgetApps->topLevelItem(i);
+        if (0 == item->childCount())
+        {
+            delete m_ui->m_treeWidgetApps->takeTopLevelItem(i);
+        }
+    }
+
+    updateNewApp();
 }
 
 void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
 {
-    //动态翻译
+    // 动态翻译
     static const QMap<QString, const char *> TR_NOOP_STRING = {
         {"Accessories", QT_TR_NOOP("Accessories")},
         {"Development", QT_TR_NOOP("Development")},
@@ -105,18 +118,13 @@ void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidg
         {"System Tools", QT_TR_NOOP("System Tools")},
         {"Other", QT_TR_NOOP("Other")}};
 
-    if (!filter.isEmpty())
-    {
-        return;
-    }
-
     KServiceGroup *g = static_cast<KServiceGroup *>(entry);
     if (g->entries().size() <= 0 || g->noDisplay())
     {
         return;
     }
 
-    KLOG_INFO() << "addGroup:" << g->name() << g->caption() << "parent ptr:" << parent << g->entries().size();
+    //    KLOG_INFO() << "addGroup:" << g->name() << g->caption() << "parent ptr:" << parent << g->entries().size();
 
     // 中间层级省略,显示一级目录
     if (!parent)
@@ -127,7 +135,7 @@ void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidg
         parent = item;
     }
 
-    KLOG_INFO() << "KServiceGroup:" << g->name() << g->caption() << "group ptr:" << parent;
+    //    KLOG_INFO() << "KServiceGroup:" << g->name() << g->caption() << "group ptr:" << parent;
 
     KServiceGroup::List list = g->entries();
     for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
@@ -162,7 +170,7 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
 
     if (!filter.isEmpty())
     {
-        //TODO: 支持拼音搜索
+        // TODO: 支持拼音搜索
         if (!entry->name().contains(filter, Qt::CaseInsensitive))
         {
             return;
@@ -189,15 +197,87 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
             return;
         }
     }
+
     QTreeWidgetItem *item = new QTreeWidgetItem(parent);
     item->setIcon(0, icon);
     item->setText(0, s->name());
     item->setData(0, Qt::UserRole, s->storageId());
+
+    m_appIds.insert(s->storageId());
+}
+
+void AppsOverview::updateNewApp()
+{
+    QVariantList apps = SettingProcess::getValue(MENU_NEW_APP).toList();
+
+    KLOG_INFO() << "AppsOverview::updateNewApp" << apps;
+
+    if (m_ui->m_treeWidgetApps->topLevelItemCount() > 0 &&
+        m_ui->m_treeWidgetApps->topLevelItem(0)->text(0) == tr("New App"))
+    {
+        delete m_ui->m_treeWidgetApps->takeTopLevelItem(0);
+    }
+    QSet<QString> newAppSet;
+    for (auto app : apps)
+    {
+        newAppSet.insert(app.toString());
+    }
+    newAppSet = newAppSet & m_appIds;
+
+    if (!newAppSet.isEmpty())
+    {
+        QTreeWidgetItem *groupItem = new QTreeWidgetItem({tr("New App")});
+        groupItem->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
+        m_ui->m_treeWidgetApps->insertTopLevelItem(0, groupItem);
+
+        for (auto app : newAppSet)
+        {
+            KService::Ptr s = KService::serviceByMenuId(app);
+            addItem(s.data(), "", groupItem);
+        }
+
+        groupItem->setExpanded(1);
+    }
+}
+
+void AppsOverview::clearNewApp()
+{
+    QVariantList newApps = SettingProcess::getValue(MENU_NEW_APP).toList();
+    QSet<QString> newAppSet;
+    for (auto app : newApps)
+    {
+        newAppSet.insert(app.toString());
+    }
+    newAppSet = newAppSet & m_appIds;
+    QVariantList valuesList;
+    for (auto value : newAppSet)
+    {
+        valuesList.push_back(value);
+    }
+    SettingProcess::setValue(MENU_NEW_APP, valuesList);
 }
 
 void AppsOverview::updateApp()
 {
     KLOG_INFO() << "AppsOverview::updateApp";
+
+    auto oldAppIds = m_appIds;
+    loadApps();
+    auto newAppIds = m_appIds;
+    auto subtract = newAppIds.subtract(oldAppIds);
+
+    KLOG_INFO() << "新应用:" << subtract;
+    // 处理新应用分类
+    if (!subtract.isEmpty())
+    {
+        QVariantList valuesList;
+        for (auto value : subtract)
+        {
+            valuesList.push_back(value);
+        }
+
+        SettingProcess::setValue(MENU_NEW_APP, valuesList);
+    }
 }
 
 void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)
@@ -211,14 +291,14 @@ void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int co
     {
         if (item->isExpanded())
         {
-            //折叠
-            //            m_ui->m_treeWidgetApps->collapseAll();
+            // 折叠
+            // m_ui->m_treeWidgetApps->collapseAll();
             item->setExpanded(false);
         }
         else
         {
-            //展开后滚动到最上面
-            //            m_ui->m_treeWidgetApps->expandAll();
+            // 展开后滚动到最上面
+            // m_ui->m_treeWidgetApps->expandAll();
             item->setExpanded(true);
 
             m_ui->m_treeWidgetApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
@@ -308,7 +388,7 @@ void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int co
                                                  auto *job = new KIO::ApplicationLauncherJob(serviceAction);
                                                  job->start();
 
-                                                 //通知kactivitymanagerd
+                                                 // 通知kactivitymanagerd
                                                  KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
                                              });
             if (serviceAction.isSeparator())

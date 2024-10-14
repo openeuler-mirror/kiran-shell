@@ -90,10 +90,6 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
     updateLockApp();
 
     QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
-    if (!QDir(settingDir).exists())
-    {
-        QDir().mkpath(settingDir);
-    }
     // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
     m_settingFileWatcher.addPath(settingDir);
     connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()

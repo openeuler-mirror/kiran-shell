@@ -44,8 +44,7 @@ int main(int argc, char *argv[])
     auto local = QLocale();
     KLOG_INFO() << "current local:" << local << local.name();
     QTranslator translator;
-    if (!translator.load("/usr/local/share/kiran-shell/translations/kiran-shell.zh_CN.qm"))
-    //    if (!translator.load(QLocale(), "kiran-shell", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    if (!translator.load(QLocale(), "kiran-shell", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
     {
         KLOG_WARNING() << "Load translator failed!";
     }
