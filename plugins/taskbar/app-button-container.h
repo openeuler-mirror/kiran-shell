@@ -42,16 +42,20 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-    // 刷新app显示
-    void updateLayout();
+    void updateLayoutByProfile();
 
 private:
     AppGroup *genAppGroup(const AppBaseInfo &baseinfo);
 
     //  打开或关闭窗口软件
     void addWindow(WId wid);
+
+    // 刷新app显示
+    void updateLayout(int showPageIndex = -1);
 
     // 固定到任务栏操作
     void updateLockApp();
@@ -113,6 +117,12 @@ private:
     // 拖拽相关
     int m_currentDropIndex;
     AppGroup *m_indicatorWidget;
+
+    // 翻页
+    StyledButton *m_upPageBtn;
+    StyledButton *m_downPageBtn;
+    int m_curPageIndex;                  // 当前页序号
+    QList<QList<AppGroup *>> m_appPage;  // 　app分页内容,用于拖拽计算位置需要
 };
 
 }  // namespace Taskbar

@@ -82,3 +82,12 @@ bool SettingProcess::isValueInKey(const QString &iniFile, const QString &key, co
     QVariantList values = settings.value(key).toList();
     return values.contains(value);
 }
+
+SettingProcess::SettingProcess()
+{
+    QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
+    if (!QDir(settingDir).exists())
+    {
+        QDir().mkpath(settingDir);
+    }
+}

@@ -354,6 +354,8 @@ void Window::runApp(QString appId)
 
         //通知kactivitymanagerd
         KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+
+        SettingProcess::removeValueFromKey(MENU_NEW_APP, appId);
     }
 }
 

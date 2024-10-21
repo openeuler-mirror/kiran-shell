@@ -33,5 +33,5 @@ public:
     static bool isValueInKey(const QString &iniFile, const QString &key, const QVariant &value);
 
 private:
-    SettingProcess() {}
+    SettingProcess();
 };
