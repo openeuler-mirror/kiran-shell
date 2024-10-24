@@ -21,6 +21,10 @@
 #include "ui_window.h"
 #include "window.h"
 
+namespace Kiran
+{
+namespace Calendar
+{
 Window::Window(QWidget *parent)
     : QDialog(parent, Qt::WindowFlags() | Qt::FramelessWindowHint),
       m_ui(new Ui::Window)
@@ -306,3 +310,5 @@ void Window::changeDateTimeBtnClicked()
         gotoToday();
     }
 }
+}  // namespace Calendar
+}  // namespace Kiran

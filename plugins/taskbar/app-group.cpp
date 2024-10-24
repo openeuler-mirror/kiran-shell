@@ -19,7 +19,6 @@
 #include <QMimeData>
 #include <QMouseEvent>
 
-#include "app-button-container.h"
 #include "app-button.h"
 #include "app-group.h"
 #include "app-previewer.h"
@@ -27,6 +26,7 @@
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "window.h"
 
 namespace Kiran
 {
@@ -128,13 +128,13 @@ void AppGroup::init()
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
-    AppButtonContainer *appButtonContainer = (AppButtonContainer *)parent();
-    connect(appButtonContainer, &AppButtonContainer::windowAdded, this, &AppGroup::addWindow);
-    connect(appButtonContainer, &AppButtonContainer::windowRemoved, this, &AppGroup::removeWindow);
+    Window *appButtonContainer = (Window *)parent();
+    connect(appButtonContainer, &Window::windowAdded, this, &AppGroup::addWindow);
+    connect(appButtonContainer, &Window::windowRemoved, this, &AppGroup::removeWindow);
 
-    connect(appButtonContainer, &AppButtonContainer::windowChanged, this, &AppGroup::windowChanged);
-    connect(appButtonContainer, &AppButtonContainer::activeWindowChanged, this, &AppGroup::changedActiveWindow);
-    connect(appButtonContainer, &AppButtonContainer::activeWindowChanged, this, &AppGroup::activeWindowChanged);
+    connect(appButtonContainer, &Window::windowChanged, this, &AppGroup::windowChanged);
+    connect(appButtonContainer, &Window::activeWindowChanged, this, &AppGroup::changedActiveWindow);
+    connect(appButtonContainer, &Window::activeWindowChanged, this, &AppGroup::activeWindowChanged);
 
     m_appPreviewer = new AppPreviewer(m_import, this);
     connect(m_appPreviewer, &AppPreviewer::windowClose, this, &AppGroup::closeWindow);
@@ -358,7 +358,7 @@ void AppGroup::updateLayout()
 
 AppButton *AppGroup::newAppBtn()
 {
-    AppButtonContainer *appButtonContainer = (AppButtonContainer *)parent();
+    Window *appButtonContainer = (Window *)parent();
     AppButton *appButton = new AppButton(m_import, this);
     connect(appButton, &AppButton::previewerShow, this, &AppGroup::showPreviewer);
     connect(appButton, &AppButton::previewerHide, this, &AppGroup::hidePreviewer);

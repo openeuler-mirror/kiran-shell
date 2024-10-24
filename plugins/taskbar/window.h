@@ -30,12 +30,12 @@ namespace Taskbar
 class Applet;
 class AppGroup;
 class AppBaseInfo;
-class AppButtonContainer : public KiranColorBlock
+class Window : public KiranColorBlock
 {
     Q_OBJECT
 public:
-    AppButtonContainer(IAppletImport *import, Applet *parent);
-    ~AppButtonContainer();
+    Window(IAppletImport *import, Applet *parent);
+    ~Window();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;

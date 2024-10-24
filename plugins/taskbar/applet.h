@@ -17,7 +17,7 @@
 #include <plugin-i.h>
 #include <QWidget>
 
-#include "app-button-container.h"
+#include "window.h"
 
 namespace Kiran
 {
@@ -31,13 +31,6 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
-private slots:
-    //  打开或关闭窗口软件
-    void addWindow(WId wid);
-    void removeWindow(WId wid);
-    //激活窗口
-    void changedActiveWindow(WId wid);
-
 signals:
     //  打开或关闭窗口软件
     void windowAdded(WId wid);
@@ -48,7 +41,7 @@ private:
     IAppletImport *m_import;
 
     // app容器
-    AppButtonContainer *m_appButtonContainer;
+    Window *m_window;
 };
 
 class Plugin : public QObject, public IPlugin

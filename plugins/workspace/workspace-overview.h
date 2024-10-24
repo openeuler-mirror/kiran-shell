@@ -14,52 +14,42 @@
 
 #pragma once
 
-#include <kiran-color-block.h>
-#include <plugin-i.h>
+#include <QMap>
+#include <QWidget>
 
-#include "lib/widgets/styled-button.h"
-
+class QScrollArea;
+class QVBoxLayout;
 namespace Kiran
 {
-class IAppletImport;
+class WindowThumbnail;
 
 namespace Workspace
 {
-class Window;
-
-class Applet : public KiranColorBlock
+// 工作区预览,包含工作区所管理的应用窗口
+class WorkspaceOverview : public QWidget
 {
     Q_OBJECT
-
 public:
-    Applet(IAppletImport *import);
-    ~Applet();
+    explicit WorkspaceOverview(int desktop, QWidget *parent = nullptr);
+    ~WorkspaceOverview();
 
-private Q_SLOTS:
-    void clickButton(bool checked);
-    void hideWindow();
+protected:
+    void showEvent(QShowEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
-    StyledButton *m_appletButton;
+    void updateGridLayout();
+    void updateWindowItem();
 
-    Window *m_window;
-    IAppletImport *m_import;
+signals:
+
+private:
+    int m_workspaceIndex = 0;
+    QMap<WId, WindowThumbnail *> m_windows;
+
+    QScrollArea *m_scrollArea;
+    QWidget *m_containerWidget;
+    QVBoxLayout *m_mainLayout;
 };
-
-class Plugin : public QObject, public IPlugin
-{
-    Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID IAPPLET_IID FILE "workspace.json")
-    Q_INTERFACES(Kiran::IPlugin)
-
-public:
-    virtual QWidget *createApplet(const QString &appletID, IAppletImport *import)
-    {
-        return new Applet(import);
-    }
-};
-
 }  // namespace Workspace
-
 }  // namespace Kiran

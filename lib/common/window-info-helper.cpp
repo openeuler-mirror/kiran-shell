@@ -18,6 +18,7 @@
 #include <KWindowSystem/NETWM>
 #include <KWindowSystem>
 #include <QFileInfo>
+#include <QWindow>
 #include <QtX11Extras/QX11Info>
 
 #include "utility.h"
@@ -69,10 +70,10 @@ QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
 
 QString WindowInfoHelper::getAppNameByWId(WId wid)
 {
-    KWindowInfo info(wid, NET::WMName);
+    KWindowInfo info(wid, NET::WMVisibleName);
     if (info.valid())
     {
-        return info.name();
+        return info.visibleName();
     }
     else
     {
@@ -162,6 +163,11 @@ void WindowInfoHelper::closeWindow(WId wid)
     case KWindowSystem::Platform::Wayland:
     {
         //TODO:wayland关闭软件
+        QWindow *window = QWindow::fromWinId(wid);
+        if (window)
+        {
+            window->close();
+        }
         break;
     }
     default:

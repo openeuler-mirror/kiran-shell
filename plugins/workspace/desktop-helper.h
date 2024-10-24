@@ -14,22 +14,27 @@
 
 #pragma once
 
-#include <QToolButton>
+#include <QObject>
 
-class StyledButton : public QToolButton
+namespace Kiran
+{
+namespace Workspace
+{
+// 操作工作区的接口,主要是对kf5关于工作区的封装,以及对x11和wayland一些工作区区别操作的封装
+class DesktopHelper : public QObject
 {
     Q_OBJECT
 public:
-    StyledButton(QWidget *parent = nullptr);
+    explicit DesktopHelper(QObject *parent = nullptr);
 
-protected:
-    void enterEvent(QEvent *event) override;
-    void leaveEvent(QEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-
-protected:
-    bool m_hovered;
-    bool m_pressed;
+    static int numberOfDesktops();
+    static int currentDesktop();
+    static void setCurrentDesktop(int desktop);
+    static void createDesktop();
+    static void removeDesktop(int deskToRemove);
+signals:
+    void currentDesktopChanged(int desktop);
+    void numberOfDesktopsChanged(int num);
 };
+}  // namespace Workspace
+}  // namespace Kiran
