@@ -29,7 +29,6 @@
 #include <QSettings>
 #include <QTimer>
 
-#include "app-button-container.h"
 #include "app-button.h"
 #include "app-group.h"
 #include "applet.h"
@@ -37,6 +36,8 @@
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
+#include "window.h"
 
 namespace KAStats = KActivities::Stats;
 using namespace KAStats;
@@ -49,7 +50,7 @@ namespace Kiran
 {
 namespace Taskbar
 {
-AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
+Window::Window(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
       m_import(import),
       m_indicatorWidget(nullptr),
@@ -103,12 +104,12 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
             });
 
     m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &AppButtonContainer::updateFavorite);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &AppButtonContainer::updateFavorite);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
     updateFavorite();
 
-    connect(parent, &Applet::windowAdded, this, &AppButtonContainer::addWindow);
-    connect(parent, &Applet::windowRemoved, this, &AppButtonContainer::windowRemoved);
+    connect(parent, &Applet::windowAdded, this, &Window::addWindow);
+    connect(parent, &Applet::windowRemoved, this, &Window::windowRemoved);
     connect(parent, &Applet::activeWindowChanged, [this](WId wid)
             {
                 updateLayout();
@@ -116,11 +117,23 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
             });
 
     // 等待应用加载
-    QTimer::singleShot(1000, this, [this]()
-                       {
-                           WId wid = WindowInfoHelper::activeWindow();
-                           emit activeWindowChanged(wid);
-                       });
+    // NOTE: 需要多测,看会不会延迟加载
+    //    QTimer::singleShot(1000, this, [this]()
+    //                       {
+    //                           for (auto wid : WindowManagerInstance.getAllWindow())
+    //                           {
+    //                               addWindow(wid);
+    //                           }
+    //                           WId wid = WindowInfoHelper::activeWindow();
+    //                           emit activeWindowChanged(wid);
+    //                       });
+
+    for (auto wid : WindowManagerInstance.getAllWindow())
+    {
+        addWindow(wid);
+    }
+    WId wid = WindowInfoHelper::activeWindow();
+    emit activeWindowChanged(wid);
 
     setAcceptDrops(true);
     m_currentDropIndex = -1;
@@ -130,11 +143,11 @@ AppButtonContainer::AppButtonContainer(IAppletImport *import, Applet *parent)
     updateLayout();
 }
 
-AppButtonContainer::~AppButtonContainer()
+Window::~Window()
 {
 }
 
-void AppButtonContainer::dragEnterEvent(QDragEnterEvent *event)
+void Window::dragEnterEvent(QDragEnterEvent *event)
 {
     m_currentDropIndex = -1;
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
@@ -148,7 +161,7 @@ void AppButtonContainer::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void AppButtonContainer::dragMoveEvent(QDragMoveEvent *event)
+void Window::dragMoveEvent(QDragMoveEvent *event)
 {
     QPoint pos = event->pos();
     m_currentDropIndex = getInsertedIndex(pos);
@@ -183,7 +196,7 @@ void AppButtonContainer::dragMoveEvent(QDragMoveEvent *event)
     event->accept();
 }
 
-void AppButtonContainer::dragLeaveEvent(QDragLeaveEvent *event)
+void Window::dragLeaveEvent(QDragLeaveEvent *event)
 {
     //    KLOG_INFO() << "AppButtonContainer::dragLeaveEvent";
     m_currentDropIndex = -1;
@@ -194,7 +207,7 @@ void AppButtonContainer::dragLeaveEvent(QDragLeaveEvent *event)
     event->accept();
 }
 
-void AppButtonContainer::dropEvent(QDropEvent *event)
+void Window::dropEvent(QDropEvent *event)
 {
     KLOG_INFO() << "AppButtonContainer::dropEvent";
 
@@ -286,17 +299,17 @@ void AppButtonContainer::dropEvent(QDropEvent *event)
     event->accept();
 }
 
-void AppButtonContainer::showEvent(QShowEvent *event)
+void Window::showEvent(QShowEvent *event)
 {
     updateLayout();
 }
 
-void AppButtonContainer::resizeEvent(QResizeEvent *event)
+void Window::resizeEvent(QResizeEvent *event)
 {
     updateLayout();
 }
 
-void AppButtonContainer::updateLayoutByProfile()
+void Window::updateLayoutByProfile()
 {
     for (auto appGroup : m_listAppGroupShow)
     {
@@ -305,7 +318,7 @@ void AppButtonContainer::updateLayoutByProfile()
     updateLayout();
 }
 
-AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
+AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
 {
     AppGroup *appGroup = nullptr;
 
@@ -344,22 +357,22 @@ AppGroup *AppButtonContainer::genAppGroup(const AppBaseInfo &baseinfo)
         appGroup = new AppGroup(m_import, baseinfo, this);
     }
 
-    connect(appGroup, &AppGroup::isInFavorite, this, &AppButtonContainer::isInFavorite, Qt::DirectConnection);
-    connect(appGroup, &AppGroup::isInTasklist, this, &AppButtonContainer::isInTasklist, Qt::DirectConnection);
-    connect(appGroup, &AppGroup::addToFavorite, this, &AppButtonContainer::addToFavorite);
-    connect(appGroup, &AppGroup::removeFromFavorite, this, &AppButtonContainer::removeFromFavorite);
-    connect(appGroup, &AppGroup::addToTasklist, this, &AppButtonContainer::addToTasklist);
-    connect(appGroup, &AppGroup::removeFromTasklist, this, &AppButtonContainer::removeFromTasklist);
-    connect(appGroup, &AppGroup::emptyGroup, this, &AppButtonContainer::removeGroup);
+    connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
+    connect(appGroup, &AppGroup::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appGroup, &AppGroup::addToFavorite, this, &Window::addToFavorite);
+    connect(appGroup, &AppGroup::removeFromFavorite, this, &Window::removeFromFavorite);
+    connect(appGroup, &AppGroup::addToTasklist, this, &Window::addToTasklist);
+    connect(appGroup, &AppGroup::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appGroup, &AppGroup::emptyGroup, this, &Window::removeGroup);
 
-    connect(appGroup, &AppGroup::moveGroupStarted, this, &AppButtonContainer::startMoveGroup, Qt::QueuedConnection);
-    connect(appGroup, &AppGroup::moveGroupEnded, this, &AppButtonContainer::endMoveGroup, Qt::QueuedConnection);
-    connect(appGroup, &AppGroup::groupMoved, this, &AppButtonContainer::moveGroup, Qt::QueuedConnection);
+    connect(appGroup, &AppGroup::moveGroupStarted, this, &Window::startMoveGroup, Qt::QueuedConnection);
+    connect(appGroup, &AppGroup::moveGroupEnded, this, &Window::endMoveGroup, Qt::QueuedConnection);
+    connect(appGroup, &AppGroup::groupMoved, this, &Window::moveGroup, Qt::QueuedConnection);
 
     return appGroup;
 }
 
-void AppButtonContainer::addWindow(WId wid)
+void Window::addWindow(WId wid)
 {
     QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
     if (wmClass.isEmpty())
@@ -407,7 +420,7 @@ void AppButtonContainer::addWindow(WId wid)
     updateLayout();
 }
 
-void AppButtonContainer::updateLayout(int showPageIndex)
+void Window::updateLayout(int showPageIndex)
 {
     Utility::clearLayout(m_layout, false, false);
 
@@ -577,7 +590,7 @@ void AppButtonContainer::updateLayout(int showPageIndex)
     m_layout->activate();
 }
 
-void AppButtonContainer::updateLockApp()
+void Window::updateLockApp()
 {
     QVariantList appUrls = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toList();
 
@@ -595,7 +608,7 @@ void AppButtonContainer::updateLockApp()
     }
 }
 
-void AppButtonContainer::addLockApp(const QUrl &url)
+void Window::addLockApp(const QUrl &url)
 {
     AppBaseInfo baseinfo;
     baseinfo.m_url = url;
@@ -620,7 +633,7 @@ void AppButtonContainer::addLockApp(const QUrl &url)
     updateLayout();
 }
 
-void AppButtonContainer::removeLockApp(const QUrl &url)
+void Window::removeLockApp(const QUrl &url)
 {
     AppGroup *appGroup = nullptr;
     for (auto app : m_listAppGroupLocked)
@@ -658,7 +671,7 @@ void AppButtonContainer::removeLockApp(const QUrl &url)
     }
 }
 
-void AppButtonContainer::updateFavorite()
+void Window::updateFavorite()
 {
     m_favoriteAppId.clear();
 
@@ -670,30 +683,30 @@ void AppButtonContainer::updateFavorite()
     }
 }
 
-void AppButtonContainer::isInFavorite(const QString &appId, bool &checkResult)
+void Window::isInFavorite(const QString &appId, bool &checkResult)
 {
     checkResult = m_favoriteAppId.contains(appId);
 }
 
-void AppButtonContainer::addToFavorite(const QString &appId)
+void Window::addToFavorite(const QString &appId)
 {
     QString appIdReal = QLatin1String("applications:") + appId;
     KLOG_WARNING() << "addToFavorite" << appIdReal;
     m_actStatsLinkedWatcher->linkToActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void AppButtonContainer::removeFromFavorite(const QString &appId)
+void Window::removeFromFavorite(const QString &appId)
 {
     QString appIdReal = QLatin1String("applications:") + appId;
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void AppButtonContainer::isInTasklist(const QUrl &url, bool &checkResult)
+void Window::isInTasklist(const QUrl &url, bool &checkResult)
 {
     checkResult = SettingProcess::isValueInKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void AppButtonContainer::addToTasklist(const QUrl &url, AppGroup *appGroup)
+void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
 {
     int inserIndex = 0;
     int indexShow = m_listAppGroupShow.indexOf(appGroup);
@@ -755,12 +768,12 @@ void AppButtonContainer::addToTasklist(const QUrl &url, AppGroup *appGroup)
     SettingProcess::setValue(TASKBAR_LOCK_APP_KEY, valuesList);
 }
 
-void AppButtonContainer::removeFromTasklist(const QUrl &url)
+void Window::removeFromTasklist(const QUrl &url)
 {
     SettingProcess::removeValueFromKey(TASKBAR_LOCK_APP_KEY, url);
 }
 
-void AppButtonContainer::removeGroup(AppGroup *group)
+void Window::removeGroup(AppGroup *group)
 {
     auto iter = m_mapAppGroupOpened.begin();
     while (iter != m_mapAppGroupOpened.end())
@@ -784,7 +797,7 @@ void AppButtonContainer::removeGroup(AppGroup *group)
     updateLayout();
 }
 
-int AppButtonContainer::getInsertedIndex(const QPoint &pos)
+int Window::getInsertedIndex(const QPoint &pos)
 {
 #if 1
     // 在按钮区域：
@@ -917,7 +930,7 @@ int AppButtonContainer::getInsertedIndex(const QPoint &pos)
 #endif
 }
 
-int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
+int Window::getMovedIndex(AppGroup *appGroup)
 {
     // 设正在移动的按钮组为a，正在检测是否让出位置的按钮组为b
     // a到达b一半位置时，调整移动项序号
@@ -1013,7 +1026,7 @@ int AppButtonContainer::getMovedIndex(AppGroup *appGroup)
     }
 }
 
-void AppButtonContainer::startMoveGroup(AppGroup *appGroup)
+void Window::startMoveGroup(AppGroup *appGroup)
 {
     int index = m_listAppGroupShow.indexOf(appGroup);
     if (-1 == index)
@@ -1027,7 +1040,7 @@ void AppButtonContainer::startMoveGroup(AppGroup *appGroup)
     updateLayout(m_curPageIndex);
 }
 
-void AppButtonContainer::endMoveGroup(AppGroup *appGroup)
+void Window::endMoveGroup(AppGroup *appGroup)
 {
     if (m_listAppGroupShow.contains(appGroup))
     {
@@ -1042,7 +1055,7 @@ void AppButtonContainer::endMoveGroup(AppGroup *appGroup)
     updateLayout(m_curPageIndex);
 }
 
-void AppButtonContainer::moveGroup(AppGroup *appGroup)
+void Window::moveGroup(AppGroup *appGroup)
 {
     int newIndex = getMovedIndex(appGroup);
     int oldIndex = m_listAppGroupShow.indexOf(m_indicatorWidget);
@@ -1054,7 +1067,7 @@ void AppButtonContainer::moveGroup(AppGroup *appGroup)
     }
 }
 
-Qt::AlignmentFlag AppButtonContainer::getLayoutAlignment()
+Qt::AlignmentFlag Window::getLayoutAlignment()
 {
     int orientation = m_import->getPanel()->getOrientation();
     Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
@@ -1065,7 +1078,7 @@ Qt::AlignmentFlag AppButtonContainer::getLayoutAlignment()
     return alignment;
 }
 
-QBoxLayout::Direction AppButtonContainer::getLayoutDirection()
+QBoxLayout::Direction Window::getLayoutDirection()
 {
     int orientation = m_import->getPanel()->getOrientation();
     auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
@@ -1075,7 +1088,7 @@ QBoxLayout::Direction AppButtonContainer::getLayoutDirection()
     return direction;
 }
 
-void AppButtonContainer::openFileByDrop(QDropEvent *event)
+void Window::openFileByDrop(QDropEvent *event)
 {
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
     if (!event->mimeData()->hasFormat("text/uri-list"))

@@ -4,9 +4,10 @@
 <context>
     <name>Kiran::Calendar::Window</name>
     <message>
+        <location filename="../plugins/calendar/window.cpp" line="129"/>
         <source>Today</source>
         <translatorcomment>今天</translatorcomment>
-        <translation type="vanished">今天</translation>
+        <translation>今天</translation>
     </message>
 </context>
 <context>
@@ -176,9 +177,8 @@
 <context>
     <name>Window</name>
     <message>
-        <location filename="../plugins/calendar/window.cpp" line="125"/>
         <source>Today</source>
-        <translation type="unfinished">今天</translation>
+        <translation type="obsolete">今天</translation>
     </message>
     <message>
         <location filename="../plugins/calendar/window.ui" line="17"/>

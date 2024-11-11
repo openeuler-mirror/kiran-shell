@@ -185,48 +185,48 @@
 <context>
     <name>Kiran::Menu::Window</name>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="249"/>
+        <location filename="../plugins/menu/window.cpp" line="251"/>
         <source>Lock screen</source>
         <translation>锁定屏幕</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="265"/>
+        <location filename="../plugins/menu/window.cpp" line="267"/>
         <source>Switch user</source>
         <translatorcomment>切换用户</translatorcomment>
         <translation>切换用户</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="257"/>
+        <location filename="../plugins/menu/window.cpp" line="259"/>
         <source>Logout</source>
         <translatorcomment>注销</translatorcomment>
         <translation>注销</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="281"/>
+        <location filename="../plugins/menu/window.cpp" line="283"/>
         <source>Suspend</source>
         <translatorcomment>待机</translatorcomment>
         <translation>待机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="289"/>
+        <location filename="../plugins/menu/window.cpp" line="291"/>
         <source>Hibernate</source>
         <translatorcomment>休眠</translatorcomment>
         <translation>休眠</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="297"/>
+        <location filename="../plugins/menu/window.cpp" line="299"/>
         <source>Reboot</source>
         <translatorcomment>重启</translatorcomment>
         <translation>重启</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="305"/>
+        <location filename="../plugins/menu/window.cpp" line="307"/>
         <source>Shutdown</source>
         <translatorcomment>关机</translatorcomment>
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="436"/>
+        <location filename="../plugins/menu/window.cpp" line="438"/>
         <source>Hello,</source>
         <translatorcomment>你好，</translatorcomment>
         <translation>你好，</translation>
@@ -254,60 +254,60 @@
         <translation>所有应用</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="141"/>
+        <location filename="../plugins/menu/window.ui" line="142"/>
         <source>Recent files</source>
         <translatorcomment>最近访问文档</translatorcomment>
         <translation>最近访问文档</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="189"/>
+        <location filename="../plugins/menu/window.ui" line="191"/>
         <source>Run command</source>
         <translatorcomment>运行命令</translatorcomment>
         <translation>运行命令</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="223"/>
+        <location filename="../plugins/menu/window.ui" line="226"/>
         <source>Search file</source>
         <translatorcomment>搜索文件</translatorcomment>
         <translation>搜索文件</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="257"/>
+        <location filename="../plugins/menu/window.ui" line="261"/>
         <source>Home dir</source>
         <translatorcomment>主目录</translatorcomment>
         <translation>主目录</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="291"/>
+        <location filename="../plugins/menu/window.ui" line="296"/>
         <source>Settings</source>
         <translatorcomment>控制面板</translatorcomment>
         <translation>控制面板</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="325"/>
+        <location filename="../plugins/menu/window.ui" line="331"/>
         <source>System monitor</source>
         <translatorcomment>资源管理器</translatorcomment>
         <translation>资源管理器</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="359"/>
+        <location filename="../plugins/menu/window.ui" line="366"/>
         <source>Power</source>
         <translatorcomment>电源选项</translatorcomment>
         <translation>电源选项</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="422"/>
+        <location filename="../plugins/menu/window.ui" line="430"/>
         <source>你好，root</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="501"/>
+        <location filename="../plugins/menu/window.ui" line="509"/>
         <source>Popular applications</source>
         <translatorcomment>常用应用</translatorcomment>
         <translation>常用应用</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.ui" line="554"/>
+        <location filename="../plugins/menu/window.ui" line="562"/>
         <source>Favorite applications</source>
         <translatorcomment>收藏夹</translatorcomment>
         <translation>收藏夹</translation>

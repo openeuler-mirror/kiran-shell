@@ -27,7 +27,8 @@ StyledButton::StyledButton(QWidget *parent)
       m_pressed(false)
 {
     setCheckable(true);
-    setMouseTracking(true);
+    // 启用悬浮事件
+    setAttribute(Qt::WA_Hover);
 }
 
 void StyledButton::enterEvent(QEvent *event)

@@ -107,7 +107,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-apps-list-symbolic"/>
+           <iconset theme="ksvg-ks-menu-apps-list-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -144,7 +145,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-recent-files-symbolic"/>
+           <iconset theme="ksvg-ks-menu-recent-files-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -192,7 +194,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-run-command-symbolic"/>
+           <iconset theme="ksvg-ks-menu-run-command-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -226,7 +229,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-search-files-symbolic"/>
+           <iconset theme="ksvg-ks-menu-search-files-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -260,7 +264,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-home-dir-symbolic"/>
+           <iconset theme="ksvg-ks-menu-home-dir-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -294,7 +299,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-settings-symbolic"/>
+           <iconset theme="ksvg-ks-menu-settings-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -328,7 +334,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-system-monitor-symbolic"/>
+           <iconset theme="ksvg-ks-menu-system-monitor-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -362,7 +369,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="kcp-ks-menu-power-symbolic"/>
+           <iconset theme="ksvg-ks-menu-power-symbolic">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -577,7 +585,7 @@
               <x>0</x>
               <y>0</y>
               <width>321</width>
-              <height>415</height>
+              <height>412</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="m_gridLayoutFavoriteApp"/>

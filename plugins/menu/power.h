@@ -12,8 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#ifndef KIRANPOWER_H
-#define KIRANPOWER_H
+#pragma once
 
 #include <QDBusInterface>
 #include <QDBusMessage>
@@ -69,5 +68,3 @@ private:
     QDBusInterface* m_sessionManagerProxy;
     QDBusInterface* m_seatManagerProxy;
 };
-
-#endif  // KIRANPOWER_H

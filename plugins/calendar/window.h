@@ -20,6 +20,10 @@ namespace Ui
 class Window;
 }
 
+namespace Kiran
+{
+namespace Calendar
+{
 class Window : public QDialog
 {
     Q_OBJECT
@@ -61,3 +65,5 @@ private:
     int m_currentYear;
     int m_currentMonth;
 };
+}  // namespace Calendar
+}  // namespace Kiran

@@ -16,6 +16,7 @@
 #include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QCoreApplication>
+#include <QGridLayout>
 #include <QPainter>
 #include <QPixmap>
 #include <QRect>
@@ -23,6 +24,7 @@
 
 #include "applet.h"
 #include "ks-config.h"
+#include "lib/common/define.h"
 #include "window.h"
 
 namespace Kiran
@@ -30,8 +32,7 @@ namespace Kiran
 namespace Workspace
 {
 Applet::Applet(IAppletImport *import)
-    : AppletButton(import),
-      m_import(import)
+    : m_import(import)
 {
     static QTranslator translator;
     if (!translator.load(QLocale(), "workspace", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
@@ -44,11 +45,23 @@ Applet::Applet(IAppletImport *import)
     }
 
     m_window = new Window();
+    connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
 
-    connect(this, &QAbstractButton::clicked, this, &Applet::clickButton);
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
 
-    setIconFromTheme(KS_ICON_WORKSPACE_SWITCHER);
+    m_appletButton = new StyledButton(this);
+    int iconSize = size - BUTTON_BLANK_SPACE * 2;
+    m_appletButton->setIconSize(QSize(24, 24));
+
+    connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
+    m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
     setToolTip(tr("Workspace switcher"));
+
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setMargin(4);
+    layout->setSpacing(0);
+    layout->addWidget(m_appletButton);
 }
 
 Applet::~Applet()
@@ -64,48 +77,17 @@ void Applet::clickButton(bool checked)
 {
     if (checked)
     {
-        updateWindowPosition();
         m_window->show();
-    }
-    else
-    {
-        m_window->hide();
+        // 防止再次点击,当窗口隐藏时,解除禁用
+        m_appletButton->setEnabled(false);
     }
 }
 
-void Applet::hideMenu()
+void Applet::hideWindow()
 {
     m_window->hide();
-    setChecked(false);
-}
-
-void Applet::updateWindowPosition()
-{
-    auto oriention = m_import->getPanel()->getOrientation();
-    auto appletGeometry = geometry();
-    auto windowSize = m_window->frameSize();
-    QPoint windowPosition(0, 0);
-
-    switch (oriention)
-    {
-    case PanelOrientation::PANEL_ORIENTATION_TOP:
-        windowPosition = appletGeometry.bottomLeft();
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        windowPosition = appletGeometry.topLeft() -= QPoint(windowSize.width(), 0);
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_BOTTOM:
-        windowPosition = appletGeometry.topLeft() -= QPoint(0, windowSize.height());
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        windowPosition = appletGeometry.topRight();
-        break;
-    default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
-        break;
-    }
-
-    m_window->move(mapToGlobal(windowPosition));
+    m_appletButton->setEnabled(true);
+    m_appletButton->setChecked(false);
 }
 
 }  // namespace Workspace

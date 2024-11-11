@@ -28,6 +28,7 @@
 #include "ks-config.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 
 namespace Kiran
 {
@@ -49,50 +50,22 @@ Applet::Applet(IAppletImport *import)
     //最大化
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    m_appButtonContainer = new AppButtonContainer(m_import, this);
+    m_window = new Window(m_import, this);
 
     QGridLayout *gridLayout = new QGridLayout(this);
     gridLayout->setMargin(0);
     gridLayout->setSpacing(0);
-    gridLayout->addWidget(m_appButtonContainer);
+    gridLayout->addWidget(m_window);
 
-    connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &Applet::addWindow);
-    connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &Applet::removeWindow);
-    connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &Applet::changedActiveWindow);
-    connect(KWindowSystem::self(),
-            QOverload<WId, NET::Properties, NET::Properties2>::of(
-                &KWindowSystem::windowChanged),
-            m_appButtonContainer,
-            &AppButtonContainer::windowChanged);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowAdded, this, &Applet::windowAdded);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &Applet::windowRemoved);
+    connect(&WindowManagerInstance, &Common::WindowManager::activeWindowChanged, this, &Applet::activeWindowChanged);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged,
+            m_window, &Window::windowChanged);
 }
 
 Applet::~Applet()
 {
-}
-
-void Applet::addWindow(WId wid)
-{
-    //    if (KWindowSystem::isPlatformX11())
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        emit windowAdded(wid);
-    }
-}
-
-void Applet::removeWindow(WId wid)
-{
-    // 不需要判断 SkipTaskbar，窗口已经不存在
-    emit windowRemoved(wid);
-}
-
-void Applet::changedActiveWindow(WId wid)
-{
-    //    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    //    {
-    //        emit activeWindowChanged(wid);
-    //    }
-    //    KLOG_INFO() << "Applet::changedActiveWindow" << wid;
-    emit activeWindowChanged(wid);
 }
 
 }  // namespace Taskbar

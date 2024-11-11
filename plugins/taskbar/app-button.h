@@ -27,7 +27,7 @@ class IAppletImport;
 
 namespace Taskbar
 {
-class AppButtonContainer;
+class Window;
 class AppButton : public StyledButton
 {
     Q_OBJECT

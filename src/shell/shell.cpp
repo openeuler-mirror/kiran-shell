@@ -12,11 +12,13 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "shell.h"
 #include <QGlobalStatic>
 #include <QScopedPointer>
+
+#include "lib/common/window-manager.h"
 #include "panel.h"
 #include "profile/profile.h"
+#include "shell.h"
 
 namespace Kiran
 {
@@ -43,6 +45,9 @@ Shell::Shell()
 
 void Shell::init()
 {
+    // 窗口管理单例初始化,工作区 任务栏需要
+    WindowManagerInit;
+
     auto profilePanels = Profile::getInstance()->getPanels();
 
     for (const auto& profilePanel : profilePanels)

@@ -14,13 +14,23 @@
 
 #pragma once
 
-#include <QDir>
+#include <QObject>
 
-#define BUTTON_BLANK_SPACE 6
+#include "lib/widgets/styled-button.h"
 
-// 配置文件 及其字段
-#define KIRAN_SHELL_SETTING_FILE QDir::homePath() + "/.config/kiran-shell/kiran-shell.ini"
-#define MENU_NEW_APP "menu/newApp"
-#define TASKBAR_SHOW_APP_BTN_TAIL_KEY "taskbar/showAppBtnTail"
-#define TASKBAR_LOCK_APP_KEY "taskbar/lockApp"
-#define SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY "systemtray/trayBoxItems"
+namespace Kiran
+{
+namespace Workspace
+{
+// 创建工作区按钮的重绘
+class WorkspaceAddBtn : public StyledButton
+{
+    Q_OBJECT
+public:
+    WorkspaceAddBtn(QWidget *parent = nullptr);
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+};
+}  // namespace Workspace
+}  // namespace Kiran

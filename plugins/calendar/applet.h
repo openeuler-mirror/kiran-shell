@@ -19,7 +19,6 @@
 #include <plugin-i.h>
 #include <QPushButton>
 
-class Window;
 class QDBusInterface;
 class QTimer;
 class StyledButton;
@@ -28,6 +27,7 @@ namespace Kiran
 {
 namespace Calendar
 {
+class Window;
 class CalendarButton;
 
 class Applet : public KiranColorBlock

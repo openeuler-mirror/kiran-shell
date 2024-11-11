@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -89,23 +89,25 @@ void Window::init()
 
     initQuickStart();
 
-    //事件过滤器
+    // 事件过滤器
     installEventFilter(this);
 }
 
 void Window::initUI()
 {
+    m_ui->m_btnAppsOverview->setIcon(QIcon::fromTheme(KS_ICON_MENU_APPS_LIST_SYMBOLIC));
+
     m_ui->m_gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_ui->m_gridLayoutFavoriteApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
-    //收藏夹图标
+    // 收藏夹图标
     m_ui->m_btnFavoriteAppIcon->setFlat(true);
     m_ui->m_btnFavoriteAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-    //常用应用图标
+    // 常用应用图标
     m_ui->m_btnPopularAppIcon->setFlat(true);
     m_ui->m_btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
 
-    //应用列表和文件列表切换
+    // 应用列表和文件列表切换
     QButtonGroup *overviewSelections = new QButtonGroup(this);
     overviewSelections->addButton(m_ui->m_btnAppsOverview, 0);
     overviewSelections->addButton(m_ui->m_btnRecentFilesOverview, 1);
@@ -136,7 +138,7 @@ void Window::initUI()
 
 void Window::initActivitiesStats()
 {
-    //收藏夹及常用应用服务
+    // 收藏夹及常用应用服务
     while (m_activitiesConsumer->serviceStatus() == KActivities::Consumer::Unknown)
     {
         QCoreApplication::processEvents();
@@ -147,14 +149,14 @@ void Window::initActivitiesStats()
     //    KLOG_INFO() << activities->runningActivities();
     //    KLOG_INFO() << activities->currentActivity();
 
-    //收藏夹监视
+    // 收藏夹监视
     m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultScoreUpdated, this, &Window::updateFavorite);
     updateFavorite();
 
-    //常用应用监视
+    // 常用应用监视
     m_actStatsUsedWatcher = new ResultWatcher(UsedResources | Agent::global() | Type::any() | Activity::any(), this);
     connect(m_actStatsUsedWatcher, &ResultWatcher::resultLinked, this, &Window::updatePopular);
     connect(m_actStatsUsedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updatePopular);
@@ -166,7 +168,7 @@ void Window::initUserInfo()
 {
     m_ui->m_btnUserPhoto->setFlat(true);
 
-    //用户名、头像
+    // 用户名、头像
     try
     {
         m_accountProxy = new QDBusInterface(KIRAN_ACCOUNTS_BUS,
@@ -205,7 +207,7 @@ void Window::initUserInfo()
 
     updateUserInfo();
 
-    //点击头像
+    // 点击头像
     connect(m_ui->m_btnUserPhoto, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("kiran-control-panel", {"-c", "account-management"});
@@ -214,8 +216,8 @@ void Window::initUserInfo()
 
 void Window::initQuickStart()
 {
-    //快速启动
-    //TODO: mate相关的需要更改成自研
+    // 快速启动
+    // TODO: mate相关的需要更改成自研
 
     connect(m_ui->m_btnRunCommand, &QPushButton::clicked, this, [=]()
             {
@@ -238,7 +240,7 @@ void Window::initQuickStart()
                 QProcess::startDetached("mate-system-monitor", {});
             });
 
-    //电源选项
+    // 电源选项
     auto power = Power::getDefault();
     connect(m_ui->m_btnPower, &QPushButton::clicked, this, [=]()
             {
@@ -246,7 +248,7 @@ void Window::initQuickStart()
 
                 if (power->canLockScreen())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC), tr("Lock screen"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC).pixmap(16, 16), tr("Lock screen"), this, [=]()
                                          {
                                              power->lockScreen();
                                          });
@@ -267,7 +269,7 @@ void Window::initQuickStart()
                                              if (power->getGraphicalNtvs() >= power->getNtvsTotal())
                                              {
                                                  KLOG_DEBUG("Total ntvs: %d, graphical ntvs: %d.", power->getNtvsTotal(), power->getGraphicalNtvs());
-                                                 //TODO: 弹窗提示，已达最大用户数
+                                                 // TODO: 弹窗提示，已达最大用户数
                                              }
                                              else
                                              {
@@ -347,12 +349,12 @@ void Window::runApp(QString appId)
     if (service)
     {
         KLOG_INFO() << appId << service->exec();
-        //启动应用
-        // QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
+        // 启动应用
+        //  QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
         auto *job = new KIO::ApplicationLauncherJob(service);
         job->start();
 
-        //通知kactivitymanagerd
+        // 通知kactivitymanagerd
         KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
 
         SettingProcess::removeValueFromKey(MENU_NEW_APP, appId);
@@ -480,7 +482,7 @@ void Window::updateFavorite()
     int rowIndex = 0;
     int colIndex = 0;
 
-    //获取收藏夹数据
+    // 获取收藏夹数据
     const auto query = LinkedResources | Agent::global() | Type::any() | Activity::any();
 
     for (const ResultSet::Result &result : ResultSet(query))
@@ -512,7 +514,7 @@ void Window::userInfoChanged(QDBusMessage msg)
 
 bool Window::eventFilter(QObject *object, QEvent *event)
 {
-    //window was deactivated
+    // window was deactivated
     if (QEvent::WindowDeactivate == event->type())
     {
         emit windowDeactivated();
@@ -523,7 +525,7 @@ bool Window::eventFilter(QObject *object, QEvent *event)
 
 void Window::showEvent(QShowEvent *event)
 {
-    //任务栏不显示
+    // 任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
 }
 

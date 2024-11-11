@@ -12,8 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#ifndef APPITEM_H
-#define APPITEM_H
+#pragma once
 
 #include <QAction>
 
@@ -59,5 +58,3 @@ private:
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint m_pressPoint;
 };
-
-#endif  // APPITEM_H

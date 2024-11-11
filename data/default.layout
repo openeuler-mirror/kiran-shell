@@ -11,6 +11,12 @@ id=menu
 panel=top
 position=0
 
+[Applet workspace]
+type=plugin
+id=workspace
+panel=top
+position=1
+
 [Applet taskbar]
 type=plugin
 id=taskbar
