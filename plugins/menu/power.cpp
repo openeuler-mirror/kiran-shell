@@ -34,7 +34,7 @@
 
 #define DBUS_PROXY_TIMEOUT_MSEC 300
 
-#define STARTMENU_LOCKDOWN_SCHEMA_ID "com.kylinsec.kiran.startmenu.lockdown"
+#define STARTMENU_LOCKDOWN_SCHEMA_ID "com.kylinsec.kiran.shell.lockdown"
 #define STARTMENU_LOCKDOWN_KEY_DISABLE_LOCK_SCREEN "disable-lock-screen"
 #define STARTMENU_LOCKDOWN_KEY_DISABLE_USER_SWITCHING "disable-user-switching"
 #define STARTMENU_LOCKDOWN_KEY_DISABLE_LOG_OUT "disable-log-out"
@@ -65,7 +65,7 @@ Power::Power(QObject *parent)
     {
         KLOG_WARNING() << "new QGSettings failed:" << STARTMENU_LOCKDOWN_SCHEMA_ID;
     }
-    //电源选项D-Bus
+    // 电源选项D-Bus
     try
     {
         m_login1Proxy = new QDBusInterface(LOGIN_MANAGER_DBUS,
@@ -204,7 +204,7 @@ bool Power::canSuspend()
     QDBusMessage msg = m_login1Proxy->call("CanSuspend");
     if (QDBusMessage::ErrorMessage == msg.type())
     {
-        //如果获取失败，就假设其可以待机，由待机操作调用时做检查
+        // 如果获取失败，就假设其可以待机，由待机操作调用时做检查
         KLOG_WARNING() << msg;
         return true;
     }
@@ -221,7 +221,7 @@ bool Power::canHibernate()
     QDBusMessage msg = m_login1Proxy->call("CanHibernate");
     if (QDBusMessage::ErrorMessage == msg.type())
     {
-        //如果获取失败，就假设其可以休眠，由休眠操作调用时做检查
+        // 如果获取失败，就假设其可以休眠，由休眠操作调用时做检查
         KLOG_WARNING() << msg;
         return true;
     }
@@ -238,7 +238,7 @@ bool Power::canShutdown()
     QDBusMessage msg = m_login1Proxy->call("CanPowerOff");
     if (QDBusMessage::ErrorMessage == msg.type())
     {
-        //如果获取失败，就假设其可以关机，由关机操作调用时做检查
+        // 如果获取失败，就假设其可以关机，由关机操作调用时做检查
         KLOG_WARNING() << msg;
         return true;
     }
@@ -255,7 +255,7 @@ bool Power::canReboot()
     QDBusMessage msg = m_login1Proxy->call("CanReboot");
     if (QDBusMessage::ErrorMessage == msg.type())
     {
-        //如果获取失败，就假设其可以重启，由重启操作调用时做检查
+        // 如果获取失败，就假设其可以重启，由重启操作调用时做检查
         KLOG_WARNING() << msg;
         return true;
     }

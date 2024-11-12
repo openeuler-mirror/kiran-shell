@@ -55,6 +55,11 @@ Panel *Applet::getPanel()
     return this->m_panel;
 }
 
+QString Applet::getID()
+{
+    return m_profileApplet->getID();
+}
+
 void Applet::init()
 {
     auto appletID = this->m_profileApplet->getID();

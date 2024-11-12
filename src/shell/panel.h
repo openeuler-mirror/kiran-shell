@@ -16,6 +16,7 @@
 
 #include <plugin-i.h>
 #include <QBoxLayout>
+#include <QGSettings>
 #include <QWidget>
 
 class QFrame;
@@ -24,6 +25,7 @@ namespace Kiran
 {
 class ProfilePanel;
 class ProfileApplet;
+class Applet;
 
 class Panel : public QWidget, public IPanel
 {
@@ -55,13 +57,24 @@ private:
     void updateLayout();
     QBoxLayout::Direction getLayoutDirection();
 
+    void shellSettingChanged(const QString& key);
+    void updatePersonalityMode();
+
 signals:
     void panelProfileChanged() Q_DECL_OVERRIDE;
 
 private:
     ProfilePanel* m_profilePanel;  //面板配置
     QBoxLayout* m_appletsLayout;
+    QGSettings* m_shellGsettings;
+
+    QList<Applet*> m_applets;
 
     QList<QFrame*> m_lineFrame;
+
+    // 显示模式相关
+    bool m_isPersonalityMode;
+    int m_layoutMargin;
+    int m_radius;
 };
 }  // namespace Kiran
