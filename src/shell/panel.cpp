@@ -38,16 +38,24 @@
 #include "profile/profile.h"
 #include "utils.h"
 
-#define LAYOUT_MARGIN 4
-#define RADIUS 4
+#define PERSONALITY_MODE_LAYOUT_MARGIN 4
+#define PERSONALITY_MODE_RADIUS 4
+
+#define SHELL_SCHEMA_ID "com.kylinsec.kiran.shell"
+#define SHELL_SCHEMA_KEY_PERSONALITY_MODE "enablePersonalityMode"
 
 namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
-    : QWidget(nullptr, Qt::FramelessWindowHint), m_profilePanel(profilePanel)
+    : QWidget(nullptr, Qt::FramelessWindowHint),
+      m_profilePanel(profilePanel),
+      m_shellGsettings(nullptr),
+      m_isPersonalityMode(false),
+      m_layoutMargin(0),
+      m_radius(0)
 {
     setAttribute(Qt::WA_X11NetWmWindowTypeDock);
-    setAttribute(Qt::WA_TranslucentBackground);  // 透明
+    setAttribute(Qt::WA_TranslucentBackground, true);  // 透明
 
     init();
 }
@@ -130,8 +138,6 @@ void Panel::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-#if 1
-    // 绘制头尾圆角
     QColor bgColor = palette->getBaseColors().baseBackground;
     bgColor = palette->getColor(Kiran::Theme::Palette::ACTIVE,
                                 Kiran::Theme::Palette::WINDOW);
@@ -141,27 +147,36 @@ void Panel::paintEvent(QPaintEvent *event)
 
     QRectF rect = this->rect();
 
-    int orientation = getOrientation();
-    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    if (!m_isPersonalityMode)
     {
-        rect.adjust(RADIUS, RADIUS, -width() + 100, -RADIUS);
-        painter.drawRoundedRect(rect, RADIUS, RADIUS);
-
-        rect = this->rect();
-        rect.adjust(width() - 100, RADIUS, -RADIUS, -RADIUS);
-        painter.drawRoundedRect(rect, RADIUS, RADIUS);
+        // 非个性模式，直接绘制背景
+        painter.drawRect(rect);
     }
     else
     {
-        rect.adjust(RADIUS, RADIUS, -RADIUS, -height() + 100);
-        painter.drawRoundedRect(rect, RADIUS, RADIUS);
+        // 个性模式，绘制头尾圆角
+        int orientation = getOrientation();
+        if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+            orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+        {
+            rect.adjust(m_radius, m_radius, -width() + 100, -m_radius);
+            painter.drawRoundedRect(rect, m_radius, m_radius);
 
-        rect = this->rect();
-        rect.adjust(RADIUS, height() - 100, -RADIUS, -RADIUS);
-        painter.drawRoundedRect(rect, RADIUS, RADIUS);
+            rect = this->rect();
+            rect.adjust(width() - 100, m_radius, -m_radius, -m_radius);
+            painter.drawRoundedRect(rect, m_radius, m_radius);
+        }
+        else
+        {
+            rect.adjust(m_radius, m_radius, -m_radius, -height() + 100);
+            painter.drawRoundedRect(rect, m_radius, m_radius);
+
+            rect = this->rect();
+            rect.adjust(m_radius, height() - 100, -m_radius, -m_radius);
+            painter.drawRoundedRect(rect, m_radius, m_radius);
+        }
     }
-#endif
+
     QWidget::paintEvent(event);
 }
 
@@ -178,7 +193,23 @@ void Panel::init()
     connect(m_profilePanel, &ProfilePanel::orientationChanged, this,
             &Panel::updateLayout);
 
+    try
+    {
+        m_shellGsettings = new QGSettings(SHELL_SCHEMA_ID);
+    }
+    catch (...)
+    {
+        KLOG_WARNING() << "new QGSettings failed:" << SHELL_SCHEMA_ID;
+    }
+    if (m_shellGsettings)
+    {
+        connect(m_shellGsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
+    }
+
     initChildren();
+
+    updatePersonalityMode();
+
     updateLayout();
     show();
 }
@@ -197,16 +228,15 @@ void Panel::initChildren()
         auto applet = new Applet(profileApplet, this);
 
         m_appletsLayout->addWidget(applet);
-#if 1
-        if (i + 1 < profileApplets.size() && "spacer" != profileApplet->getID() &&
-            "spacer" != profileApplets.at(i + 1)->getID())
+        m_applets.append(applet);
+
+        if (i != profileApplets.size() - 1)
         {
             QFrame *line = new QFrame(this);
             line->setFrameShape(QFrame::VLine);
             m_appletsLayout->addWidget(line, 0, Qt::AlignCenter);
             m_lineFrame.append(line);
         }
-#endif
     }
 
     KLOG_DEBUG() << m_appletsLayout->geometry();
@@ -243,7 +273,6 @@ QString Panel::orientationEnum2Str(const int &orientation)
         return "left";
     default:
         return "bottom";
-        ;
     }
 }
 
@@ -276,7 +305,7 @@ void Panel::updateGeometry()
     //                << "screen geometry: " << showingScreen->geometry()
     //                << "panel size: " << getSize();
 
-    int panelSize = getSize() + LAYOUT_MARGIN * 2;  //宽或高
+    int panelSize = getSize() + m_layoutMargin * 2;  // 宽或高
     QRect rect;
     switch (orientation)
     {
@@ -343,8 +372,8 @@ void Panel::updateLayout()
         orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
     {
         // 多留一个LAYOUT_MARGIN距离，用于绘制头尾圆角
-        m_appletsLayout->setContentsMargins(LAYOUT_MARGIN + RADIUS, 0,
-                                            LAYOUT_MARGIN + RADIUS, 0);
+        m_appletsLayout->setContentsMargins(m_layoutMargin + m_radius, 0,
+                                            m_layoutMargin + m_radius, 0);
         for (auto line : m_lineFrame)
         {
             line->setFrameShape(QFrame::VLine);
@@ -353,8 +382,8 @@ void Panel::updateLayout()
     }
     else
     {
-        m_appletsLayout->setContentsMargins(0, LAYOUT_MARGIN + RADIUS, 0,
-                                            LAYOUT_MARGIN + RADIUS);
+        m_appletsLayout->setContentsMargins(0, m_layoutMargin + m_radius, 0,
+                                            m_layoutMargin + m_radius);
         for (auto line : m_lineFrame)
         {
             line->setFrameShape(QFrame::HLine);
@@ -364,7 +393,7 @@ void Panel::updateLayout()
 
     m_appletsLayout->activate();
 
-    //通知插件更新布局
+    // 通知插件更新布局
     emit panelProfileChanged();
 }
 
@@ -376,6 +405,60 @@ QBoxLayout::Direction Panel::getLayoutDirection()
                          ? QBoxLayout::Direction::LeftToRight
                          : QBoxLayout::Direction::TopToBottom;
     return direction;
+}
+
+void Panel::shellSettingChanged(const QString &key)
+{
+    if (SHELL_SCHEMA_KEY_PERSONALITY_MODE == key)
+    {
+        updatePersonalityMode();
+        updateLayout();
+    }
+}
+
+void Panel::updatePersonalityMode()
+{
+    m_isPersonalityMode = m_shellGsettings && m_shellGsettings->get(SHELL_SCHEMA_KEY_PERSONALITY_MODE).toBool();
+
+    if (m_isPersonalityMode)
+    {
+        m_radius = PERSONALITY_MODE_RADIUS;
+        m_layoutMargin = PERSONALITY_MODE_LAYOUT_MARGIN;
+    }
+    else
+    {
+        m_radius = 0;
+        m_layoutMargin = 0;
+    }
+
+    for (int i = 0; i < m_applets.size(); i++)
+    {
+        auto applet = m_applets.at(i);
+        bool isSpacer = "spacer" == applet->getID();
+
+        if (isSpacer)
+        {
+            applet->setVisible(m_isPersonalityMode);
+        }
+
+        // PersonalityMode模式下, 两个插件间没有spacer时,需要显示分割线
+        // 非PersonalityMode模式下, spacer前后分割线只显示一个,其他全显示
+        if (i >= m_lineFrame.size())
+        {
+            continue;  // m_lineFrame相比m_applets少创建了一个
+        }
+        if (m_isPersonalityMode)
+        {
+            bool showLine = i + 1 < m_applets.size() &&
+                            !isSpacer &&
+                            "spacer" != m_applets.at(i + 1)->getID();
+            m_lineFrame.at(i)->setVisible(showLine);
+        }
+        else
+        {
+            m_lineFrame.at(i)->setVisible(!isSpacer);
+        }
+    }
 }
 
 }  // namespace Kiran

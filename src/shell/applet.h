@@ -47,6 +47,7 @@ public:
 
 public:
     Panel *getPanel();
+    QString getID();
 
 private:
     void init();

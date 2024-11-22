@@ -36,8 +36,8 @@ target_link_libraries(
           KF5::Service
           KF5::CoreAddons
           KF5::ConfigCore
-          ${KIRAN_STYLE_HELPER_LIBRARIES}
-          kiran-integration-theme
+#          ${KIRAN_STYLE_HELPER_LIBRARIES}
+#          kiran-integration-theme
           common)
 
 install(FILES kiran-shelld.desktop DESTINATION "/etc/xdg/autostart/")

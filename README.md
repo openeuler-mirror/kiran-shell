@@ -14,6 +14,7 @@
   * kiran-widgets-qt5-devel
   * kiran-log-qt5-devel
   * xcb-util-image-devel
+  * libXtst-devel
 
 ## 编译安装
 ```
@@ -26,7 +27,6 @@
 
 ## 运行依赖
   * kactivitymanagerd
-  * xembedsniproxy
 
 ## 运行
 ```

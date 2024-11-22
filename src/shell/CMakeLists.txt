@@ -35,7 +35,6 @@ target_link_libraries(
           Qt5::Widgets
           Qt5::DBus
           KF5::WindowSystem
-          ${KIRAN_STYLE_HELPER_LIBRARIES}
           kiran-integration-theme
           common)
 

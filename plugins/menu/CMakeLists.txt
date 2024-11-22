@@ -35,7 +35,6 @@ target_include_directories(
 target_link_libraries(
   ${TARGET_NAME}
   PRIVATE ${KLOG_QT5_LIBRARIES}
-          ${KIRAN_STYLE_HELPER_LIBRARIES}
           ${KIRAN_WIDGETS_QT5_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
           Qt5::Widgets
