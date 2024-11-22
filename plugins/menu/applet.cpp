@@ -53,7 +53,7 @@ Applet::Applet(IAppletImport *import)
     setFixedSize(size, size);
 
     m_appletButton = new StyledButton(this);
-    int iconSize = size - BUTTON_BLANK_SPACE * 2;
+    //int iconSize = size - BUTTON_BLANK_SPACE * 2;
     //    m_appletButton->setIconSize(QSize(iconSize, iconSize));
     m_appletButton->setIconSize(QSize(24, 24));
 
@@ -68,7 +68,7 @@ Applet::Applet(IAppletImport *import)
     layout->addWidget(m_appletButton);
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
     updateLayout();
 }
 
