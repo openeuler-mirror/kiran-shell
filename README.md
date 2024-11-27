@@ -3,6 +3,7 @@
 
 ## 编译环境要求
   * cmake >= 3.0
+  * extra-cmake-modules
   * gcc-c++ >= 4.8
   * kf5-kwindowsystem-devel >= 5.95
   * kf5-kservice-devel
@@ -15,6 +16,7 @@
   * kiran-log-qt5-devel
   * xcb-util-image-devel
   * libXtst-devel
+  * qt5-qtx11extras-devel
 
 ## 编译安装
 ```
