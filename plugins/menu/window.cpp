@@ -66,8 +66,7 @@ Window::Window(QWidget *parent)
       m_activitiesConsumer(new KActivities::Consumer()),
       m_accountProxy(nullptr),
       m_accountUserProxy(nullptr),
-      m_actStatsLinkedWatcher(nullptr),
-      m_actStatsUsedWatcher(nullptr)
+      m_actStatsWatcher(nullptr)
 {
     m_ui->setupUi(this);
 
@@ -141,6 +140,8 @@ void Window::initActivitiesStats()
     // 收藏夹及常用应用服务
     while (m_activitiesConsumer->serviceStatus() == KActivities::Consumer::Unknown)
     {
+        // 等待dbus-daemon拉起 kactivitymanagerd
+        // kactivitymanagerd 服务位于 /usr/share/dbus-1/services/org.kde.ActivityManager.service
         QCoreApplication::processEvents();
     }
 
@@ -150,17 +151,11 @@ void Window::initActivitiesStats()
     //    KLOG_INFO() << activities->currentActivity();
 
     // 收藏夹监视
-    m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultScoreUpdated, this, &Window::updateFavorite);
+    m_actStatsWatcher = new ResultWatcher(AllResources | Agent::global() | Type::any() | Activity::any(), this);
+    connect(m_actStatsWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
+    connect(m_actStatsWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
+    // updatePopular 应该是可以使用 ResultWatcher::resultScoreUpdated 信号进行更新的，但实际测试时发现无法更新，现使用 showEvent 进行更新
     updateFavorite();
-
-    // 常用应用监视
-    m_actStatsUsedWatcher = new ResultWatcher(UsedResources | Agent::global() | Type::any() | Activity::any(), this);
-    connect(m_actStatsUsedWatcher, &ResultWatcher::resultLinked, this, &Window::updatePopular);
-    connect(m_actStatsUsedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updatePopular);
-    connect(m_actStatsUsedWatcher, &ResultWatcher::resultScoreUpdated, this, &Window::updatePopular);
     updatePopular();
 }
 
@@ -248,7 +243,7 @@ void Window::initQuickStart()
 
                 if (power->canLockScreen())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC).pixmap(16, 16), tr("Lock screen"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_MENU_LOCK_SYMBOLIC).pixmap(12, 12), tr("Lock screen"), this, [=]()
                                          {
                                              power->lockScreen();
                                          });
@@ -256,7 +251,7 @@ void Window::initQuickStart()
 
                 if (power->canLogout())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_LOGOUT), tr("Logout"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_LOGOUT).pixmap(12, 12), tr("Logout"), this, [=]()
                                          {
                                              power->logout();
                                          });
@@ -264,7 +259,7 @@ void Window::initQuickStart()
 
                 if (power->canSwitchUser())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SWITCH_USER), tr("Switch user"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SWITCH_USER).pixmap(12, 12), tr("Switch user"), this, [=]()
                                          {
                                              if (power->getGraphicalNtvs() >= power->getNtvsTotal())
                                              {
@@ -280,7 +275,7 @@ void Window::initQuickStart()
 
                 if (power->canSuspend())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SUSPEND), tr("Suspend"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SUSPEND).pixmap(12, 12), tr("Suspend"), this, [=]()
                                          {
                                              power->suspend();
                                          });
@@ -288,7 +283,7 @@ void Window::initQuickStart()
 
                 if (power->canHibernate())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_HIBERNATE), tr("Hibernate"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_HIBERNATE).pixmap(12, 12), tr("Hibernate"), this, [=]()
                                          {
                                              power->hibernate();
                                          });
@@ -296,7 +291,7 @@ void Window::initQuickStart()
 
                 if (power->canReboot())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_REBOOT), tr("Reboot"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_REBOOT).pixmap(12, 12), tr("Reboot"), this, [=]()
                                          {
                                              power->reboot();
                                          });
@@ -304,7 +299,7 @@ void Window::initQuickStart()
 
                 if (power->canShutdown())
                 {
-                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SHUTDOWN), tr("Shutdown"), this, [=]()
+                    power_menu.addAction(QIcon::fromTheme(KS_ICON_POWER_SHUTDOWN).pixmap(12, 12), tr("Shutdown"), this, [=]()
                                          {
                                              power->shutdown();
                                          });
@@ -378,13 +373,13 @@ void Window::addToFavorite(const QString &appId)
 {
     QString appIdTemp = QLatin1String("applications:") + appId;
     KLOG_WARNING() << "addToFavorite" << appIdTemp;
-    m_actStatsLinkedWatcher->linkToActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
+    m_actStatsWatcher->linkToActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
 void Window::removeFromFavorite(const QString &appId)
 {
     QString appIdTemp = QLatin1String("applications:") + appId;
-    m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
+    m_actStatsWatcher->unlinkFromActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
 void Window::isInTasklist(const QUrl &url, bool &checkResult)
@@ -527,6 +522,9 @@ void Window::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+
+    // 更新常用应用列表
+    updatePopular();
 }
 
 void Window::keyPressEvent(QKeyEvent *event)

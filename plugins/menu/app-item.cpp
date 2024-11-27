@@ -30,7 +30,6 @@ AppItem::AppItem(QWidget *parent)
 {
     setFixedSize(90, 90);
     setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-
     setCheckable(false);
 }
 
@@ -66,6 +65,12 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu;
     bool check_result = false;
 
+    KService::Ptr s = KService::serviceByMenuId(m_appId);
+    if (!s)
+    {
+        return;  // 无效的 m_appId
+    }
+
     menu.addAction(tr("Run app"), this, [=]()
                    {
                        emit runApp(m_appId);
@@ -91,16 +96,12 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
                        });
     }
 
-    check_result = false;
-    KService::Ptr s = KService::serviceByMenuId(m_appId);
     QUrl url = QUrl::fromLocalFile(s->entryPath());
     emit isInTasklist(url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this, [=]()
                        {
-                           KService::Ptr s = KService::serviceByMenuId(m_appId);
-                           QUrl url = QUrl::fromLocalFile(s->entryPath());
                            emit addToTasklist(url);
                        });
     }
@@ -108,8 +109,6 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     {
         menu.addAction(tr("Remove from tasklist"), this, [=]()
                        {
-                           KService::Ptr s = KService::serviceByMenuId(m_appId);
-                           QUrl url = QUrl::fromLocalFile(s->entryPath());
                            emit removeFromTasklist(url);
                        });
     }
@@ -133,7 +132,7 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
                                              auto *job = new KIO::ApplicationLauncherJob(serviceAction);
                                              job->start();
 
-                                             //通知kactivitymanagerd
+                                             // 通知kactivitymanagerd
                                              KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
                                          });
         if (serviceAction.isSeparator())
@@ -174,9 +173,17 @@ void AppItem::mouseMoveEvent(QMouseEvent *event)
             return;
         }
 
+        KService::Ptr s = KService::serviceByMenuId(m_appId);
+        if (!s)
+        {
+            KLOG_WARNING() << "Invalid service for app ID:" << m_appId;
+            return;
+        }
+
+        // The QDrag must be constructed on the heap with a parent QObject to ensure that Qt can clean up after the drag and drop operation has been completed.
+        // The QMimeData and QDrag objects created by the source widget should not be deleted - they will be destroyed by Qt
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
-        KService::Ptr s = KService::serviceByMenuId(m_appId);
         QByteArray data = QUrl::fromLocalFile(s->entryPath()).toString().toLocal8Bit();
         mimeData->setData("text/uri-list", data);
         drag->setMimeData(mimeData);
