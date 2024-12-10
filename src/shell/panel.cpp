@@ -20,20 +20,24 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDesktopWidget>
+#include <QEvent>
 #include <QFile>
 #include <QFrame>
+#include <QGSettings>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScopedPointer>
 #include <QScreen>
 #include <QSettings>
+#include <QTimer>
 
 #include "applet.h"
 #include "ks-config.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
+#include "lib/common/window-info-helper.h"
 #include "panel.h"
 #include "profile/profile.h"
 #include "utils.h"
@@ -43,6 +47,7 @@
 
 #define SHELL_SCHEMA_ID "com.kylinsec.kiran.shell"
 #define SHELL_SCHEMA_KEY_PERSONALITY_MODE "enablePersonalityMode"
+#define SHELL_SCHEMA_KEY_AUTO_HIDE "enableAutoHide"
 
 namespace Kiran
 {
@@ -52,7 +57,10 @@ Panel::Panel(ProfilePanel *profilePanel)
       m_shellGsettings(nullptr),
       m_isPersonalityMode(false),
       m_layoutMargin(0),
-      m_radius(0)
+      m_radius(0),
+      m_menu(nullptr),
+      m_isAutoHide(false),
+      m_isFullShow(false)
 {
     setAttribute(Qt::WA_X11NetWmWindowTypeDock);
     setAttribute(Qt::WA_TranslucentBackground, true);  // 透明
@@ -77,10 +85,10 @@ int Panel::getOrientation()
 
 void Panel::contextMenuEvent(QContextMenuEvent *event)
 {
-    QMenu menu0;
+    m_menu->clear();
 
     {
-        QMenu *menuLevel1 = menu0.addMenu(tr("Position"));
+        QMenu *menuLevel1 = m_menu->addMenu(tr("Position"));
         QAction *actTop = menuLevel1->addAction(tr("Top"));
         QAction *actBottom = menuLevel1->addAction(tr("Bottom"));
         QAction *actLeft = menuLevel1->addAction(tr("Left"));
@@ -90,7 +98,7 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
         actLeft->setCheckable(true);
         actRight->setCheckable(true);
 
-        QActionGroup *menuLevel1Group = new QActionGroup(&menu0);
+        QActionGroup *menuLevel1Group = new QActionGroup(m_menu);
         menuLevel1Group->addAction(actTop);
         menuLevel1Group->addAction(actRight);
         menuLevel1Group->addAction(actBottom);
@@ -118,7 +126,7 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
     }
 
     {
-        QAction *act = menu0.addAction(tr("Show application name"));
+        QAction *act = m_menu->addAction(tr("Show application name"));
         act->setCheckable(true);
         act->setChecked(
             SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool());
@@ -128,7 +136,7 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
                 });
     }
 
-    menu0.exec(mapToGlobal(event->pos()));
+    m_menu->exec(mapToGlobal(event->pos()));
 }
 
 void Panel::paintEvent(QPaintEvent *event)
@@ -180,6 +188,32 @@ void Panel::paintEvent(QPaintEvent *event)
     QWidget::paintEvent(event);
 }
 
+void Panel::enterEvent(QEvent *event)
+{
+    if (m_isAutoHide && !m_isFullShow)
+    {
+        m_leaveDetectTimer->stop();
+        updateGeometry();  // 按配置的大小显示
+    }
+
+    QWidget::enterEvent(event);
+}
+
+void Panel::leaveEvent(QEvent *event)
+{
+    if (m_isAutoHide)
+    {
+        // 这里不能直接隐藏
+        // 考虑情况如下：
+        // 1. 右键菜单或子窗口显示也会触发 QEvent::Leave
+        // 2. 鼠标从子窗口离开，不会触发这里的 QEvent::Leave
+        // 处理措施：鼠标离开面板后，使用定时器，周期性检测鼠标是否还在面板或子控件上，如果不在了才隐藏面板
+        m_leaveDetectTimer->start();
+    }
+
+    QWidget::leaveEvent(event);
+}
+
 void Panel::init()
 {
     // 分辨率变化
@@ -211,6 +245,28 @@ void Panel::init()
     updatePersonalityMode();
 
     updateLayout();
+
+    m_menu = new QMenu(this);
+
+    m_leaveDetectTimer = new QTimer(this);
+    m_leaveDetectTimer->setInterval(500);
+    connect(m_leaveDetectTimer, &QTimer::timeout, this, [this]()
+            {
+                // 检查鼠标是否仍在窗口或其子窗口上，处理右键菜单和子窗口
+                bool result = isMouseInsideWidgetTree(this);
+
+                if (!result && !m_menu->isVisible())
+                {
+                    // 如果鼠标不在窗口内，则隐藏窗口或调整大小
+                    updateGeometry(1);  // 显示一个像素
+
+                    // 停止定时器
+                    m_leaveDetectTimer->stop();
+                }
+            });
+
+    updateAutoHide();
+
     show();
 }
 
@@ -296,8 +352,16 @@ QScreen *Panel::getScreen()
     return showingScreen;
 }
 
-void Panel::updateGeometry()
+void Panel::updateGeometry(int size)
 {
+    int panelSize = size;
+    m_isFullShow = false;
+    if (0 == panelSize)
+    {
+        panelSize = getSize() + m_layoutMargin * 2;  // 宽或高
+        m_isFullShow = true;
+    }
+
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
@@ -305,7 +369,6 @@ void Panel::updateGeometry()
     //                << "screen geometry: " << showingScreen->geometry()
     //                << "panel size: " << getSize();
 
-    int panelSize = getSize() + m_layoutMargin * 2;  // 宽或高
     QRect rect;
     switch (orientation)
     {
@@ -329,7 +392,7 @@ void Panel::updateGeometry()
                      showingScreen->geometry().width(), panelSize);
     }
 
-    KLOG_INFO() << "panel geometry:" << rect;
+    //    KLOG_INFO() << "panel geometry:" << rect;
     //    setGeometry(rect);
     move(rect.topLeft());
     setMinimumSize(rect.size());
@@ -364,7 +427,7 @@ void Panel::updateGeometry()
 
 void Panel::updateLayout()
 {
-    updateGeometry();
+    updateGeometry(m_isAutoHide);  // 配置更新，初始状态：开启自动隐藏->显示一个像素（int)true  未开启自动隐藏->按配置的大小显示（int)false = 0
 
     m_appletsLayout->setDirection(getLayoutDirection());
     int orientation = getOrientation();
@@ -413,6 +476,13 @@ void Panel::shellSettingChanged(const QString &key)
     {
         updatePersonalityMode();
         updateLayout();
+        return;
+    }
+
+    if (SHELL_SCHEMA_KEY_AUTO_HIDE == key)
+    {
+        updateAutoHide();
+        return;
     }
 }
 
@@ -459,6 +529,40 @@ void Panel::updatePersonalityMode()
             m_lineFrame.at(i)->setVisible(!isSpacer);
         }
     }
+}
+
+void Panel::updateAutoHide()
+{
+    m_isAutoHide = m_shellGsettings && m_shellGsettings->get(SHELL_SCHEMA_KEY_AUTO_HIDE).toBool();
+    updateGeometry(m_isAutoHide);  // 配置更新，初始状态：开启自动隐藏->显示一个像素（int)true = 1  未开启自动隐藏->按配置的大小显示（int)false = 0
+}
+
+bool Panel::isMouseInsideWidgetTree(QWidget *widget)
+{
+    // 获取当前控件的几何信息
+    QRect globalRect = QRect(
+        widget->mapToGlobal(widget->geometry().topLeft()),
+        widget->size());
+    // 判断当前控件的几何范围是否包含鼠标位置
+    if ((widget->isVisible() && globalRect.contains(QCursor::pos())) ||
+        // 激活了子窗口
+        (widget != this && WindowInfoHelper::isActived(widget->winId())))
+    {
+        return true;  // 如果当前控件包含鼠标位置，则返回 true
+    }
+
+    // 遍历当前控件的所有子控件
+    const auto children = widget->findChildren<QWidget *>();
+    for (QWidget *childWidget : children)
+    {
+        // 对每个子控件进行递归检查
+        if (isMouseInsideWidgetTree(childWidget))
+        {
+            return true;  // 如果某个子控件（或其子控件）包含鼠标位置，返回 true
+        }
+    }
+
+    return false;  // 如果没有控件包含鼠标位置，返回 false
 }
 
 }  // namespace Kiran

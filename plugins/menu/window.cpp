@@ -32,6 +32,7 @@
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
+#include <QDBusInterface>
 
 #include "app-item.h"
 #include "apps-overview.h"
@@ -60,7 +61,7 @@ namespace Kiran
 namespace Menu
 {
 Window::Window(QWidget *parent)
-    : QWidget(parent, Qt::FramelessWindowHint),
+    : QDialog(parent, Qt::FramelessWindowHint),
       m_ui(new Ui::Window),
       m_uid(getuid()),
       m_activitiesConsumer(new KActivities::Consumer()),

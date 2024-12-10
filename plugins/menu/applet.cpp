@@ -46,7 +46,7 @@ Applet::Applet(IAppletImport *import)
 
     //    setRadius(0);
 
-    m_window = new Window();
+    m_window = new Window(this);
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
     auto size = m_import->getPanel()->getSize();
@@ -74,11 +74,6 @@ Applet::Applet(IAppletImport *import)
 
 Applet::~Applet()
 {
-    if (m_window)
-    {
-        delete m_window;
-        m_window = nullptr;
-    }
 }
 
 void Applet::clickButton(bool checked)
