@@ -20,6 +20,12 @@
             <summary>Enable personality mode</summary>
             <description>Switch between normal mode and personality mode.</description>
         </key>
+
+        <key name="enable-auto-hide" type="b">
+            <default>false</default>
+            <summary>Enable auto hide</summary>
+            <description>Auto hide panel.</description>
+        </key>
     </schema>
 
     <schema id="com.kylinsec.kiran.shell.lockdown" path="/com/kylinsec/kiran/shell/lockdown/">

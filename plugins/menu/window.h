@@ -14,11 +14,8 @@
 
 #pragma once
 
-#include <QDBusInterface>
 #include <QDBusMessage>
-#include <QDBusReply>
-#include <QPushButton>
-#include <QWidget>
+#include <QDialog>
 
 #include <KActivities/KActivities/Consumer>
 #include <KActivities/KActivities/ResourceInstance>
@@ -37,12 +34,13 @@ class QButtonGroup;
 class QStackedWidget;
 class QToolButton;
 class AppItem;
+class QDBusInterface;
 
 namespace Kiran
 {
 namespace Menu
 {
-class Window : public QWidget
+class Window : public QDialog
 {
     Q_OBJECT
 

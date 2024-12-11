@@ -49,7 +49,7 @@ WindowPreviewer::~WindowPreviewer()
 
 bool WindowPreviewer::checkCanHide()
 {
-    return m_menu->isHidden();
+    return !m_menu->isVisible();
 }
 
 void WindowPreviewer::changedActiveWindow(WId wid)
