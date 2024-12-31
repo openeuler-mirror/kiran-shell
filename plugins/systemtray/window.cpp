@@ -112,13 +112,6 @@ Window::Window(IAppletImport *import, QWidget *parent)
         m_statusNotifierHostName);
 
     getRegisteredItems();
-
-    // 用于支持自研托盘应用左键
-    // FIXME:后续删除
-    // NOTE:只有第一个托盘会注册成功，用于获取托盘项坐标
-    // 放在这里才能访问到界面，不适合放在TrayServerInstance里，TrayServerInstance
-    // 是对应整个程序的
-    m_statusNotifierManager = new StatusNotifierManager(this);
 }
 
 Window::~Window()
@@ -425,12 +418,12 @@ void Window::dropEvent(QDropEvent *event)
 
 void Window::updateLayout()
 {
-    //横竖摆放
+    // 横竖摆放
     auto direction = getLayoutDirection();
     m_layoutBase->setDirection(direction);
     m_layout->setDirection(direction);
 
-    //子控件对齐方式：左右、上下
+    // 子控件对齐方式：左右、上下
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
     m_layoutBase->setAlignment(alignment);
