@@ -47,11 +47,11 @@ public:
         OVERLAY_ICON
     };
 
-    // 用于左键点击，获取位置，后续删除
-    QString getId();
+    //    // 用于左键点击，获取位置，后续删除
+    //    QString getId();
 
 public slots:
-    void updateIcon();
+    void updateBaseIcon();
     void updateAttentionIcon();
     void updateOverlayIcon();
     void updateToolTip();
@@ -65,6 +65,9 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
+    void performRefresh();
+    void refresh();
+
     void init();
     void getIcon(IconType iconType);
     // 叠加overlay icon
@@ -77,12 +80,21 @@ signals:
     void startDrag(TrayItem *);
 
 private:
+    bool m_isInit;
     // dbus路径
     QString m_service;
     QString m_objectPath;
 
     // dbus属性获取
     TrayItemProxy *m_trayItemProxy;
+
+    // 为什么要定时器去刷新数据：
+    // 此进程是服务端
+    // 其他应用发送注册信号RegisterStatusNotifierItem触发类的创建，此时该应用正在执行这个信号等待返回
+    // 如果马上调用其提供的接口，必然导致堵塞，结果无法返回，此时双方都在等待执行结果
+    // 等dbus接口超时后，才会正常
+    // 其他情况类似（如果对方需要等待信号的结果，而服务端在处理这个信号时调用了对方的接口）
+    QTimer *m_refreshTimer;
 
     // 状态
     Status m_status;
@@ -98,9 +110,9 @@ private:
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint m_pressPoint;
 
-    //为了兼容以前的自研程序（音量、网络）
-    //FIXME: 以前的自定义协议左键是按照写死的id去得到托盘按钮位置，无法支持多个面板
-    QString m_customId;
+    // 为了兼容以前的自研程序（音量、网络）
+    // FIXME: 以前的自定义协议左键是按照写死的id去得到托盘按钮位置，无法支持多个面板
+    //     QString m_customId;
 };
 }  // namespace Systemtray
 }  // namespace Kiran

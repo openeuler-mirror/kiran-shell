@@ -28,31 +28,31 @@ namespace Systemtray
 {
 TrayItem::TrayItem(QString service, QString objectPath, QWidget *parent)
     : StyledButton(parent),
-      m_dBusMenuImporter(nullptr)
+      m_dBusMenuImporter(nullptr),
+      m_isInit(false)
 {
     KLOG_INFO() << "TrayItem::TrayItem" << service << objectPath;
     m_service = service;
     m_objectPath = objectPath;
-    m_trayItemProxy = new TrayItemProxy(service, objectPath, this);
-    connect(m_trayItemProxy, &TrayItemProxy::updateIcon, this, &TrayItem::updateIcon);
-    connect(m_trayItemProxy, &TrayItemProxy::updateOverlayIcon, this, &TrayItem::updateOverlayIcon);
-    connect(m_trayItemProxy, &TrayItemProxy::updateAttentionIcon, this, &TrayItem::updateAttentionIcon);
-    connect(m_trayItemProxy, &TrayItemProxy::updateToolTip, this, &TrayItem::updateToolTip);
-    connect(m_trayItemProxy, &TrayItemProxy::updateStatus, this, &TrayItem::updateStatus);
 
-    init();
+    m_trayItemProxy = new TrayItemProxy(m_service, m_objectPath, this);
+
+    m_refreshTimer = new QTimer(this);
+    m_refreshTimer->setSingleShot(true);
+    connect(m_refreshTimer, &QTimer::timeout, this, &TrayItem::refresh);
+    performRefresh();
 }
 
 TrayItem::~TrayItem()
 {
 }
 
-QString TrayItem::getId()
-{
-    return m_customId;
-}
+// QString TrayItem::getId()
+//{
+//     return m_customId;
+// }
 
-void TrayItem::updateIcon()
+void TrayItem::updateBaseIcon()
 {
     getIcon(BASE_ICON);
     updateIconShow();
@@ -113,11 +113,11 @@ void TrayItem::updataItemMenu()
     QMenu *menu = m_dBusMenuImporter->menu();
     if (menu && !menu->isEmpty())
     {
-        menu->exec(m_dBusMenuImporter->menu()->actions(), QCursor::pos(), nullptr, this);  //任务栏显示右键菜单
+        menu->exec(m_dBusMenuImporter->menu()->actions(), QCursor::pos(), nullptr, this);  // 任务栏显示右键菜单
     }
     else
     {
-        m_trayItemProxy->contextMenu(QCursor::pos().x(), QCursor::pos().y());  //应用显示右键菜单
+        m_trayItemProxy->contextMenu(QCursor::pos().x(), QCursor::pos().y());  // 应用显示右键菜单
     }
 }
 
@@ -184,8 +184,28 @@ void TrayItem::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void TrayItem::performRefresh()
+{
+    m_refreshTimer->start(100);
+}
+
+void TrayItem::refresh()
+{
+    // NOTE: 当前仅初始化需要延后执行
+    if (!m_isInit)
+    {
+        init();
+    }
+}
+
 void TrayItem::init()
 {
+    connect(m_trayItemProxy, &TrayItemProxy::updateIcon, this, &TrayItem::updateBaseIcon);
+    connect(m_trayItemProxy, &TrayItemProxy::updateOverlayIcon, this, &TrayItem::updateOverlayIcon);
+    connect(m_trayItemProxy, &TrayItemProxy::updateAttentionIcon, this, &TrayItem::updateAttentionIcon);
+    connect(m_trayItemProxy, &TrayItemProxy::updateToolTip, this, &TrayItem::updateToolTip);
+    connect(m_trayItemProxy, &TrayItemProxy::updateStatus, this, &TrayItem::updateStatus);
+
     QDBusVariant busdata;
 
     // 菜单
@@ -223,13 +243,7 @@ void TrayItem::init()
     // 提示信息
     updateToolTip();
 
-    //获取id，为了兼容老程序
-    busdata = m_trayItemProxy->getProperty(QLatin1String("Id"));
-    QString id = busdata.variant().toString();
-    if (!id.isEmpty())
-    {
-        m_customId = id;
-    }
+    m_isInit = true;
 }
 
 void TrayItem::getIcon(IconType iconType)

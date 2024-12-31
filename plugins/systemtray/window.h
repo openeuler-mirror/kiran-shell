@@ -21,7 +21,6 @@
 #include <QWidget>
 
 #include "lib/widgets/styled-button.h"
-#include "status-notifier-manager.h"
 #include "statusnotifierwatcherinterface.h"
 #include "window-popup.h"
 
@@ -108,10 +107,6 @@ private:
 
     // 本显示服务名称
     QString m_statusNotifierHostName;
-
-    // 用于支持自研托盘应用左键
-    // FIXME:后续删除
-    StatusNotifierManager *m_statusNotifierManager;
 };
 }  // namespace Systemtray
 }  // namespace Kiran
