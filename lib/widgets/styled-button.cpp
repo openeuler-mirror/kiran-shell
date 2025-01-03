@@ -98,6 +98,11 @@ void StyledButton::paintEvent(QPaintEvent *event)
         bgColor = Qt::transparent;
     }
 
+    if (!isEnabled())
+    {
+        bgColor = Qt::transparent;
+    }
+
     painter.setBrush(bgColor);
 
     QPainterPath path;

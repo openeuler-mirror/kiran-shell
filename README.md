@@ -17,6 +17,8 @@
   * xcb-util-image-devel
   * libXtst-devel
   * qt5-qtx11extras-devel
+  * upower-devel
+  * kiran-cc-daemon-devel
 
 ## 编译安装
 ```
