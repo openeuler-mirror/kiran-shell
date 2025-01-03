@@ -27,7 +27,7 @@ namespace Kiran
 class ProfilePanel;
 class ProfileApplet;
 class Applet;
-
+class LineFrame;
 class Panel : public QWidget, public IPanel
 {
     Q_OBJECT
@@ -76,7 +76,7 @@ private:
 
     QList<Applet*> m_applets;
 
-    QList<QFrame*> m_lineFrame;
+    QList<LineFrame*> m_lineFrames;
 
     QMenu* m_menu;
 

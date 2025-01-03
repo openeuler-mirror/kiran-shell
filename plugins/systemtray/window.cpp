@@ -28,7 +28,7 @@
 #define REGISTERED_ITEMS QLatin1String("RegisteredStatusNotifierItems")
 #define REGISTERED_HOST QLatin1String("RegisterStatusNotifierHost")
 
-#define LAYOUT_MARGIN 10
+#define LAYOUT_MARGIN 4
 
 namespace Kiran
 {

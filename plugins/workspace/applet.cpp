@@ -44,6 +44,7 @@ Applet::Applet(IAppletImport *import)
         QCoreApplication::installTranslator(&translator);
     }
 
+    setRadius(0);
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
 

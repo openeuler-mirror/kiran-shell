@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 file(GLOB_RECURSE H_FILES *.h)
 file(GLOB_RECURSE CPP_FILES *.cpp)
+file(GLOB_RECURSE UI_FILES *.ui)
 
 set(TARGET_NAME kiran-shell)
 
@@ -15,7 +16,7 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} -ts
 # make时生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
-add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES}
+add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES} ${UI_FILES}
                               "${PROJECT_SOURCE_DIR}/resources/resources.qrc")
 
 target_include_directories(
@@ -26,11 +27,13 @@ target_include_directories(
           ${PROJECT_SOURCE_DIR}
           ${PROJECT_SOURCE_DIR}/include
           ${KLOG_QT5_INCLUDE_DIRS}
+          ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS}
           ${GSETTINGS_QT_INCLUDE_DIRS})
 
 target_link_libraries(
   ${TARGET_NAME}
   PRIVATE ${KLOG_QT5_LIBRARIES}
+          ${KIRAN_WIDGETS_QT5_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
           Qt5::Widgets
           Qt5::DBus
