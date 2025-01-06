@@ -12,6 +12,8 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
+
 #include "tray-item-proxy.h"
 
 TrayItemProxy::TrayItemProxy(const QString &service, const QString &path, QObject *parent)
@@ -41,6 +43,25 @@ QDBusVariant TrayItemProxy::getProperty(const QString &name)
     }
 
     return QDBusVariant();
+}
+
+QStringList TrayItemProxy::getAllPropertyKey()
+{
+    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierItem.service(), m_statusNotifierItem.path(), QLatin1String("org.freedesktop.DBus.Properties"), QLatin1String("GetAll"));
+    msg << m_statusNotifierItem.interface();
+
+    QDBusPendingCall call = m_statusNotifierItem.connection().asyncCall(msg);
+    call.waitForFinished();
+    const auto arguments = call.reply().arguments();
+    if (arguments.isEmpty())
+    {
+        KLOG_WARNING() << "No arguments in the message!";
+        return QStringList();
+    }
+    QDBusArgument arg = arguments.first().value<QDBusArgument>();
+    QVariantMap map;
+    arg >> map;
+    return map.keys();
 }
 
 QString TrayItemProxy::service() const

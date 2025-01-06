@@ -26,7 +26,7 @@ namespace Systemtray
 {
 class Window;
 
-class Applet : public QWidget /*KiranColorBlock*/
+class Applet : public QWidget
 {
     Q_OBJECT
 
