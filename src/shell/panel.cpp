@@ -38,6 +38,7 @@
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "line-frame.h"
 #include "panel.h"
 #include "profile/profile.h"
 #include "utils.h"
@@ -146,9 +147,8 @@ void Panel::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-    QColor bgColor = palette->getBaseColors().baseBackground;
-    bgColor = palette->getColor(Kiran::Theme::Palette::ACTIVE,
-                                Kiran::Theme::Palette::WINDOW);
+    QColor bgColor = palette->getColor(Kiran::Theme::Palette::NORMAL,
+                                       Kiran::Theme::Palette::WINDOW);
 
     painter.setPen(Qt::NoPen);
     painter.setBrush(bgColor);
@@ -163,24 +163,25 @@ void Panel::paintEvent(QPaintEvent *event)
     else
     {
         // 个性模式，绘制头尾圆角
+        int randSize = 20;  // 圆角宽高
         int orientation = getOrientation();
         if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
             orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
         {
-            rect.adjust(m_radius, m_radius, -width() + 100, -m_radius);
+            rect.adjust(m_radius, m_radius, -width() + randSize, -m_radius);
             painter.drawRoundedRect(rect, m_radius, m_radius);
 
             rect = this->rect();
-            rect.adjust(width() - 100, m_radius, -m_radius, -m_radius);
+            rect.adjust(width() - randSize, m_radius, -m_radius, -m_radius);
             painter.drawRoundedRect(rect, m_radius, m_radius);
         }
         else
         {
-            rect.adjust(m_radius, m_radius, -m_radius, -height() + 100);
+            rect.adjust(m_radius, m_radius, -m_radius, -height() + randSize);
             painter.drawRoundedRect(rect, m_radius, m_radius);
 
             rect = this->rect();
-            rect.adjust(m_radius, height() - 100, -m_radius, -m_radius);
+            rect.adjust(m_radius, height() - randSize, -m_radius, -m_radius);
             painter.drawRoundedRect(rect, m_radius, m_radius);
         }
     }
@@ -288,10 +289,10 @@ void Panel::initChildren()
 
         if (i != profileApplets.size() - 1)
         {
-            QFrame *line = new QFrame(this);
+            LineFrame *line = new LineFrame(this);
             line->setFrameShape(QFrame::VLine);
             m_appletsLayout->addWidget(line, 0, Qt::AlignCenter);
-            m_lineFrame.append(line);
+            m_lineFrames.append(line);
         }
     }
 
@@ -437,20 +438,22 @@ void Panel::updateLayout()
         // 多留一个LAYOUT_MARGIN距离，用于绘制头尾圆角
         m_appletsLayout->setContentsMargins(m_layoutMargin + m_radius, 0,
                                             m_layoutMargin + m_radius, 0);
-        for (auto line : m_lineFrame)
+        for (auto line : m_lineFrames)
         {
             line->setFrameShape(QFrame::VLine);
-            line->setFixedHeight(15);
+            line->setFixedHeight(height() - 2 * m_radius);
+            line->setFixedWidth(10);
         }
     }
     else
     {
         m_appletsLayout->setContentsMargins(0, m_layoutMargin + m_radius, 0,
                                             m_layoutMargin + m_radius);
-        for (auto line : m_lineFrame)
+        for (auto line : m_lineFrames)
         {
             line->setFrameShape(QFrame::HLine);
-            line->setFixedWidth(15);
+            line->setFixedHeight(10);
+            line->setFixedWidth(width() - 2 * m_radius);
         }
     }
 
@@ -513,7 +516,7 @@ void Panel::updatePersonalityMode()
 
         // PersonalityMode模式下, 两个插件间没有spacer时,需要显示分割线
         // 非PersonalityMode模式下, spacer前后分割线只显示一个,其他全显示
-        if (i >= m_lineFrame.size())
+        if (i >= m_lineFrames.size())
         {
             continue;  // m_lineFrame相比m_applets少创建了一个
         }
@@ -522,11 +525,11 @@ void Panel::updatePersonalityMode()
             bool showLine = i + 1 < m_applets.size() &&
                             !isSpacer &&
                             "spacer" != m_applets.at(i + 1)->getID();
-            m_lineFrame.at(i)->setVisible(showLine);
+            m_lineFrames.at(i)->setVisible(showLine);
         }
         else
         {
-            m_lineFrame.at(i)->setVisible(!isSpacer);
+            m_lineFrames.at(i)->setVisible(!isSpacer);
         }
     }
 }

@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -44,21 +44,17 @@ Applet::Applet(IAppletImport *import)
         QCoreApplication::installTranslator(&translator);
     }
 
-    //    setRadius(0);
-
     m_window = new Window(this);
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
 
+    setRadius(0);
     auto size = m_import->getPanel()->getSize();
     setFixedSize(size, size);
 
     m_appletButton = new StyledButton(this);
-    //int iconSize = size - BUTTON_BLANK_SPACE * 2;
-    //    m_appletButton->setIconSize(QSize(iconSize, iconSize));
     m_appletButton->setIconSize(QSize(24, 24));
 
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
-    //    m_appletButton->setIconFromTheme(KS_ICON_MENU);
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
     m_appletButton->setToolTip(tr("Start Menu"));
 
@@ -66,10 +62,6 @@ Applet::Applet(IAppletImport *import)
     layout->setMargin(4);
     layout->setSpacing(0);
     layout->addWidget(m_appletButton);
-
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
-    updateLayout();
 }
 
 Applet::~Applet()
@@ -121,29 +113,6 @@ void Applet::updateWindowPosition()
     }
 
     m_window->move(mapToGlobal(windowPosition));
-}
-
-void Applet::updateLayout()
-{
-    // 清理之前设置的fixed大小
-    //    setMaximumWidth(QWIDGETSIZE_MAX);
-
-    //    auto size = m_import->getPanel()->getSize();
-    //    auto *lay = layout();
-    //    int orientation = m_import->getPanel()->getOrientation();
-    //    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-    //        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-    //    {
-    //        lay->setContentsMargins(LAYOUT_MARGIN, 0, LAYOUT_MARGIN, 0);
-
-    //        setFixedSize(size + LAYOUT_MARGIN * 2, size);
-    //    }
-    //    else
-    //    {
-    //        lay->setContentsMargins(0, LAYOUT_MARGIN, 0, LAYOUT_MARGIN);
-
-    //        setFixedSize(size, size + LAYOUT_MARGIN * 2);
-    //    }
 }
 
 }  // namespace Menu
