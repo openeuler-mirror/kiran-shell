@@ -25,6 +25,7 @@ public:
     explicit TrayItemProxy(const QString &service, const QString &path, QObject *parent = nullptr);
 
     QDBusVariant getProperty(QString const &name);
+    QStringList getAllPropertyKey();
     QString service() const;
 
 public slots:

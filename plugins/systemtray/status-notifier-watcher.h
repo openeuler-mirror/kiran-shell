@@ -67,6 +67,7 @@ private:
     void killXembedSniProxy();
 
 private:
+    // 监控 org.kde.StatusNotifierWatcher 注册者变动，若其他进程注销，本服务接替注册
     QDBusServiceWatcher *m_serviceWatcher;
 
     QStringList m_registeredServices;

@@ -25,7 +25,6 @@ Applet::Applet(IAppletImport *import)
     : m_import(import)
 {
     QGridLayout *layout = new QGridLayout(this);
-    setLayout(layout);
     layout->setMargin(0);
     layout->setSpacing(0);
 

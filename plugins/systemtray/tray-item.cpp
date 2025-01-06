@@ -47,11 +47,6 @@ TrayItem::~TrayItem()
 {
 }
 
-// QString TrayItem::getId()
-//{
-//     return m_customId;
-// }
-
 void TrayItem::updateBaseIcon()
 {
     getIcon(BASE_ICON);
@@ -75,8 +70,11 @@ void TrayItem::updateToolTip()
     ToolTip tooltip;
     QDBusVariant busdata;
 
-    busdata = m_trayItemProxy->getProperty("ToolTip");
-    busdata.variant().value<QDBusArgument>() >> tooltip;
+    if (m_propertyKeys.contains("ToolTip"))
+    {
+        busdata = m_trayItemProxy->getProperty("ToolTip");
+        busdata.variant().value<QDBusArgument>() >> tooltip;
+    }
 
     QString toolTipTitle = tooltip.title;
     if (!toolTipTitle.isEmpty())
@@ -85,11 +83,14 @@ void TrayItem::updateToolTip()
     }
     else
     {
-        busdata = m_trayItemProxy->getProperty(QLatin1String("Title"));
-        QString title = busdata.variant().toString();
-        if (!title.isEmpty())
+        if (m_propertyKeys.contains("Title"))
         {
-            setToolTip(title);
+            busdata = m_trayItemProxy->getProperty(QLatin1String("Title"));
+            QString title = busdata.variant().toString();
+            if (!title.isEmpty())
+            {
+                setToolTip(title);
+            }
         }
     }
 }
@@ -206,38 +207,50 @@ void TrayItem::init()
     connect(m_trayItemProxy, &TrayItemProxy::updateToolTip, this, &TrayItem::updateToolTip);
     connect(m_trayItemProxy, &TrayItemProxy::updateStatus, this, &TrayItem::updateStatus);
 
+    m_propertyKeys = m_trayItemProxy->getAllPropertyKey();
+
     QDBusVariant busdata;
 
     // 菜单
-    busdata = m_trayItemProxy->getProperty(QLatin1String("Menu"));
-    QDBusObjectPath path = busdata.variant().value<QDBusObjectPath>();
-    if (path.path() != QLatin1String("/NO_DBUSMENU") && !path.path().isEmpty())
+    if (m_propertyKeys.contains("Menu"))
     {
-        m_dBusMenuImporter = new DBusMenuImporter(m_trayItemProxy->service(), path.path(), this);
-        if (m_dBusMenuImporter)
+        busdata = m_trayItemProxy->getProperty(QLatin1String("Menu"));
+        QDBusObjectPath path = busdata.variant().value<QDBusObjectPath>();
+        if (path.path() != QLatin1String("/NO_DBUSMENU") && !path.path().isEmpty())
         {
-            connect(m_dBusMenuImporter, &DBusMenuImporter::menuUpdated, this, &TrayItem::updataItemMenu);
+            m_dBusMenuImporter = new DBusMenuImporter(m_trayItemProxy->service(), path.path(), this);
+            if (m_dBusMenuImporter)
+            {
+                connect(m_dBusMenuImporter, &DBusMenuImporter::menuUpdated, this, &TrayItem::updataItemMenu);
+            }
         }
     }
 
     // 图标
     // 标准中不存在，但Qt和KDE实现中有
-    busdata = m_trayItemProxy->getProperty(QLatin1String("IconThemePath"));
-    m_iconThemePath = busdata.variant().toString();
+    if (m_propertyKeys.contains("IconThemePath"))
+    {
+        busdata = m_trayItemProxy->getProperty(QLatin1String("IconThemePath"));
+        m_iconThemePath = busdata.variant().toString();
+    }
+
     getIcon(BASE_ICON);
     getIcon(ATTENTION_ICON);
     getIcon(OVERLAY_ICON);
 
     // 状态
-    busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
-    QString status = busdata.variant().toString();
-    if (!status.isEmpty())
+    if (m_propertyKeys.contains("Status"))
     {
-        updateStatus(status);
-    }
-    else
-    {
-        updateStatus(QLatin1String("Active"));
+        busdata = m_trayItemProxy->getProperty(QLatin1String("Status"));
+        QString status = busdata.variant().toString();
+        if (!status.isEmpty())
+        {
+            updateStatus(status);
+        }
+        else
+        {
+            updateStatus(QLatin1String("Active"));
+        }
     }
 
     // 提示信息
@@ -276,8 +289,13 @@ void TrayItem::getIcon(IconType iconType)
 
     // 优先使用图标名称
     // 若没有，再获取图片二进制
-    QDBusVariant busdata = m_trayItemProxy->getProperty(nameProperty);
-    QString iconName = busdata.variant().toString();
+    QString iconName;
+    if (m_propertyKeys.contains(nameProperty))
+    {
+        QDBusVariant busdata = m_trayItemProxy->getProperty(nameProperty);
+        iconName = busdata.variant().toString();
+    }
+
     if (!iconName.isEmpty())
     {
         if (QIcon::hasThemeIcon(iconName))
@@ -295,9 +313,14 @@ void TrayItem::getIcon(IconType iconType)
     }
     else
     {
-        busdata = m_trayItemProxy->getProperty(pixmapProperty);
         IconPixmapVector iconPixmaps;
-        busdata.variant().value<QDBusArgument>() >> iconPixmaps;
+
+        if (m_propertyKeys.contains(pixmapProperty))
+        {
+            QDBusVariant busdata = m_trayItemProxy->getProperty(pixmapProperty);
+            busdata.variant().value<QDBusArgument>() >> iconPixmaps;
+        }
+
         if (iconPixmaps.empty())
         {
             return;

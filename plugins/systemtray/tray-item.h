@@ -47,9 +47,6 @@ public:
         OVERLAY_ICON
     };
 
-    //    // 用于左键点击，获取位置，后续删除
-    //    QString getId();
-
 public slots:
     void updateBaseIcon();
     void updateAttentionIcon();
@@ -87,6 +84,7 @@ private:
 
     // dbus属性获取
     TrayItemProxy *m_trayItemProxy;
+    QStringList m_propertyKeys;
 
     // 为什么要定时器去刷新数据：
     // 此进程是服务端
@@ -109,10 +107,6 @@ private:
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint m_pressPoint;
-
-    // 为了兼容以前的自研程序（音量、网络）
-    // FIXME: 以前的自定义协议左键是按照写死的id去得到托盘按钮位置，无法支持多个面板
-    //     QString m_customId;
 };
 }  // namespace Systemtray
 }  // namespace Kiran
