@@ -1,0 +1,8 @@
+{
+    "plugin_id": "hwconf",
+    "applets": [
+        {
+            "applet_id": "hwconf"
+        }
+    ]
+}

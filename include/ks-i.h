@@ -16,7 +16,7 @@ namespace Kiran
 {
 #define KS_ICON_MENU "ks-menu"
 #define KS_ICON_WORKSPACE_SWITCHER "ks-workspace-switcher"
-#define KS_ICON_WORKSPACE_PLUS_SYMBOLIC "ks-workspace-plus-symbolic"
+#define KS_ICON_WORKSPACE_PLUS_SYMBOLIC "ksvg-ks-workspace-plus-symbolic"
 #define KS_ICON_MENU_GROUP_SYMBOLIC "ksvg-ks-menu-group-symbolic"
 
 #define KS_ICON_MENU_APPS_LIST_SYMBOLIC "ksvg-ks-menu-apps-list-symbolic"
@@ -32,6 +32,25 @@ namespace Kiran
 #define KS_ICON_TRAY_BOX "ksvg-ks-tray-box"
 #define KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC "ksvg-ks-tasklist-previous-symbolic"
 #define KS_ICON_TASKLIST_DOWN_PAGE_SYMBOLIC "ksvg-ks-tasklist-next-symbolic"
+
+#define KS_ICON_NET_DISCONNECTED "ksvg-ks-net-disconnected"
+#define KS_ICON_WIRED_CONNECTED "ksvg-ks-wired-connected"
+#define KS_ICON_WIRED_ERROR "ksvg-ks-wired-error"
+#define KS_ICON_WIRELESS_0 "ksvg-ks-wireless-0"
+#define KS_ICON_WIRELESS_1 "ksvg-ks-wireless-1"
+#define KS_ICON_WIRELESS_2 "ksvg-ks-wireless-2"
+#define KS_ICON_WIRELESS_3 "ksvg-ks-wireless-3"
+#define KS_ICON_WIRELESS_SECURITY_0 "ksvg-ks-wireless-security-0"
+#define KS_ICON_WIRELESS_SECURITY_1 "ksvg-ks-wireless-security-1"
+#define KS_ICON_WIRELESS_SECURITY_2 "ksvg-ks-wireless-security-2"
+#define KS_ICON_WIRELESS_SECURITY_3 "ksvg-ks-wireless-security-3"
+#define KS_ICON_HWCONF_SETTING "ksvg-ks-hwconf-setting"
+#define KS_ICON_HWCONF_SETTING_BACK "ksvg-ks-hwconf-setting-back"
+#define KS_ICON_HWCONF_THEME_SWITCH "ksvg-ks-theme-switch"
+#define KS_ICON_HWCONF_AUDIO_MUTE "ksvg-ks-audio-mute"
+#define KS_ICON_HWCONF_AUDIO_LOW "ksvg-ks-audio-low"
+#define KS_ICON_HWCONF_AUDIO_MEDIUM "ksvg-ks-audio-medium"
+#define KS_ICON_HWCONF_AUDIO_LOUD "ksvg-ks-audio-loud"
 
 enum PanelOrientation
 {

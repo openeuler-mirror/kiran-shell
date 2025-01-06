@@ -3,7 +3,7 @@ expand=true
 orientation=top
 size=40
 monitor=-1
-applets=menu,workspace,taskbar,systemtray,clock,showdesktop,spacer
+applets=menu,workspace,taskbar,systemtray,clock,showdesktop,spacer,hwconf
 
 [Applet menu]
 type=plugin
@@ -34,7 +34,14 @@ type=plugin
 id=systemtray
 panel=top
 panel-right-stick=true
-position=3
+position=5
+
+[Applet hwconf]
+type=plugin
+id=hwconf
+panel=top
+panel-right-stick=true
+position=4
 
 [Applet spacer1]
 type=plugin
