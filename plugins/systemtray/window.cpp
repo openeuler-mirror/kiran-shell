@@ -252,18 +252,8 @@ void Window::startUpdateTrayBoxPos()
 
 void Window::updateTrayBoxPos()
 {
-    QPoint pos = mapToGlobal(m_windowPopupButton->pos());
-    if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
-    {
-        m_windowPopup->move(pos.x() - m_windowPopup->width() / 2 +
-                                m_windowPopupButton->width() / 2,
-                            pos.y());
-    }
-    else
-    {
-        m_windowPopup->move(pos.x(), pos.y() - m_windowPopup->height() / 2 +
-                                         m_windowPopupButton->height() / 2);
-    }
+    auto oriention = m_import->getPanel()->getOrientation();
+    Utility::updatePopWidgetPos(oriention, m_windowPopupButton, m_windowPopup);
 
     m_updateWindowPopupPosInProgress = false;
 }

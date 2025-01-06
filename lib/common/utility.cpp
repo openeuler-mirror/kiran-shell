@@ -12,9 +12,13 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
+#include <QGuiApplication>
 #include <QProcess>
+#include <QScreen>
 #include <QWidget>
 
+#include "ks-i.h"
 #include "utility.h"
 
 QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
@@ -61,4 +65,63 @@ void Utility::clearLayout(QLayout *layout, bool deleteWidget, bool hideWidget)
 QString Utility::getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen)
 {
     return fontMetrics.elidedText(text, Qt::ElideRight, elidedTextLen);
+}
+
+void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWidget *popWidget)
+{
+    auto baseGeometry = triggerWidget->geometry();
+    auto baseCenter = baseGeometry.center();
+    auto windowSize = popWidget->frameSize();
+    QPoint windowPosition(0, 0);
+
+    // 获取当前屏幕坐标
+    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    switch (panelOriention)
+    {
+    case Kiran::PanelOrientation::PANEL_ORIENTATION_TOP:
+        // 以触发窗口下沿中心为弹窗上沿中心
+        windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width() / 2, triggerWidget->height()));
+        windowPosition.setX(windowPosition.x() - windowSize.width() / 2);
+        // 若超出屏幕，则将窗口定位到屏幕左侧
+        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
+        {
+            windowPosition.setX(screenGeometry.width() - windowSize.width());
+        }
+        break;
+    case Kiran::PanelOrientation::PANEL_ORIENTATION_RIGHT:
+        // 以触发窗口左沿中心为弹窗右沿中心
+        windowPosition = triggerWidget->mapToGlobal(QPoint(0, triggerWidget->height() / 2));
+        windowPosition.setX(windowPosition.x() - windowSize.width());
+        windowPosition.setY(windowPosition.y() - windowSize.height() / 2);
+        // 若超出屏幕，则将窗口定位到屏幕底部
+        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
+        {
+            windowPosition.setY(screenGeometry.height() - windowSize.height());
+        }
+        break;
+    case Kiran::PanelOrientation::PANEL_ORIENTATION_BOTTOM:
+        // 以触发窗口上沿中心为弹窗下沿中心
+        windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width() / 2, 0));
+        windowPosition.setX(windowPosition.x() - windowSize.width() / 2);
+        windowPosition.setY(windowPosition.y() - windowSize.height());
+        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
+        {
+            windowPosition.setX(screenGeometry.width() - windowSize.width());
+        }
+        break;
+    case Kiran::PanelOrientation::PANEL_ORIENTATION_LEFT:
+        // 以触发窗口右沿中心为弹窗左沿中心
+        windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width(), triggerWidget->height() / 2));
+        windowPosition.setY(windowPosition.y() - windowSize.height() / 2);
+        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
+        {
+            windowPosition.setY(screenGeometry.height() - windowSize.height());
+        }
+        break;
+    default:
+        KLOG_WARNING() << "Unknown oriention " << panelOriention;
+        break;
+    }
+
+    popWidget->move(windowPosition);
 }

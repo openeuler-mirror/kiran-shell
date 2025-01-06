@@ -126,7 +126,7 @@ signals:
     void activeWindowChanged(WId);
 
     // 预览显示/隐藏
-    void previewerShow(WId wid, QPoint centerOnGlobal);
+    void previewerShow(WId wid, QWidget *triggerWidget);
     void previewerHide(WId wid);
 
     void emptyGroup(AppGroup *);

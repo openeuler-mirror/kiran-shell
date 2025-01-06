@@ -92,9 +92,7 @@ void AppGroup::getRelationAppSize(int &size)
 
 void AppGroup::showPreviewer(WId wid)
 {
-    AppButton *button = (AppButton *)sender();
-    QPoint center = mapToGlobal(button->geometry().center());
-    emit previewerShow(wid, center);
+    emit previewerShow(wid, (QWidget *)sender());
 }
 
 void AppGroup::hidePreviewer(WId wid)
@@ -315,10 +313,10 @@ void AppGroup::updateLayout()
 {
     Utility::clearLayout(m_layout, false, true);
 
-    //横竖摆放
+    // 横竖摆放
     auto direction = getLayoutDirection();
     m_layout->setDirection(direction);
-    //子控件对齐方式：左右、上下
+    // 子控件对齐方式：左右、上下
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 

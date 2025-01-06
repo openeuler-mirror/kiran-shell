@@ -46,7 +46,6 @@ private slots:
 private:
     void initTimeDbusProxy();
     void timeUpdate();
-    void updateWindowPosition();
 
     void clickButton();
     void hideWindow();

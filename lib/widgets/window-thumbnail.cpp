@@ -17,7 +17,6 @@
 #include <KWindowSystem>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QScreen>
 #include <QTimer>
 
 #include "lib/common/utility.h"

@@ -15,10 +15,8 @@
 #include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem>
-#include <QGuiApplication>
 #include <QMenu>
 #include <QMouseEvent>
-#include <QScreen>
 #include <QTimer>
 
 #include "app-previewer.h"

@@ -43,7 +43,7 @@ AppPreviewer::AppPreviewer(IAppletImport *import, AppGroup *parent)
     connect(parent, &AppGroup::previewerShow, this, &AppPreviewer::showPreviewer);
     connect(parent, &AppGroup::previewerHide, this, &AppPreviewer::hidePreviewer);
 
-    //横竖摆放
+    // 横竖摆放
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     setLayout(m_layout);
@@ -83,10 +83,10 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 
     Utility::clearLayout(m_layout, false, true);
 
-    //横竖摆放
+    // 横竖摆放
     auto direction = getLayoutDirection();
     m_layout->setDirection(direction);
-    //子控件对齐方式：左右、上下
+    // 子控件对齐方式：左右、上下
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
@@ -128,7 +128,7 @@ void AppPreviewer::removeWindow(WId wid)
     }
 }
 
-void AppPreviewer::showPreviewer(WId wid, QPoint centerOnGlobal)
+void AppPreviewer::showPreviewer(WId wid, QWidget *triggerWidget)
 {
     // KLOG_INFO() << "AppPreviewer::showPreviewer" << wid;
     QList<WindowPreviewer *> windowPreviewerShow;
@@ -155,24 +155,17 @@ void AppPreviewer::showPreviewer(WId wid, QPoint centerOnGlobal)
 
     updateLayout(windowPreviewerShow);
 
-    auto direction = getLayoutDirection();
-    if (QBoxLayout::Direction::LeftToRight == direction)
-    {
-        move(centerOnGlobal.x() - width() / 2, 0);
-    }
-    else
-    {
-        move(0, centerOnGlobal.y() - height() / 2);
-    }
+    auto oriention = m_import->getPanel()->getOrientation();
+    Utility::updatePopWidgetPos(oriention, triggerWidget, this);
 
-    show();
+    setVisible(true);
 }
 
 void AppPreviewer::hidePreviewer(WId wid)
 {
     if (!geometry().contains(QCursor::pos()))
     {
-        hide();
+        setVisible(false);
     }
 }
 
@@ -189,7 +182,7 @@ void AppPreviewer::leaveEvent(QEvent *event)
 
     if (checkCanHide)
     {
-        hide();
+        setVisible(false);
     }
 }
 

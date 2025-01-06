@@ -47,7 +47,7 @@ private:
     void addWindow(QByteArray wmClass, WId wid);
     void removeWindow(WId wid);
 
-    void showPreviewer(WId wid, QPoint centerOnGlobal);
+    void showPreviewer(WId wid, QWidget *triggerWidget);
     void hidePreviewer(WId wid);
 
 protected:
