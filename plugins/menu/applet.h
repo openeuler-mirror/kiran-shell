@@ -41,9 +41,6 @@ private Q_SLOTS:
     void hideMenu();
 
 private:
-    void updateWindowPosition();
-
-private:
     StyledButton *m_appletButton;
 
     Window *m_window;

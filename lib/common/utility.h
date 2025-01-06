@@ -26,10 +26,13 @@ public:
     static QByteArray runCmd(QString cmd, QStringList cmdArg = QStringList());
 
     // 清理布局
-    static void clearLayout(QLayout *layout, bool deleteWidget = false, bool hideWidget = false);
+    static void clearLayout(QLayout* layout, bool deleteWidget = false, bool hideWidget = false);
 
     // 获取含省略号的字符串
     static QString getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen);
+
+    // 调整弹窗显示位置
+    static void updatePopWidgetPos(int panelOriention, QWidget* triggerWidget, QWidget* popWidget);
 
 private:
     Utility() {}

@@ -23,6 +23,7 @@
 #include "applet.h"
 #include "ks-config.h"
 #include "lib/common/define.h"
+#include "lib/common/utility.h"
 #include "window.h"
 
 #define LAYOUT_MARGIN 4
@@ -73,7 +74,8 @@ void Applet::clickButton(bool checked)
     // KLOG_INFO() << "Applet::clickButton" << checked;
     if (checked)
     {
-        updateWindowPosition();
+        auto oriention = m_import->getPanel()->getOrientation();
+        Utility::updatePopWidgetPos(oriention, this, m_window);
         m_window->show();
         m_appletButton->setEnabled(false);
     }
@@ -84,35 +86,6 @@ void Applet::hideMenu()
     m_window->hide();
     m_appletButton->setEnabled(true);
     m_appletButton->setChecked(false);
-}
-
-void Applet::updateWindowPosition()
-{
-    auto oriention = m_import->getPanel()->getOrientation();
-    auto appletGeometry = geometry();
-    auto windowSize = m_window->frameSize();
-    QPoint windowPosition(0, 0);
-
-    switch (oriention)
-    {
-    case PanelOrientation::PANEL_ORIENTATION_TOP:
-        windowPosition = appletGeometry.bottomLeft();
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        windowPosition = appletGeometry.topLeft() -= QPoint(windowSize.width(), 0);
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_BOTTOM:
-        windowPosition = appletGeometry.topLeft() -= QPoint(0, windowSize.height());
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        windowPosition = appletGeometry.topRight();
-        break;
-    default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
-        break;
-    }
-
-    m_window->move(mapToGlobal(windowPosition));
 }
 
 }  // namespace Menu

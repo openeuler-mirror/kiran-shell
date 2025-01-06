@@ -14,13 +14,12 @@
 
 #include <kiran-color-block.h>
 #include <qt5-log-i.h>
-#include <QGuiApplication>
-#include <QScreen>
 
 #include "applet.h"
 #include "battery/bettery-button.h"
 #include "hw-conf-window.h"
 #include "ks-i.h"
+#include "lib/common/utility.h"
 #include "net/net-button.h"
 #include "volume/volume-button.h"
 #include "window.h"
@@ -154,50 +153,7 @@ void Window::hideHwConfWindow()
 void Window::updateWindowPosition()
 {
     auto oriention = m_import->getPanel()->getOrientation();
-    auto appletGeometry = geometry();
-    auto windowSize = m_hwConfWindow->frameSize();
-    QPoint windowPosition(0, 0);
-
-    // 获取当前屏幕坐标
-    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
-    switch (oriention)
-    {
-    case PanelOrientation::PANEL_ORIENTATION_TOP:
-        windowPosition = mapToGlobal(appletGeometry.bottomLeft());
-        // 若超出屏幕，则将窗口定位到屏幕左侧
-        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
-        {
-            windowPosition.setX(screenGeometry.width() - windowSize.width());
-        }
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        windowPosition = mapToGlobal(appletGeometry.topLeft() - QPoint(windowSize.width(), 0));
-        // 若超出屏幕，则将窗口定位到屏幕底部
-        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
-        {
-            windowPosition.setY(screenGeometry.height() - windowSize.height());
-        }
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_BOTTOM:
-        windowPosition = mapToGlobal(appletGeometry.topLeft() - QPoint(0, windowSize.height()));
-        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
-        {
-            windowPosition.setX(screenGeometry.width() - windowSize.width());
-        }
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        windowPosition = mapToGlobal(appletGeometry.topRight());
-        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
-        {
-            windowPosition.setY(screenGeometry.height() - windowSize.height());
-        }
-        break;
-    default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
-        break;
-    }
-
-    m_hwConfWindow->move(windowPosition);
+    Utility::updatePopWidgetPos(oriention, this, m_hwConfWindow);
 }
 
 }  // namespace HwConf

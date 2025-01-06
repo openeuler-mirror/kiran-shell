@@ -23,6 +23,7 @@
 #include "applet.h"
 #include "calendar-button.h"
 #include "ks-config.h"
+#include "lib/common/utility.h"
 #include "window.h"
 
 #define KIRAN_TIMEDATA_BUS "com.kylinsec.Kiran.SystemDaemon.TimeDate"
@@ -80,15 +81,17 @@ Applet::Applet(IAppletImport *import)
 
 void Applet::clickButton()
 {
-    updateWindowPosition();
-    m_window->show();
+    auto oriention = m_import->getPanel()->getOrientation();
+    Utility::updatePopWidgetPos(oriention, this, m_window);
+
+    m_window->setVisible(true);
     m_calendarButton->setEnabled(false);
 }
 
 void Applet::hideWindow()
 {
     KLOG_INFO() << "hide calendar";
-    m_window->hide();
+    m_window->setVisible(false);
     m_calendarButton->setChecked(false);
     m_calendarButton->setEnabled(true);
 }
@@ -199,7 +202,7 @@ void Applet::timeUpdate()
         dateTimeStr = dateWeekStr + "\n" + curDateTime.toString("M-dd");
     }
 
-    //按钮显示内容，根据位置不同显示内容不同
+    // 按钮显示内容，根据位置不同显示内容不同
     switch (oriention)
     {
     case PanelOrientation::PANEL_ORIENTATION_TOP:
@@ -219,7 +222,7 @@ void Applet::timeUpdate()
         break;
     }
 
-    //提示信息显示内容
+    // 提示信息显示内容
     QString curYearDateStr = curDateTime.toString("yyyy");
     QString curWeekDateStr = curDateTime.toString("dddd");
     QString curMonthDateStr = curDateTime.toString("MM");
@@ -311,36 +314,6 @@ void Applet::timeUpdate()
         break;
     }
     m_calendarButton->setToolTip(tooltipStr);
-}
-
-void Applet::updateWindowPosition()
-{
-    auto oriention = m_import->getPanel()->getOrientation();
-    auto appletGeometry = geometry();
-    auto windowSize = m_window->frameSize();
-    QPoint windowPosition(0, 0);
-
-    switch (oriention)
-    {
-    case PanelOrientation::PANEL_ORIENTATION_TOP:
-        windowPosition = appletGeometry.bottomLeft();
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        windowPosition =
-            appletGeometry.bottomRight();  // -=QPoint(windowSize.width(), 0);
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_BOTTOM:
-        windowPosition = appletGeometry.topLeft() -= QPoint(0, windowSize.height());
-        break;
-    case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        windowPosition = appletGeometry.topRight();
-        break;
-    default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
-        break;
-    }
-
-    m_window->move(mapToGlobal(windowPosition));
 }
 
 Applet::~Applet() {}
