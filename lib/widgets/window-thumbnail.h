@@ -36,16 +36,15 @@ public:
     void getOriginalSize(int &scaleWidth, int &scaleHeight, int &extraWidth, int &extraHeight);
 
 private slots:
-    void on_m_btnClose_clicked();
+    virtual void on_m_btnClose_clicked();
 
 protected:
-    //    // 监测窗口变化
+    // 监测窗口变化
     void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
-    //    void changedActiveWindow(WId wid);
 
     void showEvent(QShowEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;

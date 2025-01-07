@@ -66,7 +66,6 @@ public:
 };
 
 class AppButton;
-class AppPreviewer;
 class AppGroup : public QWidget
 {
     Q_OBJECT
@@ -104,11 +103,8 @@ private:
     void getRelationAppSize(int &size);
 
     void showPreviewer(WId wid);
-    void hidePreviewer(WId wid);
     void changePreviewerShow(WId wid);
-
-    // 窗口关闭
-    void closeWindow(WId wid);
+    void windowCloseAll();
 
 private:
     // 新建app按钮
@@ -126,8 +122,9 @@ signals:
     void activeWindowChanged(WId);
 
     // 预览显示/隐藏
-    void previewerShow(WId wid, QWidget *triggerWidget);
-    void previewerHide(WId wid);
+    void previewerShow(QList<WId> wids, QWidget *triggerWidget);
+    void previewerHide();
+    void previewerShowChange(QList<WId> wids, QWidget *triggerWidget);
 
     void emptyGroup(AppGroup *);
 
@@ -156,8 +153,6 @@ private:
     QMap<WId, AppButton *> m_mapWidButton;
 
     AppButton *m_buttonFixed;  // 固定按钮，用于锁定显示、拖拽显示
-
-    AppPreviewer *m_appPreviewer;  // 应用预览窗口
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint dragStartPosition;    // 鼠标按下时的全局坐标

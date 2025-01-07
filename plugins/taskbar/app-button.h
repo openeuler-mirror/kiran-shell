@@ -73,8 +73,8 @@ signals:
     void previewerShow(WId wid);
     void previewerHide(WId wid);
 
-    // 通过按钮进行关闭
-    void windowClose(WId wid);
+    // 关闭所有窗口
+    void windowCloseAll();
 
     // 查询是否在收藏夹中
     void isInFavorite(const QString &appId, bool &checkResult);

@@ -17,10 +17,11 @@
 #include <kiran-color-block.h>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
+#include <KWindowSystem>
 #include <QBoxLayout>
+#include <QFileSystemWatcher>
 
-#include "app-button.h"
-
+class StyledButton;
 namespace Kiran
 {
 class IAppletImport;
@@ -30,6 +31,7 @@ namespace Taskbar
 class Applet;
 class AppGroup;
 class AppBaseInfo;
+class AppPreviewer;
 class Window : public KiranColorBlock
 {
     Q_OBJECT
@@ -73,7 +75,6 @@ private:
     void removeFromTasklist(const QUrl &url);
 
     // 窗口关闭
-    void closeWindow(WId wid);
     void removeGroup(AppGroup *group);
 
     Qt::AlignmentFlag getLayoutAlignment();
@@ -98,6 +99,10 @@ signals:
     void windowChanged(WId, NET::Properties, NET::Properties2);
     // 激活状态
     void activeWindowChanged(WId wid);
+    // 预览显示/隐藏
+    void previewerShow(QList<WId> wids, QWidget *triggerWidget);
+    void previewerHide();
+    void previewerShowChange(QList<WId> wids, QWidget *triggerWidget);
 
 private:
     IAppletImport *m_import;
@@ -106,6 +111,8 @@ private:
     QMap<QByteArray, AppGroup *> m_mapAppGroupOpened;  // 打开的应用组，key:wm_class
     QList<AppGroup *> m_listAppGroupLocked;            // 锁定应用组
     QList<AppGroup *> m_listAppGroupShow;              // 所有应用组，用于排序显示
+
+    AppPreviewer *m_appPreviewer;  // 应用预览窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 

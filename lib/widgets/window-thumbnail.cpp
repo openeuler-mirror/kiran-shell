@@ -83,14 +83,14 @@ void WindowThumbnail::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 }
 
-void WindowThumbnail::mousePressEvent(QMouseEvent *event)
+void WindowThumbnail::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
         WindowInfoHelper::activateWindow(m_wid);
     }
 
-    QWidget::mousePressEvent(event);
+    QWidget::mouseReleaseEvent(event);
 }
 
 void WindowThumbnail::enterEvent(QEvent *event)
