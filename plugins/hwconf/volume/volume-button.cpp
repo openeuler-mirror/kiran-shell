@@ -31,7 +31,7 @@ VolumeButton::VolumeButton(QWidget *parent)
     m_volume = new Volume(this);
     connect(m_volume, &Volume::enableVolume, [this](bool enabled)
             {
-                setEnabled(enabled);
+                setVisible(enabled);
                 emit enableVolume(enabled);
             });
     connect(m_volume, &Volume::volumeValueChanged, [this](int value)

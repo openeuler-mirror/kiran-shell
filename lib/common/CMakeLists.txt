@@ -25,4 +25,5 @@ target_link_libraries(
   KF5::WindowSystem
   KF5::Service
   Qt5::X11Extras
+  Qt5::DBus
   ${KLOG_QT5_LIBRARIES})

@@ -29,6 +29,8 @@ class Volume : public QObject
 public:
     explicit Volume(QObject *parent = nullptr);
 
+    void init();
+
     void setVolume(const int &value);
     void setMute(const bool &isMute);
     bool getVolume(int &value);
@@ -38,8 +40,10 @@ private slots:
     void sinkPropertiesChanged(QDBusMessage msg);
     void sinkActivePortChanged(const QString &value);
 
-    void defaultSinkChanged(uint index);
-    void sinkAdded(uint index);
+    void defaultSinkUpdate();
+    void getDefaultSinkPath();
+    void initDefaultSink();
+    void sinkAdded();
     void sinkDelete(uint index);
 
 private:
@@ -49,11 +53,13 @@ signals:
     void enableVolume(bool enabled);
     void volumeValueChanged(int currentVolume);
     void volumeMuteChanged(bool isMute);
+    void readyToInitDefaultSink();
 
 private:
     QDBusServiceWatcher *m_dbusServiceWatcher;
     QDBusInterface *m_audioInterface;
     QDBusInterface *m_defaultSink;
+    QString m_defaultSinkPath;
 };
 }  // namespace HwConf
 }  // namespace Kiran

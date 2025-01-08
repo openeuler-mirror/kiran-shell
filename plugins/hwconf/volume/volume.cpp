@@ -21,7 +21,9 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <cmath>
+#include <thread>
 
+#include "lib/common/utility.h"
 #include "volume.h"
 
 #define AUDIO_DBUS_SERVICE "com.kylinsec.Kiran.SessionDaemon.Audio"
@@ -40,32 +42,11 @@ namespace Kiran
 namespace HwConf
 {
 Volume::Volume(QObject *parent)
-    : QObject{parent}
+    : QObject{parent},
+      m_audioInterface(nullptr),
+      m_defaultSink(nullptr)
 {
-    m_audioInterface = new QDBusInterface(AUDIO_DBUS_SERVICE, AUDIO_OBJECT_PATH,
-                                          AUDIO_DBUS_INTERFACE_NAME,
-                                          QDBusConnection::sessionBus(), this);
-
-    QDBusMessage msg = m_audioInterface->call("GetDefaultSink");
-    KLOG_DEBUG() << "GetDefaultSink:" << msg.arguments().first().toString();
-    QString defaultSinkPath = msg.arguments().first().toString();
-    m_defaultSink = new QDBusInterface(AUDIO_DBUS_SERVICE, defaultSinkPath,
-                                AUDIO_DEVICE_DBUS_INTERFACE_NAME,
-                                QDBusConnection::sessionBus(), this);
-
-    initAudioDevice();
-
-    QDBusConnection::sessionBus().connect(
-        AUDIO_DBUS_SERVICE, defaultSinkPath, PROPERTIES_INTERFACE,
-        PROPERTIES_CHANGED, this,
-        SLOT(sinkPropertiesChanged(QDBusMessage)));
-
-    connect(m_audioInterface, SIGNAL(SinkAdded(uint)), this,
-            SLOT(sinkAdded(uint)));
-    connect(m_audioInterface, SIGNAL(SinkDelete(uint)), this,
-            SLOT(sinkDelete(uint)));
-    connect(m_audioInterface, SIGNAL(DefaultSinkChange(uint)), this,
-            SLOT(defaultSinkChanged(uint)));
+    connect(this, &Volume::readyToInitDefaultSink, this, &Volume::initDefaultSink);
 
     m_dbusServiceWatcher = new QDBusServiceWatcher(this);
     m_dbusServiceWatcher->setConnection(QDBusConnection::sessionBus());
@@ -80,7 +61,7 @@ Volume::Volume(QObject *parent)
                 if (oldOwner.isEmpty())
                 {
                     KLOG_INFO() << "dbus service registered:" << service;
-                    emit enableVolume(true);
+                    init();
                 }
                 else if (newOwner.isEmpty())
                 {
@@ -88,16 +69,31 @@ Volume::Volume(QObject *parent)
                     emit enableVolume(false);
                 }
             });
+
+    if (Utility::isDbusServiceRegistered(AUDIO_DBUS_SERVICE))
+    {
+        init();
+    }
 }
 
 void Volume::setVolume(const int &value)
 {
+    if (!m_defaultSink)
+    {
+        return;
+    }
+
     double volumeValue = value / 100.0;
     m_defaultSink->call("SetVolume", volumeValue);
 }
 
 void Volume::setMute(const bool &isMute)
 {
+    if (!m_defaultSink)
+    {
+        return;
+    }
+
     m_defaultSink->call("SetMute", isMute);
     KLOG_DEBUG() << "current defalut sink mute:"
                  << m_defaultSink->property("mute").toBool();
@@ -105,6 +101,11 @@ void Volume::setMute(const bool &isMute)
 
 bool Volume::getVolume(int &value)
 {
+    if (!m_defaultSink)
+    {
+        return false;
+    }
+
     auto volume = m_defaultSink->property("volume");
     if (volume.isValid())
     {
@@ -118,6 +119,11 @@ bool Volume::getVolume(int &value)
 
 bool Volume::getMute(bool &isMute)
 {
+    if (!m_defaultSink)
+    {
+        return false;
+    }
+
     auto mute = m_defaultSink->property("mute");
     if (mute.isValid())
     {
@@ -164,6 +170,11 @@ void Volume::sinkPropertiesChanged(QDBusMessage message)
 
 void Volume::sinkActivePortChanged(const QString &value)
 {
+    if (!m_defaultSink)
+    {
+        return;
+    }
+
     KLOG_INFO() << "active port changed :" << value;
     if (value.isEmpty())
     {
@@ -176,9 +187,9 @@ void Volume::sinkActivePortChanged(const QString &value)
     emit volumeValueChanged(currentVolume);
 }
 
-void Volume::defaultSinkChanged(uint index)
+void Volume::defaultSinkUpdate()
 {
-    KLOG_INFO() << "Default Sink Changed";
+    KLOG_INFO() << "default audio sink update";
     // delete and restart init defaultSink
     if (m_defaultSink != nullptr)
     {
@@ -186,20 +197,55 @@ void Volume::defaultSinkChanged(uint index)
         m_defaultSink = nullptr;
     }
 
-    QDBusMessage msg = m_audioInterface->call("GetDefaultSink");
-    KLOG_DEBUG() << "GetDefaultSink:" << msg.arguments().first().toString();
-    QString defaultSinkPath = msg.arguments().first().toString();
-    m_defaultSink = new QDBusInterface(AUDIO_DBUS_SERVICE, defaultSinkPath,
-                                AUDIO_DEVICE_DBUS_INTERFACE_NAME,
-                                QDBusConnection::sessionBus(), this);
-    initAudioDevice();
-    QDBusConnection::sessionBus().connect(
-        AUDIO_DBUS_SERVICE, defaultSinkPath, PROPERTIES_INTERFACE,
-        PROPERTIES_CHANGED, this,
-        SLOT(handleSinkPropertiesChanged(QDBusMessage)));
+    auto t = std::thread(&Volume::getDefaultSinkPath, this);
+    t.detach();
 }
 
-void Volume::sinkAdded(uint index)
+void Volume::getDefaultSinkPath()
+{
+    m_defaultSinkPath.clear();
+    int retryTimes = 3;
+    while (retryTimes--)
+    {
+        QDBusMessage msg = m_audioInterface->call("GetDefaultSink");
+        if (QDBusMessage::ErrorMessage == msg.type() || msg.arguments().size() < 1 || msg.arguments().first().toString().isEmpty())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+
+        m_defaultSinkPath = msg.arguments().size() > 0 ? msg.arguments().first().toString() : "";
+        if (m_defaultSinkPath.isEmpty())
+        {
+            KLOG_ERROR() << "GetDefaultSink failed:" << msg;
+        }
+    }
+
+    if (m_defaultSinkPath.isEmpty())
+    {
+        emit enableVolume(false);
+        return;
+    }
+
+    KLOG_INFO() << "default audio sink:" << m_defaultSinkPath;
+    // 线程中不能创建QDBusInterface对象，需要发信号到主线程，由主线程创建
+    emit readyToInitDefaultSink();
+}
+
+void Volume::initDefaultSink()
+{
+    m_defaultSink = new QDBusInterface(AUDIO_DBUS_SERVICE, m_defaultSinkPath,
+                                       AUDIO_DEVICE_DBUS_INTERFACE_NAME,
+                                       QDBusConnection::sessionBus(), this);
+    QDBusConnection::sessionBus().connect(
+        AUDIO_DBUS_SERVICE, m_defaultSinkPath, PROPERTIES_INTERFACE,
+        PROPERTIES_CHANGED, this,
+        SLOT(sinkPropertiesChanged(QDBusMessage)));
+
+    initAudioDevice();
+}
+
+void Volume::sinkAdded()
 {
     if (m_defaultSink != nullptr)
     {
@@ -220,8 +266,35 @@ void Volume::sinkDelete(uint index)
     }
 }
 
+void Volume::init()
+{
+    if (m_audioInterface)
+    {
+        m_audioInterface->deleteLater();
+        m_audioInterface = nullptr;
+    }
+
+    m_audioInterface = new QDBusInterface(AUDIO_DBUS_SERVICE, AUDIO_OBJECT_PATH,
+                                          AUDIO_DBUS_INTERFACE_NAME,
+                                          QDBusConnection::sessionBus(), this);
+
+    connect(m_audioInterface, SIGNAL(SinkAdded(uint)), this,
+            SLOT(sinkAdded()));
+    connect(m_audioInterface, SIGNAL(SinkDelete(uint)), this,
+            SLOT(sinkDelete(uint)));
+    connect(m_audioInterface, SIGNAL(DefaultSinkChange(uint)), this,
+            SLOT(defaultSinkUpdate()));
+
+    defaultSinkUpdate();
+}
+
 void Volume::initAudioDevice()
 {
+    if (!m_defaultSink)
+    {
+        return;
+    }
+
     auto getPorts = m_defaultSink->call("GetPorts");
     KLOG_DEBUG() << "getPorts" << getPorts;
     // 解析默认sink的端口信息
@@ -234,11 +307,14 @@ void Volume::initAudioDevice()
         int currentVolume = round(currentVolumeDouble);
         emit volumeValueChanged(currentVolume);
         KLOG_DEBUG() << "currentVolume" << currentVolume;
+        emit enableVolume(true);
+        return;
     }
     else
     {
         // 无激活端口则禁用音量设置
         emit enableVolume(false);
+        return;
     }
 }
 }  // namespace HwConf

@@ -13,6 +13,8 @@
  */
 
 #include <qt5-log-i.h>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QGuiApplication>
 #include <QProcess>
 #include <QScreen>
@@ -124,4 +126,20 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
     }
 
     popWidget->move(windowPosition);
+}
+
+bool Utility::isDbusServiceRegistered(QString serviceName)
+{
+    QDBusConnectionInterface *connectionInterface = QDBusConnection::sessionBus().interface();
+
+    if (connectionInterface && connectionInterface->isServiceRegistered(serviceName))
+    {
+        KLOG_INFO() << "Service is available:" << serviceName;
+        return true;
+    }
+    else
+    {
+        KLOG_INFO() << "Service is not available:" << serviceName;
+        return false;
+    }
 }
