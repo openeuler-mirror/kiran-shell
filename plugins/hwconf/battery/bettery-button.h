@@ -32,7 +32,7 @@ class BatteryButton : public HwConfButton
 public:
     BatteryButton(QWidget* parent = nullptr);
 
-    void updateBattery();
+    void init();
 
 private:
     void settingChanged(const QString& key);  // 电池配置变化
@@ -40,6 +40,8 @@ private:
     void updateIcon();           // 更新显示图标
     QString getIconName();       // 获取显示图标
     void updateDisplayDevice();  // 电池显示设备更新
+
+    void disableBattery();
 
     QString percent2IconIndex(uint percentage);  // 电量百分比转图标序号
 

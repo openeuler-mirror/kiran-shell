@@ -18,6 +18,7 @@
 #include <QDBusPendingReply>
 
 #include "brightness.h"
+#include "lib/common/dbus-service-watcher.h"
 
 #define POWER_DBUS_SERVICE "com.kylinsec.Kiran.SessionDaemon.Power"
 #define POWER_DBUS_OBJECT_PATH "/com/kylinsec/Kiran/SessionDaemon/Power"
@@ -30,18 +31,9 @@ namespace Kiran
 namespace HwConf
 {
 Brightness::Brightness(QObject *parent)
-    : QObject{parent}
+    : QObject{parent},
+      m_interface(nullptr)
 {
-}
-
-void Brightness::init()
-{
-    m_interface = new QDBusInterface(POWER_DBUS_SERVICE,
-                                     POWER_DBUS_OBJECT_PATH,
-                                     POWER_DBUS_INTERFACE,
-                                     QDBusConnection::sessionBus(),
-                                     this);
-
     QDBusConnection::sessionBus().connect(
         POWER_DBUS_SERVICE, POWER_DBUS_OBJECT_PATH, POWER_DBUS_INTERFACE,
         BRIGHTNESS_CHANGED, this,
@@ -50,6 +42,46 @@ void Brightness::init()
         POWER_DBUS_SERVICE, POWER_DBUS_OBJECT_PATH, POWER_DBUS_INTERFACE,
         ACTIVE_PROFILE_CHANGED, this,
         SLOT(dbusActiveProfileChanged(QDBusMessage)));
+
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged,
+            [this](const QString &service, const QString &oldOwner, const QString &newOwner)
+            {
+                if (POWER_DBUS_SERVICE != service)
+                {
+                    return;
+                }
+                if (oldOwner.isEmpty())
+                {
+                    KLOG_INFO() << "dbus service registered:" << service;
+                    init();
+                }
+                else if (newOwner.isEmpty())
+                {
+                    KLOG_INFO() << "dbus service unregistered:" << service;
+                    emit enableBrightness(false);
+                }
+            });
+    DBusWatcher.AddService(POWER_DBUS_SERVICE, QDBusConnection::SessionBus);
+}
+
+void Brightness::init()
+{
+    if (m_interface)
+    {
+        m_interface->deleteLater();
+        m_interface = nullptr;
+    }
+
+    m_interface = new QDBusInterface(POWER_DBUS_SERVICE,
+                                     POWER_DBUS_OBJECT_PATH,
+                                     POWER_DBUS_INTERFACE,
+                                     QDBusConnection::sessionBus(),
+                                     this);
+    if (!m_interface->isValid())
+    {
+        emit enableBrightness(false);
+        return;
+    }
 
     updateBrightness();
 }
@@ -64,6 +96,11 @@ void Brightness::setBrightness(int value)
 
 bool Brightness::getBrightness(int &value)
 {
+    if (!m_interface || !m_interface->isValid())
+    {
+        return false;
+    }
+
     auto message = m_interface->call("GetBrightness", POWER_DEVICE_TYPE_MONITOR);
     if (QDBusMessage::ErrorMessage == message.type() || message.arguments().size() < 1)
     {
@@ -77,6 +114,11 @@ bool Brightness::getBrightness(int &value)
 
 void Brightness::updateBrightness()
 {
+    if (!m_interface || !m_interface->isValid())
+    {
+        return;
+    }
+
     bool checkReadyToUpdate = false;
     emit isReadyToUpdate(checkReadyToUpdate);
     if (!checkReadyToUpdate)

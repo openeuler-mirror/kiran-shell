@@ -32,7 +32,8 @@ target_link_libraries(
   KF5::NetworkManagerQt
   kiran-integration-theme
   widgets
-  network-demo)
+  network-demo
+  common)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

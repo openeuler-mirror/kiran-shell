@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <QDBusConnection>
 #include <QFontMetrics>
 #include <QLayout>
 #include <QObject>
@@ -31,7 +32,7 @@ public:
     // 调整弹窗显示位置
     static void updatePopWidgetPos(int panelOriention, QWidget* triggerWidget, QWidget* popWidget);
     // 检查dbus服务是否已注册
-    static bool isDbusServiceRegistered(QString serviceName);
+    static bool isDbusServiceRegistered(QString serviceName, QDBusConnection::BusType type = QDBusConnection::SessionBus);
 
 private:
     Utility() {}

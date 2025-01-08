@@ -56,8 +56,10 @@ VolumeButton::VolumeButton(QWidget *parent)
             });
 }
 
-void VolumeButton::updateVolume()
+void VolumeButton::init()
 {
+    m_volume->init();
+
     int curVolume;
     bool isMute;
     if (m_volume->getVolume(curVolume) && m_volume->getMute(isMute))

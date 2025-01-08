@@ -17,6 +17,7 @@
 #include <QIcon>
 
 #include "ks-i.h"
+#include "lib/common/dbus-service-watcher.h"
 #include "theme-conf-item.h"
 
 #define APPEARANCE_DBUS_SERVICE "com.kylinsec.Kiran.SessionDaemon.Appearance"
@@ -34,16 +35,47 @@ namespace HwConf
 ThemeConfItem::ThemeConfItem(QWidget *parent)
     : HwConfItem(parent, false)
 {
+    connect(this, &HwConfItem::iconClicked, this, &ThemeConfItem::themeIconClicked);
+
+    setIcon(QIcon::fromTheme(KS_ICON_HWCONF_THEME_SWITCH));
+    setTooltip(tr("theme switch"));
+
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged,
+            [this](const QString &service, const QString &oldOwner, const QString &newOwner)
+            {
+                if (APPEARANCE_DBUS_SERVICE != service)
+                {
+                    return;
+                }
+                if (oldOwner.isEmpty())
+                {
+                    KLOG_INFO() << "dbus service registered:" << service;
+                    init();
+                }
+                else if (newOwner.isEmpty())
+                {
+                    KLOG_INFO() << "dbus service unregistered:" << service;
+                    emit enableTheme(false);
+                }
+            });
+    DBusWatcher.AddService(APPEARANCE_DBUS_SERVICE, QDBusConnection::SessionBus);
+}
+
+void ThemeConfItem::init()
+{
     m_interface = new QDBusInterface(APPEARANCE_DBUS_SERVICE,
                                      APPEARANCE_DBUS_OBJECT_PATH,
                                      APPEARANCE_DBUS_INTERFACE,
                                      QDBusConnection::sessionBus(),
                                      this);
+    if (!m_interface->isValid())
+    {
+        emit enableTheme(false);
+        return;
+    }
 
-    connect(this, &HwConfItem::iconClicked, this, &ThemeConfItem::themeIconClicked);
+    emit enableTheme(true);
 
-    setIcon(QIcon::fromTheme(KS_ICON_HWCONF_THEME_SWITCH));
-    setTooltip(tr("theme switch"));
     getTheme(m_themeID);
 }
 
@@ -63,6 +95,11 @@ void ThemeConfItem::themeIconClicked()
 
 bool ThemeConfItem::getTheme(QString &themeID)
 {
+    if (!m_interface || !m_interface->isValid())
+    {
+        return false;
+    }
+
     auto message = m_interface->call("GetTheme", APPEARANCE_THEME_TYPE_GTK);
     if (QDBusMessage::ErrorMessage == message.type() || message.arguments().size() < 1)
     {
@@ -77,6 +114,11 @@ bool ThemeConfItem::getTheme(QString &themeID)
 
 bool ThemeConfItem::setTheme(const QString &themeID)
 {
+    if (!m_interface || !m_interface->isValid())
+    {
+        return false;
+    }
+
     auto message = m_interface->call("SetTheme", APPEARANCE_THEME_TYPE_GTK, themeID);
     if (QDBusMessage::ErrorMessage == message.type() || message.arguments().size() < 1)
     {

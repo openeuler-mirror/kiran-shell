@@ -128,9 +128,24 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
     popWidget->move(windowPosition);
 }
 
-bool Utility::isDbusServiceRegistered(QString serviceName)
+bool Utility::isDbusServiceRegistered(QString serviceName, QDBusConnection::BusType type)
 {
-    QDBusConnectionInterface *connectionInterface = QDBusConnection::sessionBus().interface();
+    QDBusConnectionInterface *connectionInterface = nullptr;
+    switch (type)
+    {
+    case QDBusConnection::SessionBus:
+    {
+        connectionInterface = QDBusConnection::sessionBus().interface();
+        break;
+    }
+    case QDBusConnection::SystemBus:
+    {
+        connectionInterface = QDBusConnection::systemBus().interface();
+        break;
+    }
+    default:
+        break;
+    }
 
     if (connectionInterface && connectionInterface->isServiceRegistered(serviceName))
     {

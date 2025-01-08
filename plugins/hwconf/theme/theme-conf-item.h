@@ -42,11 +42,16 @@ class ThemeConfItem : public HwConfItem
 public:
     ThemeConfItem(QWidget* parent = nullptr);
 
+    void init();
+
 private:
     void themeIconClicked();
 
     bool getTheme(QString& themeID);
     bool setTheme(const QString& themeID);
+
+signals:
+    void enableTheme(bool enabled);
 
 private:
     QDBusInterface* m_interface;

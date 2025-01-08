@@ -16,13 +16,12 @@
 #include <QDBusArgument>
 #include <QDBusInterface>
 #include <QDBusMessage>
-#include <QDBusServiceWatcher>
-#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <cmath>
 #include <thread>
 
+#include "lib/common/dbus-service-watcher.h"
 #include "lib/common/utility.h"
 #include "volume.h"
 
@@ -48,16 +47,13 @@ Volume::Volume(QObject *parent)
 {
     connect(this, &Volume::readyToInitDefaultSink, this, &Volume::initDefaultSink);
 
-    m_dbusServiceWatcher = new QDBusServiceWatcher(this);
-    m_dbusServiceWatcher->setConnection(QDBusConnection::sessionBus());
-    m_dbusServiceWatcher->addWatchedService(AUDIO_DBUS_SERVICE);
-    m_dbusServiceWatcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
-    connect(m_dbusServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged,
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged,
             [this](const QString &service, const QString &oldOwner, const QString &newOwner)
             {
-                // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
-                // If it was registered, oldOwner will contain an empty string,
-                // whereas if it was unregistered, newOwner will contain an empty string
+                if (AUDIO_DBUS_SERVICE != service)
+                {
+                    return;
+                }
                 if (oldOwner.isEmpty())
                 {
                     KLOG_INFO() << "dbus service registered:" << service;
@@ -69,11 +65,7 @@ Volume::Volume(QObject *parent)
                     emit enableVolume(false);
                 }
             });
-
-    if (Utility::isDbusServiceRegistered(AUDIO_DBUS_SERVICE))
-    {
-        init();
-    }
+    DBusWatcher.AddService(AUDIO_DBUS_SERVICE, QDBusConnection::SessionBus);
 }
 
 void Volume::setVolume(const int &value)
@@ -277,6 +269,13 @@ void Volume::init()
     m_audioInterface = new QDBusInterface(AUDIO_DBUS_SERVICE, AUDIO_OBJECT_PATH,
                                           AUDIO_DBUS_INTERFACE_NAME,
                                           QDBusConnection::sessionBus(), this);
+    if (!m_audioInterface->isValid())
+    {
+        emit enableVolume(false);
+        return;
+    }
+
+    emit enableVolume(true);
 
     connect(m_audioInterface, SIGNAL(SinkAdded(uint)), this,
             SLOT(sinkAdded()));

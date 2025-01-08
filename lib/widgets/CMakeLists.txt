@@ -25,6 +25,8 @@ target_link_libraries(
   ${TARGET_NAME}
   PUBLIC Qt5::Core
          Qt5::Widgets
+         Qt5::DBus
          ${KLOG_QT5_LIBRARIES}
          KF5::WindowSystem
-         kiran-integration-theme)
+         kiran-integration-theme
+         common)

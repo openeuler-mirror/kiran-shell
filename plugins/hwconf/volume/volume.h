@@ -16,7 +16,6 @@
 
 #include <QObject>
 
-class QDBusServiceWatcher;
 class QDBusInterface;
 class QDBusMessage;
 namespace Kiran
@@ -56,7 +55,6 @@ signals:
     void readyToInitDefaultSink();
 
 private:
-    QDBusServiceWatcher *m_dbusServiceWatcher;
     QDBusInterface *m_audioInterface;
     QDBusInterface *m_defaultSink;
     QString m_defaultSinkPath;

@@ -17,8 +17,8 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
-#include <QDBusServiceWatcher>
 
+#include "lib/common/dbus-service-watcher.h"
 #include "status-notifier-watcher.h"
 #include "statusnotifierwatcherinterface.h"
 
@@ -30,8 +30,9 @@ StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     : QObject{parent}, m_xembedSniProxy(nullptr)
 {
     registerServer();
-    m_serviceWatcher = new QDBusServiceWatcher(SERVICE_NAME, QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForOwnerChange, this);
-    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
+
+    DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
 }
 
 StatusNotifierWatcher::~StatusNotifierWatcher()
@@ -55,6 +56,12 @@ int StatusNotifierWatcher::ProtocolVersion() const
 
 void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner)
 {
+    // 监控 org.kde.StatusNotifierWatcher 注册者变动，若其他进程注销，本服务接替注册
+    if (SERVICE_NAME != service)
+    {
+        return;
+    }
+
     // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
     // If it was registered, oldOwner will contain an empty string,
     // whereas if it was unregistered, newOwner will contain an empty string
@@ -62,7 +69,6 @@ void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QS
     KLOG_INFO() << "Service" << service << "status change, old owner:" << oldOwner << "new:" << newOwner;
 
     // 能接收到这个信号，说明有其他面板程序注册了服务，如：kiran-applet
-    // 其他面板程序程序退出，本服务接替注册
     if (newOwner.isEmpty())
     {
         KLOG_INFO() << "other program is unregistered, start to register" << SERVICE_NAME;
@@ -73,8 +79,6 @@ void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QS
 
 void StatusNotifierWatcher::serviceUnregistered(const QString &service)
 {
-    m_serviceWatcher->removeWatchedService(service);
-
     QString path = service + QLatin1Char('/');
     QStringList::Iterator it = m_registeredServices.begin();
     while (it != m_registeredServices.end())
@@ -184,15 +188,10 @@ void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &service)
         return;
     }
 
-    m_serviceWatcher->addWatchedService(service);
     if (QDBusConnection::sessionBus().interface()->isServiceRegistered(service).value())
     {
         m_registeredServices.append(itemId);
         emit StatusNotifierItemRegistered(itemId);
-    }
-    else
-    {
-        m_serviceWatcher->removeWatchedService(service);
     }
 }
 

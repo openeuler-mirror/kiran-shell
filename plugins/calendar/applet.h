@@ -19,7 +19,6 @@
 #include <plugin-i.h>
 #include <QPushButton>
 
-class QDBusServiceWatcher;
 class QDBusInterface;
 class QTimer;
 class StyledButton;
@@ -58,7 +57,6 @@ private:
 
     QTimer *m_timeUpdateTimer;
     //DBus 监控时间设置
-    QDBusServiceWatcher *m_dbusServiceWatcher;
     QDBusInterface *m_timeDbusProxy;
     //接收DBus时间设置信号
     bool m_isSecondsShowing;

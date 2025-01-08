@@ -64,8 +64,8 @@ Window::Window(IAppletImport *import, Applet *parent)
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
-    volumButton->updateVolume();
-    powerButton->updateBattery();
+    volumButton->init();
+    powerButton->init();
 }
 
 Window::~Window()

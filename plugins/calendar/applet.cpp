@@ -15,7 +15,6 @@
 #include <qt5-log-i.h>
 #include <QCoreApplication>
 #include <QDBusInterface>
-#include <QDBusServiceWatcher>
 #include <QFont>
 #include <QGridLayout>
 #include <QTimer>
@@ -24,6 +23,7 @@
 #include "applet.h"
 #include "calendar-button.h"
 #include "ks-config.h"
+#include "lib/common/dbus-service-watcher.h"
 #include "lib/common/utility.h"
 #include "window.h"
 
@@ -81,24 +81,22 @@ Applet::Applet(IAppletImport *import)
         KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, PROPERTIES_INTERFACE,
         PROPERTIES_CHANGED, this, SLOT(timeInfoChanged()));
 
-    m_dbusServiceWatcher = new QDBusServiceWatcher(this);
-    m_dbusServiceWatcher->setConnection(QDBusConnection::sessionBus());
-    m_dbusServiceWatcher->addWatchedService(KIRAN_TIMEDATA_BUS);
-    m_dbusServiceWatcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
-    connect(m_dbusServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged,
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged,
             [this](const QString &service, const QString &oldOwner, const QString &newOwner)
             {
-                // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
-                // If it was registered, oldOwner will contain an empty string,
-                // whereas if it was unregistered, newOwner will contain an empty string
+                if (KIRAN_TIMEDATA_BUS != service)
+                {
+                    return;
+                }
                 if (oldOwner.isEmpty())
                 {
                     KLOG_INFO() << "dbus service registered:" << service;
                     initTimeDbusProxy();
                 }
             });
+    DBusWatcher.AddService(KIRAN_TIMEDATA_BUS, QDBusConnection::SystemBus);
 
-    if (Utility::isDbusServiceRegistered(KIRAN_TIMEDATA_BUS))
+    if (Utility::isDbusServiceRegistered(KIRAN_TIMEDATA_BUS, QDBusConnection::SystemBus))
     {
         initTimeDbusProxy();
     }
