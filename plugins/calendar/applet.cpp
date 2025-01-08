@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <QCoreApplication>
 #include <QDBusInterface>
+#include <QDBusServiceWatcher>
 #include <QFont>
 #include <QGridLayout>
 #include <QTimer>
@@ -37,7 +38,12 @@ namespace Kiran
 namespace Calendar
 {
 Applet::Applet(IAppletImport *import)
-    : m_import(import), m_isSecondsShowing(true), m_dateLongFormat(0), m_dateShortFormat(0), m_hourFormat(0)
+    : m_import(import),
+      m_timeDbusProxy(nullptr),
+      m_isSecondsShowing(true),
+      m_dateLongFormat(0),
+      m_dateShortFormat(0),
+      m_hourFormat(0)
 {
     static QTranslator translator;
     if (!translator.load(QLocale(), "calendar", ".", KS_INSTALL_TRANSLATIONDIR,
@@ -51,8 +57,7 @@ Applet::Applet(IAppletImport *import)
     }
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this,
-                       SLOT(updateLayout()));
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     m_window = new Window(this);
     m_window->hide();
@@ -72,11 +77,35 @@ Applet::Applet(IAppletImport *import)
     layout->setSpacing(0);
     layout->addWidget(m_calendarButton);
 
-    timeUpdate();
+    QDBusConnection::systemBus().connect(
+        KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, PROPERTIES_INTERFACE,
+        PROPERTIES_CHANGED, this, SLOT(timeInfoChanged()));
+
+    m_dbusServiceWatcher = new QDBusServiceWatcher(this);
+    m_dbusServiceWatcher->setConnection(QDBusConnection::sessionBus());
+    m_dbusServiceWatcher->addWatchedService(KIRAN_TIMEDATA_BUS);
+    m_dbusServiceWatcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
+    connect(m_dbusServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged,
+            [this](const QString &service, const QString &oldOwner, const QString &newOwner)
+            {
+                // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
+                // If it was registered, oldOwner will contain an empty string,
+                // whereas if it was unregistered, newOwner will contain an empty string
+                if (oldOwner.isEmpty())
+                {
+                    KLOG_INFO() << "dbus service registered:" << service;
+                    initTimeDbusProxy();
+                }
+            });
+
+    if (Utility::isDbusServiceRegistered(KIRAN_TIMEDATA_BUS))
+    {
+        initTimeDbusProxy();
+    }
+
     m_timeUpdateTimer = new QTimer(this);
     connect(m_timeUpdateTimer, &QTimer::timeout, this, &Applet::timeUpdate);
     m_timeUpdateTimer->start(1000);
-    initTimeDbusProxy();
 }
 
 void Applet::clickButton()
@@ -98,25 +127,26 @@ void Applet::hideWindow()
 
 void Applet::initTimeDbusProxy()
 {
-    try
+    if (m_timeDbusProxy)
     {
-        m_timeDbusProxy = new QDBusInterface(
-            KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, KIRAN_TIMEDATA_INTERFACE,
-            QDBusConnection::systemBus(), this);
+        m_timeDbusProxy->deleteLater();
+        m_timeDbusProxy = nullptr;
     }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QDBusInterface failed";
-    }
-
-    bool ret = QDBusConnection::systemBus().connect(
-        KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, PROPERTIES_INTERFACE,
-        PROPERTIES_CHANGED, this, SLOT(timeInfoChanged()));
-
+    // If the remote service service is not present or if an error occurs trying to obtain the description of the remote interface interface,
+    // the object created will not be valid
+    m_timeDbusProxy = new QDBusInterface(
+        KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, KIRAN_TIMEDATA_INTERFACE,
+        QDBusConnection::systemBus(), this);
     timeInfoChanged();
 }
+
 void Applet::timeInfoChanged()
 {
+    if (!m_timeDbusProxy || !m_timeDbusProxy->isValid())
+    {
+        return;
+    }
+
     QVariant valueSecond = m_timeDbusProxy->property("seconds_showing");
     if (valueSecond.isValid())
     {
@@ -238,82 +268,81 @@ void Applet::timeUpdate()
         dayStr = "日";
     }
 
-    QString tooltipStr = QString("%1,%2%3%4%5%6%7")
-                             .arg(curWeekDateStr)
-                             .arg(curYearDateStr)
-                             .arg(yearStr)
-                             .arg(curMonthDateStr)
-                             .arg(monthStr)
-                             .arg(curDayDateStr)
-                             .arg(dayStr);
-
+    QString tooltip;
     switch (m_dateLongFormat)
     {
     case 1:
-        tooltipStr = QString("%1%2%3%4%5%6,%7")
-                         .arg(curYearDateStr)
-                         .arg(yearStr)
-                         .arg(curMonthDateStr)
-                         .arg(monthStr)
-                         .arg(curDayDateStr)
-                         .arg(dayStr)
-                         .arg(curWeekDateStr);
+        tooltip = QString("%1%2%3%4%5%6,%7")
+                      .arg(curYearDateStr)
+                      .arg(yearStr)
+                      .arg(curMonthDateStr)
+                      .arg(monthStr)
+                      .arg(curDayDateStr)
+                      .arg(dayStr)
+                      .arg(curWeekDateStr);
         break;
     case 2:
-        tooltipStr = QString("%1%2%3%4%5%6")
-                         .arg(curYearDateStr)
-                         .arg(yearStr)
-                         .arg(curMonthDateStr)
-                         .arg(monthStr)
-                         .arg(curDayDateStr)
-                         .arg(dayStr);
+        tooltip = QString("%1%2%3%4%5%6")
+                      .arg(curYearDateStr)
+                      .arg(yearStr)
+                      .arg(curMonthDateStr)
+                      .arg(monthStr)
+                      .arg(curDayDateStr)
+                      .arg(dayStr);
         break;
     case 3:
-        tooltipStr = QString("%1/%2/%3,%4")
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr)
-                         .arg(curWeekDateStr);
+        tooltip = QString("%1/%2/%3,%4")
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr)
+                      .arg(curWeekDateStr);
         break;
     case 4:
-        tooltipStr = QString("%1,%2/%3/%4")
-                         .arg(curWeekDateStr)
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr);
+        tooltip = QString("%1,%2/%3/%4")
+                      .arg(curWeekDateStr)
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr);
         break;
     case 5:
-        tooltipStr = QString("%1-%2-%3,%4")
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr)
-                         .arg(curWeekDateStr);
+        tooltip = QString("%1-%2-%3,%4")
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr)
+                      .arg(curWeekDateStr);
         break;
     case 6:
-        tooltipStr = QString("%1,%2-%3-%4")
-                         .arg(curWeekDateStr)
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr);
+        tooltip = QString("%1,%2-%3-%4")
+                      .arg(curWeekDateStr)
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr);
         break;
     case 7:
-        tooltipStr = QString("%1.%2.%3,%4")
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr)
-                         .arg(curWeekDateStr);
+        tooltip = QString("%1.%2.%3,%4")
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr)
+                      .arg(curWeekDateStr);
         break;
     case 8:
-        tooltipStr = QString("%1,%2.%3.%4")
-                         .arg(curWeekDateStr)
-                         .arg(curYearDateStr)
-                         .arg(curMonthDateStr)
-                         .arg(curDayDateStr);
+        tooltip = QString("%1,%2.%3.%4")
+                      .arg(curWeekDateStr)
+                      .arg(curYearDateStr)
+                      .arg(curMonthDateStr)
+                      .arg(curDayDateStr);
         break;
     default:
-        break;
+        tooltip = QString("%1,%2%3%4%5%6%7")
+                      .arg(curWeekDateStr)
+                      .arg(curYearDateStr)
+                      .arg(yearStr)
+                      .arg(curMonthDateStr)
+                      .arg(monthStr)
+                      .arg(curDayDateStr)
+                      .arg(dayStr);
     }
-    m_calendarButton->setToolTip(tooltipStr);
+    m_calendarButton->setToolTip(tooltip);
 }
 
 Applet::~Applet() {}
