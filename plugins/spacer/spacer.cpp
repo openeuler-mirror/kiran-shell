@@ -14,7 +14,6 @@
 
 #include <kiran-color-block.h>
 #include <ks-i.h>
-#include <QDebug>
 #include <QPainter>
 
 #include "spacer.h"

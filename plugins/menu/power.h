@@ -14,13 +14,15 @@
 
 #pragma once
 
-#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QGSettings>
 #include <QObject>
 #include <memory>
 
+class QDBusInterface;
+class Freelogin1Manager;
+class GnomeSessionManager;
 class Power : public QObject
 {
     Q_OBJECT
@@ -64,7 +66,7 @@ private:
     QGSettings* m_gsettings;
 
     //dbus相关
-    QDBusInterface* m_login1Proxy;
-    QDBusInterface* m_sessionManagerProxy;
+    Freelogin1Manager* m_freelogin1Manager;
+    GnomeSessionManager* m_gnomeSessionManager;
     QDBusInterface* m_seatManagerProxy;
 };

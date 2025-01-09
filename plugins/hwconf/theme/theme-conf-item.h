@@ -16,7 +16,7 @@
 
 #include "hw-conf-item.h"
 
-class QDBusInterface;
+class KSAppearance;
 namespace Kiran
 {
 namespace HwConf
@@ -42,14 +42,20 @@ class ThemeConfItem : public HwConfItem
 public:
     ThemeConfItem(QWidget* parent = nullptr);
 
+    void init();
+
 private:
+    void serviceOwnerChanged(const QString& service, const QString& oldOwner, const QString& newOwner);
     void themeIconClicked();
 
     bool getTheme(QString& themeID);
     bool setTheme(const QString& themeID);
 
+signals:
+    void enableTheme(bool enabled);
+
 private:
-    QDBusInterface* m_interface;
+    KSAppearance* m_ksAppearance;
 
     QString m_themeID;
 };

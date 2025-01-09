@@ -16,9 +16,9 @@
 
 #include <QObject>
 
-class QDBusInterface;
 class QDBusMessage;
 class QDBusPendingCallWatcher;
+class KSPower;
 namespace Kiran
 {
 namespace HwConf
@@ -40,6 +40,7 @@ private slots:
 
 private:
     void handleSetBrightnessResult(QDBusPendingCallWatcher* watcher);  // 亮度设置dbus回传信息
+    void serviceOwnerChanged(const QString& service, const QString& oldOwner, const QString& newOwner);
 
 signals:
     void enableBrightness(bool enabled);     // 禁用亮度
@@ -47,7 +48,7 @@ signals:
     void isReadyToUpdate(bool& flag);        // 获取界面是否已准备好接受变化：亮度变化来源未知，需要在界面调整时禁用外部变化同步到界面
 
 private:
-    QDBusInterface* m_interface;  // dbus接口
+    KSPower* m_ksPower;  // dbus接口
 };
 }  // namespace HwConf
 }  // namespace Kiran

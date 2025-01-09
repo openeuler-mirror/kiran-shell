@@ -20,7 +20,6 @@
 
 #include "statusnotifierwatcherinterface.h"
 
-class QDBusServiceWatcher;
 class QProcess;
 class StatusNotifierWatcher : public QObject, protected QDBusContext
 {
@@ -35,23 +34,23 @@ public:
     ~StatusNotifierWatcher() override;
 
 public:
-    //Properties
-    //StatusNotifierItem 的所有已注册实例的列表
+    // Properties
+    // StatusNotifierItem 的所有已注册实例的列表
     QStringList RegisteredStatusNotifierItems() const;
-    //如果至少有一个 StatusNotifierHost 已向名为 RegisterStatusNotifierHost 的部分注册并且当前正在运行，则为真
+    // 如果至少有一个 StatusNotifierHost 已向名为 RegisterStatusNotifierHost 的部分注册并且当前正在运行，则为真
     bool IsStatusNotifierHostRegistered() const;
-    //StatusNotifierWatcher 实例实现的协议版本
+    // StatusNotifierWatcher 实例实现的协议版本
     int ProtocolVersion() const;
 
 public Q_SLOTS:
-    //Methods
-    //将 StatusNotifierItem 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierItem-4077-1
+    // Methods
+    // 将 StatusNotifierItem 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierItem-4077-1
     void RegisterStatusNotifierItem(const QString &service);
-    //将 StatusNotifierHost 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierHost-4005
+    // 将 StatusNotifierHost 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierHost-4005
     void RegisterStatusNotifierHost(const QString &service);
 
 Q_SIGNALS:
-    //SIGNALS
+    // SIGNALS
     void StatusNotifierItemRegistered(const QString &service);
     void StatusNotifierItemUnregistered(const QString &service);
     void StatusNotifierHostRegistered();
@@ -67,9 +66,6 @@ private:
     void killXembedSniProxy();
 
 private:
-    // 监控 org.kde.StatusNotifierWatcher 注册者变动，若其他进程注销，本服务接替注册
-    QDBusServiceWatcher *m_serviceWatcher;
-
     QStringList m_registeredServices;
 
     QProcess *m_xembedSniProxy;

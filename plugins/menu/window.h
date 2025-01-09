@@ -34,8 +34,8 @@ class QButtonGroup;
 class QStackedWidget;
 class QToolButton;
 class AppItem;
-class QDBusInterface;
-
+class KSAccounts;
+class KSAccountsUser;
 namespace Kiran
 {
 namespace Menu
@@ -106,11 +106,9 @@ private:
     std::unique_ptr<KActivities::Consumer> m_activitiesConsumer;
     QStringList m_favoriteAppId;
 
-    // 用户id
-    uid_t m_uid;
     // 用户信息 dbus
-    QDBusInterface* m_accountProxy;
-    QDBusInterface* m_accountUserProxy;
+    KSAccountsUser* m_ksAccountsUser;
+    KSAccounts* m_ksAccounts;
 };
 }  // namespace Menu
 }  // namespace Kiran

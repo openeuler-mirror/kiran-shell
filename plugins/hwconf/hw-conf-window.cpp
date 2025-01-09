@@ -58,6 +58,10 @@ HwConfWindow::HwConfWindow(QWidget *parent)
 
     // 主题
     auto themeItem = new ThemeConfItem(this);
+    connect(themeItem, &ThemeConfItem::enableTheme, this, [themeItem](bool enabled)
+            {
+                themeItem->setVisible(enabled);
+            });
 
     // 亮度
     auto brightness = new Brightness(this);
@@ -110,6 +114,7 @@ HwConfWindow::HwConfWindow(QWidget *parent)
     ethernetNetworkItem->init();
     wifiNetworkItem->init();
     brightness->init();
+    themeItem->init();
 
     if (!NetCommon::hasEthernetDevices())
     {

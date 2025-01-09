@@ -14,38 +14,28 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QDBusConnection>
+#include <QObject>
 
-#include "hw-conf-button.h"
+#define DBusWatcher DBusServiceWatcher::getInstance()
 
-namespace Kiran
-{
-namespace HwConf
-{
-class Volume;
-class VolumeButton : public HwConfButton
+class QDBusServiceWatcher;
+class DBusServiceWatcher : public QObject
 {
     Q_OBJECT
 public:
-    VolumeButton(QWidget* parent = nullptr);
+    static DBusServiceWatcher& getInstance();
 
-    void init();
-    void setVolume(const int& value);  // 设置音量
-    void setVolumeMute();              // 设置是否静音变化
-
-protected:
-    void contextMenuEvent(QContextMenuEvent* event) override;
+    void AddService(const QString& newService, QDBusConnection::BusType type);
+    void removeService(const QString& service);
 
 private:
-    void setVolumeIcon(int volume);
+    explicit DBusServiceWatcher(QObject* parent = nullptr);
 
 signals:
-    void enableVolume(bool enabled);
-    void volumeValueChanged(int currentVolume);
-    void volumeIconChanged(QIcon icon);
+    void serviceOwnerChanged(const QString& serviceName, const QString& oldOwner, const QString& newOwner);
 
 private:
-    Volume* m_volume;
+    QDBusServiceWatcher* m_systemServiceWatcher;
+    QDBusServiceWatcher* m_sessionServiceWatcher;
 };
-}  // namespace HwConf
-}  // namespace Kiran

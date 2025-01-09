@@ -25,21 +25,21 @@
 
 int main(int argc, char *argv[])
 {
-    //    qputenv("QT_QPA_PLATFORMTHEME", "kiran-next");
-
     auto argv0 = QFileInfo(argv[0]);
     auto programName = argv0.baseName();
-
-    // if (klog_qt5_init(QString(), "", PROJECT_NAME, programName) < 0)
-    // {
-    //     fprintf(stderr, "Failed to init kiran-log.");
-    // }
 
     qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
     app.setApplicationName(programName);
     app.setApplicationVersion(PROJECT_VERSION);
+
+#ifndef QT_DEBUG
+    if (klog_qt5_init("", "kylinsec-session", "kiran-shell", "kiran-shell") != 0)
+    {
+        fprintf(stderr, "Failed to init kiran-log.");
+    }
+#endif
 
     auto local = QLocale();
     KLOG_INFO() << "current local:" << local << local.name();

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <QDBusConnection>
 #include <QFontMetrics>
 #include <QLayout>
 #include <QObject>
@@ -24,15 +25,14 @@ class Utility : public QObject
 public:
     // 执行命令
     static QByteArray runCmd(QString cmd, QStringList cmdArg = QStringList());
-
     // 清理布局
     static void clearLayout(QLayout* layout, bool deleteWidget = false, bool hideWidget = false);
-
     // 获取含省略号的字符串
     static QString getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen);
-
     // 调整弹窗显示位置
     static void updatePopWidgetPos(int panelOriention, QWidget* triggerWidget, QWidget* popWidget);
+    // 检查dbus服务是否已注册
+    static bool isDbusServiceRegistered(QString serviceName, QDBusConnection::BusType type = QDBusConnection::SessionBus);
 
 private:
     Utility() {}

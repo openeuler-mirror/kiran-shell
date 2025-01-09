@@ -16,9 +16,9 @@
 
 #include <QObject>
 
-class QDBusServiceWatcher;
-class QDBusInterface;
 class QDBusMessage;
+class KSAudio;
+class KSAudioDevice;
 namespace Kiran
 {
 namespace HwConf
@@ -29,6 +29,8 @@ class Volume : public QObject
 public:
     explicit Volume(QObject *parent = nullptr);
 
+    void init();
+
     void setVolume(const int &value);
     void setMute(const bool &isMute);
     bool getVolume(int &value);
@@ -38,22 +40,26 @@ private slots:
     void sinkPropertiesChanged(QDBusMessage msg);
     void sinkActivePortChanged(const QString &value);
 
-    void defaultSinkChanged(uint index);
-    void sinkAdded(uint index);
+    void defaultSinkUpdate();
+    void getDefaultSinkPath();
+    void initDefaultSink();
+    void sinkAdded();
     void sinkDelete(uint index);
 
 private:
     void initAudioDevice();
+    void serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner);
 
 signals:
     void enableVolume(bool enabled);
     void volumeValueChanged(int currentVolume);
     void volumeMuteChanged(bool isMute);
+    void readyToInitDefaultSink();
 
 private:
-    QDBusServiceWatcher *m_dbusServiceWatcher;
-    QDBusInterface *m_audioInterface;
-    QDBusInterface *m_defaultSink;
+    KSAudio *m_ksAudio;
+    KSAudioDevice *m_ksAudioDevice;
+    QString m_defaultSinkPath;
 };
 }  // namespace HwConf
 }  // namespace Kiran

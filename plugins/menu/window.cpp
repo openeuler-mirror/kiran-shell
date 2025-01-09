@@ -32,11 +32,12 @@
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
-#include <QDBusInterface>
 
 #include "app-item.h"
 #include "apps-overview.h"
 #include "ks-config.h"
+#include "ks_accounts_interface.h"
+#include "ks_accounts_user_interface.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
@@ -47,8 +48,6 @@
 
 #define KIRAN_ACCOUNTS_BUS "com.kylinsec.Kiran.SystemDaemon.Accounts"
 #define KIRAN_ACCOUNTS_PATH "/com/kylinsec/Kiran/SystemDaemon/Accounts"
-#define KIRAN_ACCOUNTS_INTERFACE "com.kylinsec.Kiran.SystemDaemon.Accounts"
-#define KIRAN_ACCOUNTS_USER_INTERFACE "com.kylinsec.Kiran.SystemDaemon.Accounts.User"
 #define PROPERTIES_INTERFACE "org.freedesktop.DBus.Properties"
 #define PROPERTIES_CHANGED "PropertiesChanged"
 
@@ -63,10 +62,9 @@ namespace Menu
 Window::Window(QWidget *parent)
     : QDialog(parent, Qt::FramelessWindowHint),
       m_ui(new Ui::Window),
-      m_uid(getuid()),
       m_activitiesConsumer(new KActivities::Consumer()),
-      m_accountProxy(nullptr),
-      m_accountUserProxy(nullptr),
+      m_ksAccounts(nullptr),
+      m_ksAccountsUser(nullptr),
       m_actStatsWatcher(nullptr)
 {
     m_ui->setupUi(this);
@@ -95,6 +93,8 @@ void Window::init()
 
 void Window::initUI()
 {
+    m_ui->m_btnUserPhoto->setFlat(true);
+
     m_ui->m_btnAppsOverview->setIcon(QIcon::fromTheme(KS_ICON_MENU_APPS_LIST_SYMBOLIC));
 
     m_ui->m_gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -162,44 +162,26 @@ void Window::initActivitiesStats()
 
 void Window::initUserInfo()
 {
-    m_ui->m_btnUserPhoto->setFlat(true);
-
     // 用户名、头像
-    try
-    {
-        m_accountProxy = new QDBusInterface(KIRAN_ACCOUNTS_BUS,
-                                            KIRAN_ACCOUNTS_PATH,
-                                            KIRAN_ACCOUNTS_INTERFACE,
-                                            QDBusConnection::systemBus(),
-                                            this);
-    }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QDBusInterface failed";
-    }
+    m_ksAccounts = new KSAccounts(KIRAN_ACCOUNTS_BUS,
+                                  KIRAN_ACCOUNTS_PATH,
+                                  QDBusConnection::systemBus(),
+                                  this);
+    // 用户id
+    auto uid = getuid();
+    auto reply = m_ksAccounts->FindUserById(uid);
+    auto accountUserPath = reply.value().path();
+    QDBusConnection::systemBus().connect(KIRAN_ACCOUNTS_BUS,
+                                         accountUserPath,
+                                         PROPERTIES_INTERFACE,
+                                         PROPERTIES_CHANGED,
+                                         this,
+                                         SLOT(userInfoChanged(QDBusMessage)));
 
-    quint64 id = m_uid;
-    QDBusMessage msg = m_accountProxy->call("FindUserById", id);
-    QString accountUserPath = msg.arguments().at(0).value<QDBusObjectPath>().path();
-    bool ret = QDBusConnection::systemBus().connect(KIRAN_ACCOUNTS_BUS,
-                                                    accountUserPath,
-                                                    PROPERTIES_INTERFACE,
-                                                    PROPERTIES_CHANGED,
-                                                    this,
-                                                    SLOT(userInfoChanged(QDBusMessage)));
-
-    try
-    {
-        m_accountUserProxy = new QDBusInterface(KIRAN_ACCOUNTS_BUS,
-                                                accountUserPath,
-                                                KIRAN_ACCOUNTS_USER_INTERFACE,
-                                                QDBusConnection::systemBus(),
-                                                this);
-    }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QDBusInterface failed";
-    }
+    m_ksAccountsUser = new KSAccountsUser(KIRAN_ACCOUNTS_BUS,
+                                          accountUserPath,
+                                          QDBusConnection::systemBus(),
+                                          this);
 
     updateUserInfo();
 
@@ -433,7 +415,7 @@ void Window::updateUserInfo()
 
     m_ui->m_labelUserName->setText(tr("Hello,") + qgetenv("USER"));
 
-    QString iconFile = m_accountUserProxy->property("icon_file").toString();
+    QString iconFile = m_ksAccountsUser->icon_file();
     if (!iconFile.isEmpty() && QFile(iconFile).exists())
     {
         m_ui->m_btnUserPhoto->setIcon(QIcon(iconFile));

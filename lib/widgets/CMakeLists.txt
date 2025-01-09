@@ -9,8 +9,7 @@ file(GLOB_RECURSE UI_FILES ./*.ui)
 set(ALL_FILES ${H_FILES} ${CPP_FILES} ${UI_FILES})
 
 # 更新ts文件
-execute_process(COMMAND lupdate-qt5 ${ALL_FILES} -ts
-                        ${TRANSLATION_FILES})
+execute_process(COMMAND lupdate-qt5 ${ALL_FILES} -ts ${TRANSLATION_FILES})
 
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
@@ -25,6 +24,8 @@ target_link_libraries(
   ${TARGET_NAME}
   PUBLIC Qt5::Core
          Qt5::Widgets
-         ${KLOG_QT5_LIBRARIES}
+         Qt5::DBus
          KF5::WindowSystem
-         kiran-integration-theme)
+         ${KLOG_QT5_LIBRARIES}
+         kiran-integration-theme
+         common)

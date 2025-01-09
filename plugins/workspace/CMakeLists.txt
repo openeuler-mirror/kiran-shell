@@ -16,13 +16,16 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
-add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES} ${QM_FILES})
-
+add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES}
+                                  ${QM_FILES})
 target_include_directories(
   ${TARGET_NAME}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
-          ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS} ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS}
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+          ${PROJECT_BINARY_DIR}
+          ${PROJECT_SOURCE_DIR}
+          ${PROJECT_SOURCE_DIR}/include
+          ${KLOG_QT5_INCLUDE_DIRS}
+          ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS}
           ${GSETTINGS_QT_INCLUDE_DIRS})
 
 target_link_libraries(

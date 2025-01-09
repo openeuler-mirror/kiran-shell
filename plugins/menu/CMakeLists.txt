@@ -19,8 +19,38 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
+set_source_files_properties(
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.Accounts.xml
+  PROPERTIES CLASSNAME KSAccounts NO_NAMESPACE TRUE)
+set_source_files_properties(
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.Accounts.User.xml
+  PROPERTIES CLASSNAME KSAccountsUser NO_NAMESPACE TRUE)
+set_source_files_properties(
+  ${PROJECT_SOURCE_DIR}/dbus/org.freedesktop.login1.Manager.xml
+  PROPERTIES CLASSNAME Freelogin1Manager
+             NO_NAMESPACE TRUE
+             INCLUDE ${PROJECT_SOURCE_DIR}/dbus/loginddbustypes.h)
+set_source_files_properties(
+  ${PROJECT_SOURCE_DIR}/dbus/org.gnome.SessionManager.xml
+  PROPERTIES CLASSNAME GnomeSessionManager NO_NAMESPACE TRUE)
+
+qt_add_dbus_interface(
+  DBUS_INTERFACES
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.Accounts.xml
+  ks_accounts_interface)
+qt_add_dbus_interface(
+  DBUS_INTERFACES
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.Accounts.User.xml
+  ks_accounts_user_interface)
+qt_add_dbus_interface(
+  DBUS_INTERFACES ${PROJECT_SOURCE_DIR}/dbus/org.freedesktop.login1.Manager.xml
+  free_login1_manager_interface)
+qt_add_dbus_interface(
+  DBUS_INTERFACES ${PROJECT_SOURCE_DIR}/dbus/org.gnome.SessionManager.xml
+  gnome_session_manager_interface)
+
 add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES}
-                                  ${QM_FILES})
+                                  ${QM_FILES} ${DBUS_INTERFACES})
 
 target_include_directories(
   ${TARGET_NAME}

@@ -1,5 +1,4 @@
 #include "lunar.h"
-#include <QDebug>
 #define TIANGAN_DIZHI_START_YAER 1924  //  天干地支开始计算年月
 
 // 农历每年春节对应的公历日期 130：1月30号
