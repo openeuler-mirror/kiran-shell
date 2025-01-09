@@ -107,9 +107,6 @@ void AppButton::getInfoFromUrl()
         return;
     }
 
-    //    KLOG_INFO() << "AppButton::getInfoFromUrl" << m_appBaseInfo.m_url <<
-    //    fileItem.iconName() << fileItem.mimeComment();
-
     QIcon icon = QIcon::fromTheme(fileItem.iconName());
     if (icon.isNull())
     {
@@ -214,7 +211,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
         menu.addAction(tr("Close all windows"), this,
                        [=]()
                        {
-                           emit windowClose(m_wid);
+                           emit windowCloseAll();
                        });
     }
 
@@ -276,7 +273,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                     auto *job = new KIO::ApplicationLauncherJob(serviceAction);
                     job->start();
 
-                    //通知kactivitymanagerd
+                    // 通知kactivitymanagerd
                     KActivities::ResourceInstance::notifyAccessed(
                         QUrl(QStringLiteral("applications:") + s->storageId()));
                 });
@@ -301,8 +298,6 @@ void AppButton::enterEvent(QEvent *event)
         return;
     }
 
-    emit previewerHide(0);
-
     emit previewerShow(m_wid);
 
     QToolButton::enterEvent(event);
@@ -318,10 +313,7 @@ void AppButton::leaveEvent(QEvent *event)
         return;
     }
 
-    QTimer::singleShot(400, this, [this]()
-                       {
-                           emit previewerHide(m_wid);
-                       });
+    emit previewerHide(m_wid);
     QToolButton::leaveEvent(event);
 }
 
@@ -582,11 +574,11 @@ void AppButton::buttonClicked()
         {
             KService::Ptr service =
                 KService::serviceByStorageId(m_appBaseInfo.m_url.fileName());
-            //启动应用
+            // 启动应用
             auto *job = new KIO::ApplicationLauncherJob(service);
             job->start();
 
-            //通知kactivitymanagerd
+            // 通知kactivitymanagerd
             KActivities::ResourceInstance::notifyAccessed(
                 QUrl(QStringLiteral("applications:") + service->storageId()));
         }

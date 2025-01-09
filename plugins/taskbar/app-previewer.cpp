@@ -17,13 +17,14 @@
 #include <qt5-log-i.h>
 #include <KWindowSystem/NETWM>
 #include <QBoxLayout>
+#include <QTimer>
 
-#include "app-group.h"
 #include "app-previewer.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "window.h"
 
 #define PREVIEWER_SPACING 3
 
@@ -31,17 +32,23 @@ namespace Kiran
 {
 namespace Taskbar
 {
-AppPreviewer::AppPreviewer(IAppletImport *import, AppGroup *parent)
+AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::Tool),
       m_import(import)
 {
-    connect(parent, &AppGroup::windowAdded, this, &AppPreviewer::addWindow);
-    connect(parent, &AppGroup::windowRemoved, this, &AppPreviewer::removeWindow);
-    connect(parent, &AppGroup::windowChanged, this, &AppPreviewer::windowChanged);
-    connect(parent, &AppGroup::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
+    Window *window = (Window *)parent;
+    connect(window, &Window::windowAdded, this, &AppPreviewer::addWindow);
+    connect(window, &Window::windowRemoved, this, &AppPreviewer::removeWindow);
+    connect(window, &Window::windowChanged, this, &AppPreviewer::windowChanged);
+    connect(window, &Window::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
+    connect(window, &Window::previewerShow, this, &AppPreviewer::showPreviewer);
+    connect(window, &Window::previewerHide, this, &AppPreviewer::hidePreviewer);
+    connect(window, &Window::previewerShowChange, this, &AppPreviewer::previewerShowChange);
 
-    connect(parent, &AppGroup::previewerShow, this, &AppPreviewer::showPreviewer);
-    connect(parent, &AppGroup::previewerHide, this, &AppPreviewer::hidePreviewer);
+    m_hideTimer = new QTimer(this);
+    m_hideTimer->setSingleShot(true);
+    m_hideTimer->setInterval(500);
+    connect(m_hideTimer, &QTimer::timeout, this, &AppPreviewer::hideTimeout);
 
     // 横竖摆放
     auto direction = getLayoutDirection();
@@ -111,11 +118,19 @@ void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
 {
     //    KLOG_INFO() << "AppPreviewer::addWindow" << wmClass << wid;
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
-    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, this, &AppPreviewer::windowClose);
-    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, this, &QWidget::hide, Qt::DirectConnection);
+    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, [this](WId wid)
+            {
+                // 关闭窗口
+                WindowInfoHelper::closeWindow(wid);
+                setVisible(false);
+            });
+    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, [this]()
+            {
+                setVisible(false);
+            });
 
     // 需要显示时才显示
-    m_mapWindowPreviewers[wid]->hide();
+    m_mapWindowPreviewers[wid]->setVisible(false);
 }
 
 void AppPreviewer::removeWindow(WId wid)
@@ -128,28 +143,18 @@ void AppPreviewer::removeWindow(WId wid)
     }
 }
 
-void AppPreviewer::showPreviewer(WId wid, QWidget *triggerWidget)
+void AppPreviewer::showPreviewer(QList<WId> wids, QWidget *triggerWidget)
 {
-    // KLOG_INFO() << "AppPreviewer::showPreviewer" << wid;
+    m_hideTimer->stop();
+
+    //    KLOG_INFO() << "AppPreviewer::showPreviewer" << wids;
     QList<WindowPreviewer *> windowPreviewerShow;
 
-    // 根据当前模式，显示不一样的结果
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    for (auto wid : wids)
     {
-        // 显示单个
         if (m_mapWindowPreviewers.contains(wid))
         {
             windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
-        }
-    }
-    else
-    {
-        // 显示一类
-        auto iter = m_mapWindowPreviewers.begin();
-        while (iter != m_mapWindowPreviewers.end())
-        {
-            windowPreviewerShow.push_back(iter.value());
-            iter++;
         }
     }
 
@@ -161,11 +166,28 @@ void AppPreviewer::showPreviewer(WId wid, QWidget *triggerWidget)
     setVisible(true);
 }
 
-void AppPreviewer::hidePreviewer(WId wid)
+void AppPreviewer::hidePreviewer()
+{
+    m_hideTimer->start();
+}
+
+void AppPreviewer::hideTimeout()
 {
     if (!geometry().contains(QCursor::pos()))
     {
         setVisible(false);
+    }
+}
+
+void AppPreviewer::previewerShowChange(QList<WId> wids, QWidget *triggerWidget)
+{
+    if (isVisible())
+    {
+        setVisible(false);
+    }
+    else
+    {
+        showPreviewer(wids, triggerWidget);
     }
 }
 
@@ -182,7 +204,7 @@ void AppPreviewer::leaveEvent(QEvent *event)
 
     if (checkCanHide)
     {
-        setVisible(false);
+        m_hideTimer->start();
     }
 }
 

@@ -52,7 +52,6 @@ bool WindowPreviewer::checkCanHide()
 
 void WindowPreviewer::changedActiveWindow(WId wid)
 {
-    //    WindowThumbnailBase::changedActiveWindow(wid);
     m_widLastActive = wid;
 }
 
@@ -60,8 +59,7 @@ void WindowPreviewer::on_m_btnClose_clicked()
 {
     emit closeWindow(m_wid);
 }
-
-void WindowPreviewer::mousePressEvent(QMouseEvent *event)
+void WindowPreviewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
@@ -74,10 +72,9 @@ void WindowPreviewer::mousePressEvent(QMouseEvent *event)
         else
         {
             WindowInfoHelper::minimizeWindow(m_wid);
+            m_widLastActive = 0;
         }
     }
-
-    QWidget::mousePressEvent(event);
 }
 
 void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
@@ -86,16 +83,13 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
 
     m_menu->addAction(tr("Close window"), this, [=]()
                       {
-                          emit hideWindow();
                           emit closeWindow(m_wid);
-                          WindowInfoHelper::activateWindow(m_wid);
                       });
 
     if (WindowInfoHelper::isMaximized(m_wid))
     {
         m_menu->addAction(tr("Restore"), this, [=]()
                           {
-                              emit hideWindow();
                               WindowInfoHelper::maximizeWindow(m_wid, false);
                           });
     }
@@ -103,7 +97,6 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
     {
         m_menu->addAction(tr("Maximize"), this, [=]()
                           {
-                              emit hideWindow();
                               WindowInfoHelper::maximizeWindow(m_wid, true);
                           });
     }
@@ -112,7 +105,6 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
     {
         m_menu->addAction(tr("Minimize"), this, [=]()
                           {
-                              emit hideWindow();
                               WindowInfoHelper::minimizeWindow(m_wid);
                           });
     }
@@ -121,7 +113,6 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
     {
         m_menu->addAction(tr("Do not keep above"), this, [=]()
                           {
-                              emit hideWindow();
                               WindowInfoHelper::setKeepAbove(m_wid, false);
                           });
     }
@@ -129,16 +120,11 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
     {
         m_menu->addAction(tr("Keep above"), this, [=]()
                           {
-                              emit hideWindow();
                               WindowInfoHelper::setKeepAbove(m_wid, true);
                           });
     }
 
     m_menu->exec(mapToGlobal(event->pos()));
-
-    // 在这里发信号会导致窗口无法激活
-    //    emit hideWindow();
-    //    ((QWidget*)parent())->hide();
 }
 
 }  // namespace Taskbar

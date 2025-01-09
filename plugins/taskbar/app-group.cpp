@@ -92,30 +92,39 @@ void AppGroup::getRelationAppSize(int &size)
 
 void AppGroup::showPreviewer(WId wid)
 {
-    emit previewerShow(wid, (QWidget *)sender());
-}
-
-void AppGroup::hidePreviewer(WId wid)
-{
-    emit previewerHide(wid);
+    QList<WId> wids;
+    if (!SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    {
+        wids = m_mapWidButton.keys();
+    }
+    else
+    {
+        wids << wid;
+    }
+    emit previewerShow(wids, (QWidget *)sender());
 }
 
 void AppGroup::changePreviewerShow(WId wid)
 {
-    if (m_appPreviewer->isHidden())
+    QList<WId> wids;
+    if (!SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
     {
-        showPreviewer(wid);
+        wids = m_mapWidButton.keys();
     }
     else
     {
-        hidePreviewer(wid);
+        wids << wid;
     }
+
+    emit previewerShowChange(wids, (QWidget *)sender());
 }
 
-void AppGroup::closeWindow(WId wid)
+void AppGroup::windowCloseAll()
 {
-    WindowInfoHelper::closeWindow(wid);
-    m_appPreviewer->hide();
+    for (auto wid : m_mapWidButton.keys())
+    {
+        WindowInfoHelper::closeWindow(wid);
+    }
 }
 
 void AppGroup::init()
@@ -126,16 +135,15 @@ void AppGroup::init()
     m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 
-    Window *appButtonContainer = (Window *)parent();
-    connect(appButtonContainer, &Window::windowAdded, this, &AppGroup::addWindow);
-    connect(appButtonContainer, &Window::windowRemoved, this, &AppGroup::removeWindow);
-
-    connect(appButtonContainer, &Window::windowChanged, this, &AppGroup::windowChanged);
-    connect(appButtonContainer, &Window::activeWindowChanged, this, &AppGroup::changedActiveWindow);
-    connect(appButtonContainer, &Window::activeWindowChanged, this, &AppGroup::activeWindowChanged);
-
-    m_appPreviewer = new AppPreviewer(m_import, this);
-    connect(m_appPreviewer, &AppPreviewer::windowClose, this, &AppGroup::closeWindow);
+    Window *window = (Window *)parent();
+    connect(window, &Window::windowAdded, this, &AppGroup::addWindow);
+    connect(window, &Window::windowRemoved, this, &AppGroup::removeWindow);
+    connect(window, &Window::windowChanged, this, &AppGroup::windowChanged);
+    connect(window, &Window::activeWindowChanged, this, &AppGroup::changedActiveWindow);
+    connect(window, &Window::activeWindowChanged, this, &AppGroup::activeWindowChanged);
+    connect(this, &AppGroup::previewerShow, window, &Window::previewerShow);
+    connect(this, &AppGroup::previewerHide, window, &Window::previewerHide);
+    connect(this, &AppGroup::previewerShowChange, window, &Window::previewerShowChange);
 
     m_buttonFixed->setAppInfo(m_appBaseInfo);
 
@@ -165,7 +173,7 @@ void AppGroup::mouseMoveEvent(QMouseEvent *event)
         // 提升，显示在最前面
         raise();
         emit moveGroupStarted(this);
-        m_appPreviewer->hide();
+        emit previewerHide();
 
         // 鼠标移动偏移量
         QPoint delta = event->globalPos() - dragStartPosition;
@@ -359,9 +367,10 @@ AppButton *AppGroup::newAppBtn()
     Window *appButtonContainer = (Window *)parent();
     AppButton *appButton = new AppButton(m_import, this);
     connect(appButton, &AppButton::previewerShow, this, &AppGroup::showPreviewer);
-    connect(appButton, &AppButton::previewerHide, this, &AppGroup::hidePreviewer);
+    connect(appButton, &AppButton::previewerHide, this, &AppGroup::previewerHide);
     connect(appButton, &AppButton::previewerShowChange, this, &AppGroup::changePreviewerShow);
-    connect(appButton, &AppButton::windowClose, this, &AppGroup::closeWindow);
+    connect(appButton, &AppButton::windowCloseAll, this, &AppGroup::windowCloseAll);
+
     connect(appButton, &AppButton::isInFavorite, this, &AppGroup::isInFavorite, Qt::DirectConnection);
     connect(appButton, &AppButton::isInTasklist, this, &AppGroup::isInTasklist, Qt::DirectConnection);
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);

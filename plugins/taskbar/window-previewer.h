@@ -46,11 +46,11 @@ private:
     void changedActiveWindow(WId wid);
 
 private slots:
-    void on_m_btnClose_clicked();
+    void on_m_btnClose_clicked() override;
 
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void contextMenuEvent(QContextMenuEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 signals:
     void closeWindow(WId wid);

@@ -31,6 +31,7 @@
 
 #include "app-button.h"
 #include "app-group.h"
+#include "app-previewer.h"
 #include "applet.h"
 #include "lib/common/define.h"
 #include "lib/common/setting-process.h"
@@ -64,6 +65,8 @@ Window::Window(IAppletImport *import, Applet *parent)
 
     setRadius(0);
 
+    m_appPreviewer = new AppPreviewer(m_import, this);
+
     // 翻页按钮
     m_upPageBtn = new StyledButton(this);
     m_upPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC));
@@ -85,8 +88,7 @@ Window::Window(IAppletImport *import, Applet *parent)
                 updateLayout(m_curPageIndex + 1);
             });
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
+    connect(dynamic_cast<QObject *>(m_import->getPanel()), SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
 
     updateLockApp();
 
@@ -115,18 +117,6 @@ Window::Window(IAppletImport *import, Applet *parent)
                 updateLayout();
                 emit activeWindowChanged(wid);
             });
-
-    // 等待应用加载
-    // NOTE: 需要多测,看会不会延迟加载
-    //    QTimer::singleShot(1000, this, [this]()
-    //                       {
-    //                           for (auto wid : WindowManagerInstance.getAllWindow())
-    //                           {
-    //                               addWindow(wid);
-    //                           }
-    //                           WId wid = WindowInfoHelper::activeWindow();
-    //                           emit activeWindowChanged(wid);
-    //                       });
 
     for (auto wid : WindowManagerInstance.getAllWindow())
     {
@@ -352,10 +342,7 @@ AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
         return appGroup;
     }
 
-    if (!appGroup)
-    {
-        appGroup = new AppGroup(m_import, baseinfo, this);
-    }
+    appGroup = new AppGroup(m_import, baseinfo, this);
 
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
     connect(appGroup, &AppGroup::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
@@ -799,7 +786,6 @@ void Window::removeGroup(AppGroup *group)
 
 int Window::getInsertedIndex(const QPoint &pos)
 {
-#if 1
     // 在按钮区域：
     //      活动插入按钮：序号不变
     //      普通按钮：左右或上下 1/4 范围内，得到序号
@@ -893,41 +879,6 @@ int Window::getInsertedIndex(const QPoint &pos)
 
         return m_listAppGroupShow.size();
     }
-#else
-
-    // 在按钮区域
-    Qt::AlignmentFlag alignment = getLayoutAlignment();
-
-    for (int i = 0; i < m_listAppGroupShow.size(); i++)
-    {
-        QRect rect = m_listAppGroupShow.at(i)->geometry();
-        if (rect.contains(pos))
-        {
-            return i;
-        }
-    }
-
-    // 不在按钮区域
-    if (Qt::AlignLeft == alignment)
-    {
-        if (pos.x() < m_listAppGroupShow.first()->pos().x())
-        {
-            return 0;
-        }
-
-        return m_listAppGroupShow.size() - 1;
-    }
-    else
-    {
-        if (pos.y() < m_listAppGroupShow.first()->pos().y())
-        {
-            return 0;
-        }
-
-        return m_listAppGroupShow.size() - 1;
-    }
-
-#endif
 }
 
 int Window::getMovedIndex(AppGroup *appGroup)
