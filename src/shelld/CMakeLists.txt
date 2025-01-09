@@ -20,12 +20,9 @@ add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES}
 
 target_include_directories(
   ${TARGET_NAME}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-          ${PROJECT_BINARY_DIR}
-          ${PROJECT_SOURCE_DIR}
-          ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS}
-          ${GSETTINGS_QT_INCLUDE_DIRS})
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
+          ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
+          ${KLOG_QT5_INCLUDE_DIRS} ${GSETTINGS_QT_INCLUDE_DIRS})
 
 target_link_libraries(
   ${TARGET_NAME}
@@ -36,8 +33,7 @@ target_link_libraries(
           KF5::Service
           KF5::CoreAddons
           KF5::ConfigCore
-#          ${KIRAN_STYLE_HELPER_LIBRARIES}
-#          kiran-integration-theme
+          # ${KIRAN_STYLE_HELPER_LIBRARIES} kiran-integration-theme
           common)
 
 install(FILES kiran-shelld.desktop DESTINATION "/etc/xdg/autostart/")

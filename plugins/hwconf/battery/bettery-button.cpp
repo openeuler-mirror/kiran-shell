@@ -15,21 +15,16 @@
 #include <libupower-glib/upower.h>
 #include <qt5-log-i.h>
 #include <QDBusArgument>
-#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QGSettings>
 
 #include "bettery-button.h"
 #include "lib/common/dbus-service-watcher.h"
+#include "upower_device_interface.h"
+#include "upower_interface.h"
 
 #define UPOWER_DBUS_SERVICE "org.freedesktop.UPower"
 #define UPOWER_DBUS_OBJECT_PATH "/org/freedesktop/UPower"
-#define UPOWER_DBUS_INTERFACE "org.freedesktop.UPower"
-#define UPOWER_DEVICE_DBUS_INTERFACE "org.freedesktop.UPower.Device"
-#define UPOWER_DISPLAY_DEVICE_DBUS_SERVICE "org.freedesktop.UPower.devices.DisplayDevice"
-#define UPOWER_DISPLAY_DEVICE_DBUS_OBJECT_PATH "/org/freedesktop/UPower/devices/DisplayDevice"
-#define UPOWER_DBUS_PROP_ON_BATTERY "OnBattery"
-
 #define PROPERTIES_INTERFACE "org.freedesktop.DBus.Properties"
 #define PROPERTIES_CHANGED "PropertiesChanged"
 
@@ -44,33 +39,16 @@ namespace HwConf
 {
 BatteryButton::BatteryButton(QWidget *parent)
     : HwConfButton(parent),
-      m_interface(nullptr),
-      m_interfaceDevice(nullptr)
+      m_upower(nullptr),
+      m_upowerDevice(nullptr)
 {
     QDBusConnection::systemBus().connect(
         UPOWER_DBUS_SERVICE, "", PROPERTIES_INTERFACE,
         PROPERTIES_CHANGED, this,
         SLOT(uPowerdDusPropertiesChanged(QDBusMessage)));
 
-    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged,
-            [this](const QString &service, const QString &oldOwner, const QString &newOwner)
-            {
-                if (UPOWER_DBUS_SERVICE != service)
-                {
-                    return;
-                }
-                if (oldOwner.isEmpty())
-                {
-                    KLOG_INFO() << "dbus service registered:" << service;
-                    init();
-                }
-                else if (newOwner.isEmpty())
-                {
-                    KLOG_INFO() << "dbus service unregistered:" << service;
-                    disableBattery();
-                }
-            });
-    DBusWatcher.AddService(UPOWER_DBUS_SERVICE, QDBusConnection::SessionBus);
+    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &BatteryButton::serviceOwnerChanged);
+    DBusWatcher.AddService(UPOWER_DBUS_SERVICE, QDBusConnection::SystemBus);
 
     m_gsettings = new QGSettings(POWER_SCHEMA_ID);
     connect(m_gsettings, &QGSettings::changed, this, &BatteryButton::settingChanged);
@@ -78,13 +56,16 @@ BatteryButton::BatteryButton(QWidget *parent)
 
 void BatteryButton::init()
 {
-    if (m_interface)
+    if (m_upower)
     {
-        m_interface->deleteLater();
-        m_interface = nullptr;
+        delete m_upower;
+        m_upower = nullptr;
     }
-    m_interface = new QDBusInterface(UPOWER_DBUS_SERVICE, UPOWER_DBUS_OBJECT_PATH, UPOWER_DBUS_INTERFACE, QDBusConnection::systemBus(), this);
-    if (!m_interface->isValid())
+    m_upower = new DBusUPowerService(UPOWER_DBUS_SERVICE,
+                                     UPOWER_DBUS_OBJECT_PATH,
+                                     QDBusConnection::systemBus(),
+                                     this);
+    if (!m_upower->isValid())
     {
         disableBattery();
         return;
@@ -92,6 +73,24 @@ void BatteryButton::init()
 
     updateDisplayDevice();
     updateIcon();
+}
+
+void BatteryButton::serviceOwnerChanged(const QString &serviceName, const QString &oldOwner, const QString &newOwner)
+{
+    if (UPOWER_DBUS_SERVICE != serviceName)
+    {
+        return;
+    }
+    if (oldOwner.isEmpty())
+    {
+        KLOG_INFO() << "dbus service registered:" << serviceName;
+        init();
+    }
+    else if (newOwner.isEmpty())
+    {
+        KLOG_INFO() << "dbus service unregistered:" << serviceName;
+        disableBattery();
+    }
 }
 
 void BatteryButton::settingChanged(const QString &key)
@@ -134,58 +133,52 @@ void BatteryButton::updateIcon()
 
 QString BatteryButton::getIconName()
 {
-    if (!m_interfaceDevice)
+    if (!m_upowerDevice)
     {
         return "";
     }
 
-    double percentage = -1;
     QString iconName;
 
-    auto deviceType = m_interfaceDevice->property("Type");
-    if (!deviceType.isValid() || (UP_DEVICE_KIND_BATTERY != deviceType.toUInt() && UP_DEVICE_KIND_UPS != deviceType.toUInt()))
+    auto deviceType = m_upowerDevice->type();
+    if (UP_DEVICE_KIND_BATTERY != deviceType && UP_DEVICE_KIND_UPS != deviceType)
     {
         emit batteryValueChanged("");
         return iconName;
     }
 
     // 电池和UPS有电量概念
-    auto deviceState = m_interfaceDevice->property("State");
-    auto valuePercentage = m_interfaceDevice->property("Percentage");
-    if (deviceState.isValid() && valuePercentage.isValid())
-    {
-        auto state = deviceState.toUInt();
-        percentage = valuePercentage.toDouble();
-        QString iconIndex = percent2IconIndex(percentage);
+    auto state = m_upowerDevice->state();
+    auto percentage = m_upowerDevice->percentage();
+    QString iconIndex = percent2IconIndex(percentage);
 
-        switch (state)
+    switch (state)
+    {
+    case UP_DEVICE_STATE_EMPTY:
+        // 电量耗尽，红色图标
+        iconName = "ks-battery-000";
+        break;
+    case UP_DEVICE_STATE_FULLY_CHARGED:
+    case UP_DEVICE_STATE_CHARGING:
+    case UP_DEVICE_STATE_PENDING_CHARGE:
+        // 充电中
+        iconName = QString("ksvg-ks-battery-%1-charging-symbolic").arg(iconIndex);
+        break;
+    case UP_DEVICE_STATE_DISCHARGING:
+    case UP_DEVICE_STATE_PENDING_DISCHARGE:
+        // 未充电
+        if (iconIndex == "000")
         {
-        case UP_DEVICE_STATE_EMPTY:
-            // 电量耗尽，红色图标
             iconName = "ks-battery-000";
-            break;
-        case UP_DEVICE_STATE_FULLY_CHARGED:
-        case UP_DEVICE_STATE_CHARGING:
-        case UP_DEVICE_STATE_PENDING_CHARGE:
-            // 充电中
-            iconName = QString("ksvg-ks-battery-%1-charging-symbolic").arg(iconIndex);
-            break;
-        case UP_DEVICE_STATE_DISCHARGING:
-        case UP_DEVICE_STATE_PENDING_DISCHARGE:
-            // 未充电
-            if (iconIndex == "000")
-            {
-                iconName = "ks-battery-000";
-            }
-            else
-            {
-                iconName = QString("ksvg-ks-battery-%1-symbolic").arg(iconIndex);
-            }
-            break;
-        default:
-            iconName = DEFAULT_ICON_NAME;
-            break;
         }
+        else
+        {
+            iconName = QString("ksvg-ks-battery-%1-symbolic").arg(iconIndex);
+        }
+        break;
+    default:
+        iconName = DEFAULT_ICON_NAME;
+        break;
     }
 
     if (-1 == percentage)
@@ -201,26 +194,26 @@ QString BatteryButton::getIconName()
 
 void BatteryButton::updateDisplayDevice()
 {
-    if (!m_interface || !m_interface->isValid())
+    if (!m_upower || !m_upower->isValid())
     {
         return;
     }
 
-    auto message = m_interface->call("GetDisplayDevice");
-    if (QDBusMessage::ErrorMessage == message.type() || message.arguments().size() < 1)
+    auto reply = m_upower->GetDisplayDevice();
+    if (reply.isError())
     {
-        KLOG_ERROR() << "GetDisplayDevice failed:" << message;
+        KLOG_ERROR() << "GetDisplayDevice failed:" << reply.error();
         return;
     }
 
-    auto displayDevicePath = message.arguments().first().value<QDBusObjectPath>().path();
-    if (m_interfaceDevice)
-    {
-        m_interfaceDevice->deleteLater();
-        m_interfaceDevice = nullptr;
-    }
+    auto displayDevicePath = reply.value().path();
 
-    m_interfaceDevice = new QDBusInterface(UPOWER_DBUS_SERVICE, displayDevicePath, UPOWER_DEVICE_DBUS_INTERFACE, QDBusConnection::systemBus(), this);
+    if (m_upowerDevice)
+    {
+        m_upowerDevice->deleteLater();
+        m_upowerDevice = nullptr;
+    }
+    m_upowerDevice = new DBusUPowerDevice(UPOWER_DBUS_SERVICE, displayDevicePath, QDBusConnection::systemBus(), this);
 }
 
 void BatteryButton::disableBattery()

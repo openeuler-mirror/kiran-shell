@@ -60,12 +60,10 @@ DBusServiceWatcher::DBusServiceWatcher(QObject *parent)
     m_systemServiceWatcher = new QDBusServiceWatcher(this);
     m_systemServiceWatcher->setConnection(QDBusConnection::systemBus());
     m_systemServiceWatcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
-    connect(m_systemServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged,
-            this, &DBusServiceWatcher::serviceOwnerChanged);
+    connect(m_systemServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged, this, &DBusServiceWatcher::serviceOwnerChanged);
 
     m_sessionServiceWatcher = new QDBusServiceWatcher(this);
     m_sessionServiceWatcher->setConnection(QDBusConnection::sessionBus());
     m_sessionServiceWatcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
-    connect(m_sessionServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged,
-            this, &DBusServiceWatcher::serviceOwnerChanged);
+    connect(m_sessionServiceWatcher, &QDBusServiceWatcher::serviceOwnerChanged, this, &DBusServiceWatcher::serviceOwnerChanged);
 }

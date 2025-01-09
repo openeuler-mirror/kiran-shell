@@ -16,8 +16,9 @@
 
 #include <QObject>
 
-class QDBusInterface;
 class QDBusMessage;
+class KSAudio;
+class KSAudioDevice;
 namespace Kiran
 {
 namespace HwConf
@@ -47,6 +48,7 @@ private slots:
 
 private:
     void initAudioDevice();
+    void serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner);
 
 signals:
     void enableVolume(bool enabled);
@@ -55,8 +57,8 @@ signals:
     void readyToInitDefaultSink();
 
 private:
-    QDBusInterface *m_audioInterface;
-    QDBusInterface *m_defaultSink;
+    KSAudio *m_ksAudio;
+    KSAudioDevice *m_ksAudioDevice;
     QString m_defaultSinkPath;
 };
 }  // namespace HwConf

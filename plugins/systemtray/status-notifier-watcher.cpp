@@ -24,15 +24,14 @@
 
 #define SERVICE_NAME QLatin1String("org.kde.StatusNotifierWatcher")
 #define WATCHER_PATH QLatin1String("/StatusNotifierWatcher")
-#define FREEDESKTOP_PROPERTIES QLatin1String("org.freedesktop.DBus.Properties")
 
 StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     : QObject{parent}, m_xembedSniProxy(nullptr)
 {
     registerServer();
 
-    DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
+    DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
 }
 
 StatusNotifierWatcher::~StatusNotifierWatcher()

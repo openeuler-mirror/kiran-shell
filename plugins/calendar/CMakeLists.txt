@@ -16,8 +16,17 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
+set_source_files_properties(
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.TimeDate.xml
+  PROPERTIES CLASSNAME KSTimeDate NO_NAMESPACE TRUE)
+
+qt_add_dbus_interface(
+  DBUS_INTERFACES
+  ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.SystemDaemon.TimeDate.xml
+  ks_timedate_interface)
+
 add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES}
-                                  ${QM_FILES})
+                                  ${QM_FILES} ${DBUS_INTERFACES})
 
 target_include_directories(
   ${TARGET_NAME}

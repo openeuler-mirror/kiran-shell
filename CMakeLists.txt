@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16) # XCB require at least CMake 3.16.0
 
 project(kiran-shell VERSION 2.6)
 
@@ -11,8 +11,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(KS REQUIRED)
 find_package(PkgConfig REQUIRED)
-# find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets DBus
-# LinguistTools)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets DBus LinguistTools)
 find_package(dbusmenu-qt5 REQUIRED)
 find_package(KF5WindowSystem REQUIRED)

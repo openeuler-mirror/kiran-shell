@@ -114,6 +114,7 @@ HwConfWindow::HwConfWindow(QWidget *parent)
     ethernetNetworkItem->init();
     wifiNetworkItem->init();
     brightness->init();
+    themeItem->init();
 
     if (!NetCommon::hasEthernetDevices())
     {

@@ -19,7 +19,7 @@
 #include <plugin-i.h>
 #include <QPushButton>
 
-class QDBusInterface;
+class KSTimeDate;
 class QTimer;
 class StyledButton;
 namespace Kiran
@@ -43,6 +43,8 @@ private slots:
     void updateLayout();
 
 private:
+    void serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner);
+
     void initTimeDbusProxy();
     void timeUpdate();
 
@@ -56,9 +58,9 @@ private:
     Window *m_window;
 
     QTimer *m_timeUpdateTimer;
-    //DBus 监控时间设置
-    QDBusInterface *m_timeDbusProxy;
-    //接收DBus时间设置信号
+    // DBus 监控时间设置
+    KSTimeDate *m_ksTimeDate;
+    // 接收DBus时间设置信号
     bool m_isSecondsShowing;
     qint32 m_dateLongFormat;
     qint32 m_dateShortFormat;

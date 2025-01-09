@@ -13,9 +13,12 @@
  */
 
 #include <qt5-log-i.h>
+#include <QDBusInterface>
 #include <QFile>
 #include <QProcess>
 
+#include "free_login1_manager_interface.h"
+#include "gnome_session_manager_interface.h"
 #include "power.h"
 #include "src/shell/utils.h"
 
@@ -26,7 +29,6 @@
 #define LOGIN_MANAGER_DBUS "org.freedesktop.login1"
 #define LOGIN_MANAGER_PATH "/org/freedesktop/login1"
 #define LOGIN_MANAGER_INTERFACE "org.freedesktop.login1.Manager"
-#define LOGIN_SESSION_INTERFACE "org.freedesktop.login1.Session"
 
 #define DISPLAY_MANAGER_DBUS "org.freedesktop.DisplayManager"
 #define DISPLAY_MANAGER_SEAT_PATH "/org/freedesktop/DisplayManager/Seat0"
@@ -68,27 +70,24 @@ Power::Power(QObject *parent)
     // 电源选项D-Bus
     try
     {
-        m_login1Proxy = new QDBusInterface(LOGIN_MANAGER_DBUS,
-                                           LOGIN_MANAGER_PATH,
-                                           LOGIN_MANAGER_INTERFACE,
-                                           QDBusConnection::systemBus(),
-                                           this);
+        m_freelogin1Manager = new Freelogin1Manager(LOGIN_MANAGER_DBUS,
+                                                    LOGIN_MANAGER_PATH,
+                                                    QDBusConnection::systemBus(),
+                                                    this);
 
-        m_sessionManagerProxy = new QDBusInterface(SESSION_MANAGER_DBUS,
-                                                   SESSION_MANAGER_PATH,
-                                                   SESSION_MANAGER_INTERFACE,
-                                                   QDBusConnection::sessionBus(),
-                                                   this);
+        m_gnomeSessionManager = new GnomeSessionManager(SESSION_MANAGER_DBUS,
+                                                        SESSION_MANAGER_PATH,
+                                                        QDBusConnection::sessionBus(),
+                                                        this);
 
-        auto xdgSeatObjectPath = qgetenv("XDG_SEAT_PATH");
         m_seatManagerProxy = new QDBusInterface(DISPLAY_MANAGER_DBUS,
-                                                xdgSeatObjectPath,
+                                                qgetenv("XDG_SEAT_PATH"),
                                                 DISPLAY_MANAGER_INTERFACE,
                                                 QDBusConnection::systemBus(),
                                                 this);
 
-        m_login1Proxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
-        m_sessionManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+        m_freelogin1Manager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+        m_gnomeSessionManager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
         m_seatManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
     }
     catch (...)
@@ -108,23 +107,20 @@ Power::~Power()
 
 uint32_t Power::getNtvsTotal()
 {
-    RETURN_VAL_IF_FALSE(m_login1Proxy, 0);
-
-    return m_login1Proxy->property("NAutoVTs").toUInt();
+    RETURN_VAL_IF_FALSE(m_freelogin1Manager, 0);
+    return m_freelogin1Manager->nAutoVTs();
 }
 
 uint32_t Power::getGraphicalNtvs()
 {
     RETURN_VAL_IF_FALSE(m_seatManagerProxy, 0);
-
     return m_seatManagerProxy->property("Sessions").toUInt();
 }
 
 bool Power::suspend()
 {
     RETURN_VAL_IF_FALSE(canSuspend(), false);
-
-    m_login1Proxy->call("Suspend", false);
+    m_freelogin1Manager->Suspend(false);
 
     return true;
 }
@@ -132,8 +128,7 @@ bool Power::suspend()
 bool Power::hibernate()
 {
     RETURN_VAL_IF_FALSE(canHibernate(), false);
-
-    m_login1Proxy->call("Hibernate", false);
+    m_freelogin1Manager->Hibernate(false);
 
     return true;
 }
@@ -141,33 +136,29 @@ bool Power::hibernate()
 bool Power::shutdown()
 {
     RETURN_VAL_IF_FALSE(canShutdown(), false);
-    RETURN_VAL_IF_FALSE(m_sessionManagerProxy, false);
-
-    m_sessionManagerProxy->call("RequestShutdown");
-
+    RETURN_VAL_IF_FALSE(m_gnomeSessionManager, false);
+    m_gnomeSessionManager->RequestShutdown();
     return true;
 }
 
 bool Power::reboot()
 {
     RETURN_VAL_IF_FALSE(canReboot(), false);
-    RETURN_VAL_IF_FALSE(m_sessionManagerProxy, false);
-
-    m_sessionManagerProxy->call("RequestReboot");
-
+    RETURN_VAL_IF_FALSE(m_gnomeSessionManager, false);
+    m_gnomeSessionManager->RequestReboot();
     return true;
 }
 
 bool Power::logout()
 {
     RETURN_VAL_IF_FALSE(canLogout(), false);
-    RETURN_VAL_IF_FALSE(m_sessionManagerProxy, false);
+    RETURN_VAL_IF_FALSE(m_gnomeSessionManager, false);
 
     quint32 mode = 1;
-    QDBusMessage msg = m_sessionManagerProxy->call("Logout", mode);
-    if (QDBusMessage::ErrorMessage == msg.type())
+    auto reply = m_gnomeSessionManager->Logout(mode);
+    if (reply.isError())
     {
-        KLOG_WARNING() << msg;
+        KLOG_WARNING() << "failed to call Logout" << reply.error();
         return false;
     }
 
@@ -199,68 +190,68 @@ bool Power::lockScreen()
 bool Power::canSuspend()
 {
     RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_SUSPEND).toBool(), false);
-    RETURN_VAL_IF_FALSE(m_login1Proxy, false);
+    RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
-    QDBusMessage msg = m_login1Proxy->call("CanSuspend");
-    if (QDBusMessage::ErrorMessage == msg.type())
+    auto reply = m_freelogin1Manager->CanSuspend();
+    if (reply.isError())
     {
         // 如果获取失败，就假设其可以待机，由待机操作调用时做检查
-        KLOG_WARNING() << msg;
+        KLOG_WARNING() << "failed to call CanSuspend" << reply.error();
         return true;
     }
 
-    QString data = msg.arguments().first().toString();
+    QString data = reply.value();
     return (data == "yes");
 }
 
 bool Power::canHibernate()
 {
     RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_HIBERNATE).toBool(), false);
-    RETURN_VAL_IF_FALSE(m_login1Proxy, false);
+    RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
-    QDBusMessage msg = m_login1Proxy->call("CanHibernate");
-    if (QDBusMessage::ErrorMessage == msg.type())
+    auto reply = m_freelogin1Manager->CanHibernate();
+    if (reply.isError())
     {
         // 如果获取失败，就假设其可以休眠，由休眠操作调用时做检查
-        KLOG_WARNING() << msg;
+        KLOG_WARNING() << "failed to call CanHibernate" << reply.error();
         return true;
     }
 
-    QString data = msg.arguments().first().toString();
+    QString data = reply.value();
     return (data == "yes");
 }
 
 bool Power::canShutdown()
 {
     RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_SHUTDOWN).toBool(), false);
-    RETURN_VAL_IF_FALSE(m_login1Proxy, false);
+    RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
-    QDBusMessage msg = m_login1Proxy->call("CanPowerOff");
-    if (QDBusMessage::ErrorMessage == msg.type())
+    auto reply = m_freelogin1Manager->CanPowerOff();
+    if (reply.isError())
     {
         // 如果获取失败，就假设其可以关机，由关机操作调用时做检查
-        KLOG_WARNING() << msg;
+        KLOG_WARNING() << "failed to call CanPowerOff" << reply.error();
         return true;
     }
 
-    QString data = msg.arguments().first().toString();
+    QString data = reply.value();
     return (data == "yes");
 }
 
 bool Power::canReboot()
 {
     RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_REBOOT).toBool(), false);
-    RETURN_VAL_IF_FALSE(m_login1Proxy, false);
+    RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
-    QDBusMessage msg = m_login1Proxy->call("CanReboot");
-    if (QDBusMessage::ErrorMessage == msg.type())
+    auto reply = m_freelogin1Manager->CanReboot();
+    if (reply.isError())
     {
         // 如果获取失败，就假设其可以重启，由重启操作调用时做检查
-        KLOG_WARNING() << msg;
+        KLOG_WARNING() << "failed to call CanReboot" << reply.error();
         return true;
     }
 
-    QString data = msg.arguments().first().toString();
+    QString data = reply.value();
     return (data == "yes");
 }
 
