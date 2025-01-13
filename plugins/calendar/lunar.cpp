@@ -1,3 +1,5 @@
+#include <QDate>
+
 #include "lunar.h"
 #define TIANGAN_DIZHI_START_YAER 1924  //  天干地支开始计算年月
 
@@ -392,64 +394,33 @@ bool Lunar::isLoopYear(int year)
 
 int Lunar::daysSinceSpringFestival(int year, int month, int day, int& yearCountData)
 {
-    int pastDays;
-    int springFestivalMonth = springFestivalDate.at(yearCountData) / 100;
-    int springFestivalDay = springFestivalDate.at(yearCountData) % 100;
-    //春节离公历元旦所有天数
-    int springFestivalPastDays = 31 * ((springFestivalDate.at(yearCountData) / 100) - 1) + springFestivalDate.at(yearCountData) % 100;
+    int springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  //春节公历月份
+    int springFestivalDay = springFestivalDate.at(yearCountData) % 100;    //春节公历号数
 
-    //如果当前公历日期小于当年春节日期，则计算上一年农历过了多少天，如果当年公历日期大于当年春节日期，则计算当年农历过了多少天
-    if (month < springFestivalMonth)
+    QDate dateToday(year, month, day);
+    QDate dateSpringFestival(year, springFestivalMonth, springFestivalDay);
+
+    // 要计算当前日期距离上一个春节的天数
+    // 分三种情况，当天就是春节；春节已过；春节未过
+    int dayCount;
+    if (dateToday > dateSpringFestival)
+    {
+        dayCount = dateSpringFestival.daysTo(dateToday);
+    }
+    else if (dateToday < dateSpringFestival)
     {
         yearCountData--;
-        pastDays = 365 * 1 + day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
-
-        if ((!(year % 4)) && (month > 2))
-        {
-            pastDays = pastDays + 1;
-        }
-
-        if ((!((year - 1) % 4)))
-        {
-            pastDays = pastDays + 1;
-        }
-    }
-    else if (month == springFestivalMonth)
-    {
-        if (day < springFestivalDay)
-        {
-            yearCountData--;
-            pastDays = 365 * 1 + day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
-
-            if ((!(year % 4)) && (month > 2))
-            {
-                pastDays = pastDays + 1;
-            }
-
-            if ((!((year - 1) % 4)))
-            {
-                pastDays = pastDays + 1;
-            }
-        }
-        else
-        {
-            pastDays = day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
-
-            if ((!(year % 4)) && (month > 2))
-            {
-                pastDays = pastDays + 1;
-            }
-        }
+        springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  //上一年春节公历月份
+        springFestivalDay = springFestivalDate.at(yearCountData) % 100;    //上一年春节公历号数
+        QDate dateToday(year, month, day);
+        QDate dateSpringFestival(year - 1, springFestivalMonth, springFestivalDay);
+        dayCount = dateSpringFestival.daysTo(dateToday);
     }
     else
     {
-        pastDays = day + daysBeforeMonth.at(month - 1) - springFestivalPastDays + 1;
-        if ((!(year % 4)) && (month > 2))
-        {
-            pastDays = pastDays + 1;
-        }
+        dayCount = 0;
     }
-    return pastDays;
+    return dayCount + 1;
 }
 
 QString Lunar::holiday(int month, int day)
