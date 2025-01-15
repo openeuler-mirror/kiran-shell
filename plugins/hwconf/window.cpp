@@ -129,14 +129,14 @@ void Window::clickHwConfButton(bool checked)
 
 void Window::showHwConfWindow()
 {
-    updateWindowPosition();
-
     m_hwConfWindow->setVisible(true);
 
     for (auto button : hwConfButtons)
     {
         button->setEnabled(false);
     }
+
+    updateWindowPosition();
 }
 
 void Window::hideHwConfWindow()

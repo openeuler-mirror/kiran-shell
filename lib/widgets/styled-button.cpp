@@ -31,6 +31,11 @@ StyledButton::StyledButton(QWidget *parent)
     setAttribute(Qt::WA_Hover);
 }
 
+void StyledButton::setTextColor(QColor color)
+{
+    m_textColor = color;
+}
+
 void StyledButton::enterEvent(QEvent *event)
 {
     m_hovered = true;
@@ -113,9 +118,14 @@ void StyledButton::paintEvent(QPaintEvent *event)
     painter.drawPath(path);
 
     painter.setPen(pen);
+    if (m_textColor.isValid())
+    {
+        painter.setPen(m_textColor);
+    }
     // 图标文字绘制
     switch (toolButtonStyle())
     {
+    // 仅图标、仅文字、图标+文字并列
     case Qt::ToolButtonIconOnly:
     case Qt::ToolButtonTextOnly:
     case Qt::ToolButtonTextBesideIcon:
@@ -127,22 +137,25 @@ void StyledButton::paintEvent(QPaintEvent *event)
             iconWH = height() / 2;
         }
         int textWidth = fontMetrics().horizontalAdvance(text());
-        int x = (width() - textWidth) / 2;
-        int y = (height() - iconWH) / 2;
+        int textHeight = fontMetrics().height();
 
         if (!icon().isNull())
         {
-            x = (width() - iconWH - (textWidth > 0 ? (textWidth + margin) : 0)) / 2;
-            y = (height() - iconWH) / 2;
+            int x = (width() - iconWH - (textWidth > 0 ? (textWidth + margin) : 0)) / 2;
+            int y = (height() - iconWH) / 2;
             QPixmap pixmap = icon().pixmap(iconWH, iconWH);
             painter.drawPixmap(x, y, iconWH, iconWH, pixmap);
         }
         if (!text().isEmpty())
         {
-            painter.drawText(x + (!icon().isNull() ? (iconWH + margin) : 0), y, textWidth, iconWH, Qt::AlignCenter, text());
+            int x = (width() - textWidth) / 2;
+            x += !icon().isNull() ? (iconWH + margin) : 0;
+            int y = (height() - textHeight) / 2;
+            painter.drawText(x, y, textWidth, textHeight, Qt::AlignCenter, text());
         }
         break;
     }
+    // 文字位于图标下方
     case Qt::ToolButtonTextUnderIcon:
     {
         // 图标起始位置(1/4,1/8),宽高为1/2

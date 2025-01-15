@@ -22,6 +22,8 @@ class StyledButton : public QToolButton
 public:
     StyledButton(QWidget *parent = nullptr);
 
+    void setTextColor(QColor color);
+
 protected:
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
@@ -32,4 +34,6 @@ protected:
 protected:
     bool m_hovered;
     bool m_pressed;
+
+    QColor m_textColor;
 };

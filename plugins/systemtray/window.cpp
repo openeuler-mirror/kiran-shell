@@ -75,9 +75,9 @@ Window::Window(IAppletImport *import, QWidget *parent)
             {
                 if (m_windowPopup->isHidden())
                 {
-                    startUpdateTrayBoxPos();
                     m_windowPopup->show();
                     m_windowPopupButton->setEnabled(false);
+                    startUpdateTrayBoxPos();
                 }
             });
 

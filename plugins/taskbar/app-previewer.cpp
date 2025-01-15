@@ -160,10 +160,10 @@ void AppPreviewer::showPreviewer(QList<WId> wids, QWidget *triggerWidget)
 
     updateLayout(windowPreviewerShow);
 
+    setVisible(true);
+
     auto oriention = m_import->getPanel()->getOrientation();
     Utility::updatePopWidgetPos(oriention, triggerWidget, this);
-
-    setVisible(true);
 }
 
 void AppPreviewer::hidePreviewer()

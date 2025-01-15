@@ -39,7 +39,7 @@ QList<int> lunarData =
                  << 1683 << 462419 << 1706 << 2773 << 330165 << 1206 << 2647 << 264782 << 3350 << 531750  // 2081--2090
                  << 3410 << 3498 << 396650 << 1389 << 1198 << 267421 << 2605 << 3349 << 138021;           // 2091--2099
 
-//二十四节气，15减每月第一个节气得第一个字节，每月第二个节气减15得第二个字节
+// 二十四节气，15减每月第一个节气得第一个字节，每月第二个节气减15得第二个字节
 QList<int> chSolarData =
     QList<int>() << 0x95 << 0xB4 << 0x96 << 0xA5 << 0x96 << 0x97 << 0x88 << 0x78 << 0x78 << 0x69 << 0x78 << 0x87   // 1970
                  << 0x96 << 0xB4 << 0x96 << 0xA6 << 0x97 << 0x97 << 0x78 << 0x79 << 0x79 << 0x69 << 0x78 << 0x77   // 1971
@@ -171,10 +171,10 @@ QList<int> chSolarData =
                  << 0xB4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA5 << 0x97 << 0x97 << 0x87 << 0x87 << 0x96 << 0x96   // 2097
                  << 0xA4 << 0xC3 << 0xA5 << 0xB4 << 0xA5 << 0xA6 << 0x97 << 0x87 << 0x87 << 0x78 << 0x87 << 0x96   // 2098
                  << 0xA5 << 0xC3 << 0xA5 << 0xB5 << 0xA6 << 0xA6 << 0x87 << 0x88 << 0x88 << 0x78 << 0x87 << 0x86;  // 2099
-//公历每个月之前有多少天
+// 公历每个月之前有多少天
 QList<int> daysBeforeMonth = QList<int>() << 0 << 31 << 59 << 90 << 120 << 151 << 181 << 212 << 243 << 273 << 304 << 334;
 
-//农历中文日期
+// 农历中文日期
 QList<QString> chDayName =
     QList<QString>() << "初一"
                      << "初二"
@@ -206,7 +206,7 @@ QList<QString> chDayName =
                      << "廿八"
                      << "廿九"
                      << "三十";
-//农历中文月份
+// 农历中文月份
 QList<QString> chMonName =
     QList<QString>() << "正月"
                      << "二月"
@@ -220,7 +220,7 @@ QList<QString> chMonName =
                      << "十月"
                      << "冬月"
                      << "腊月";
-//农历中文二十四节气
+// 农历中文二十四节气
 QList<QString> chSolarName =
     QList<QString>() << "小寒"
                      << "大寒"
@@ -246,7 +246,7 @@ QList<QString> chSolarName =
                      << "小雪"
                      << "大雪"
                      << "冬至";
-//农历中文天干
+// 农历中文天干
 QList<QString> chTiangan =
     QList<QString>() << "甲"
                      << "乙"
@@ -258,7 +258,7 @@ QList<QString> chTiangan =
                      << "辛"
                      << "壬"
                      << "癸";
-//农历中文地支
+// 农历中文地支
 QList<QString> chDizhi =
     QList<QString>() << "子"
                      << "丑"
@@ -272,7 +272,7 @@ QList<QString> chDizhi =
                      << "酉"
                      << "戌"
                      << "亥";
-//农历中文动物属相
+// 农历中文动物属相
 QList<QString> chAnimal =
     QList<QString>() << "鼠"
                      << "牛"
@@ -294,7 +294,7 @@ QString Lunar::getLunarDayStr(int year, int month, int day)
     // 计算24节气
     QString strSolarTerms = solarTerms(year, month, day);
 
-    //计算转换的农历日期
+    // 计算转换的农历日期
     if (!findLunarData(year, month, day))
     {
         return "";
@@ -355,7 +355,7 @@ QString Lunar::getLunarDayStr(int year, int month, int day)
 
 QString Lunar::getLunarMonDayStr(int year, int month, int day)
 {
-    //计算转换的农历日期
+    // 计算转换的农历日期
     if (!findLunarData(year, month, day))
     {
         return "";
@@ -371,8 +371,14 @@ QString Lunar::getLunarMonDayStr(int year, int month, int day)
     return fullDateStr;
 }
 
-QString Lunar::getLunarYearStr(int year)
+QString Lunar::getLunarYearStr(int year, int month, int day)
 {
+    // 计算转换的农历日期
+    if (!findLunarData(year, month, day))
+    {
+        return "";
+    }
+
     // 农历时辰
     QString strTime = "";
     if (year > TIANGAN_DIZHI_START_YAER)
@@ -394,8 +400,8 @@ bool Lunar::isLoopYear(int year)
 
 int Lunar::daysSinceSpringFestival(int year, int month, int day, int& yearCountData)
 {
-    int springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  //春节公历月份
-    int springFestivalDay = springFestivalDate.at(yearCountData) % 100;    //春节公历号数
+    int springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  // 春节公历月份
+    int springFestivalDay = springFestivalDate.at(yearCountData) % 100;    // 春节公历号数
 
     QDate dateToday(year, month, day);
     QDate dateSpringFestival(year, springFestivalMonth, springFestivalDay);
@@ -410,8 +416,8 @@ int Lunar::daysSinceSpringFestival(int year, int month, int day, int& yearCountD
     else if (dateToday < dateSpringFestival)
     {
         yearCountData--;
-        springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  //上一年春节公历月份
-        springFestivalDay = springFestivalDate.at(yearCountData) % 100;    //上一年春节公历号数
+        springFestivalMonth = springFestivalDate.at(yearCountData) / 100;  // 上一年春节公历月份
+        springFestivalDay = springFestivalDate.at(yearCountData) % 100;    // 上一年春节公历号数
         QDate dateToday(year, month, day);
         QDate dateSpringFestival(year - 1, springFestivalMonth, springFestivalDay);
         dayCount = dateSpringFestival.daysTo(dateToday);
@@ -562,7 +568,7 @@ QString Lunar::lunarFestival(int year, int month, int day)
         break;
     }
 
-    //判断除夕是腊月二十九还是腊月三十
+    // 判断除夕是腊月二十九还是腊月三十
     int lastMonthBit;
     lastMonthBit = lunarData.at(year - 1968) % 2;
     lastMonthBit = lastMonthBit % 2;
@@ -581,7 +587,7 @@ QString Lunar::lunarFestival(int year, int month, int day)
 
 bool Lunar::findLunarData(int& year, int& month, int& day)
 {
-    //如果年月日输入不合规范则返回
+    // 如果年月日输入不合规范则返回
     if (year < 1901 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31)
     {
         return false;
@@ -592,15 +598,15 @@ bool Lunar::findLunarData(int& year, int& month, int& day)
             2.19以及之后的日期，农历为2015年农历（用2015年农历数据来计算）。*/
     int lunarDataIndex = year - 1968;
     int restMonthNum;
-    //当前日期距离春节的天数
+    // 当前日期距离春节的天数
     int daysSinceSF = daysSinceSpringFestival(year, month, day, lunarDataIndex);
 
     bool findFlag = false;
 
-    //计算农历天干、地支、月、日
+    // 计算农历天干、地支、月、日
     for (; lunarDataIndex < lunarData.size(); lunarDataIndex++)
     {
-        //存在闰月则有13个月为13
+        // 存在闰月则有13个月为13
         restMonthNum = lunarData.at(lunarDataIndex) < 4095 ? 12 : 13;
 
         while (restMonthNum > 0)
@@ -629,7 +635,7 @@ bool Lunar::findLunarData(int& year, int& month, int& day)
         return false;
     }
 
-    //存在闰月则有13个月为13
+    // 存在闰月则有13个月为13
     int monthNum = lunarData.at(lunarDataIndex) < 4095 ? 12 : 13;
 
     // 农历的年月日
