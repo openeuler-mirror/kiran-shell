@@ -15,9 +15,10 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <ks-i.h>
 #include <plugin-i.h>
 #include <QPushButton>
+
+#include "ks-i.h"
 
 class KSTimeDate;
 class QTimer;

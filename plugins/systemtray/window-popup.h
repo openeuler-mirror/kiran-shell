@@ -75,6 +75,7 @@ private:
     // 保存到配置
     void addWindowPopupItem(const QString &serviceAndPath);
     void removeWindowPopupItem(const QString &serviceAndPath);
+    QString getStatusNotifierItemId(const QString &serviceAndPath);
 
 signals:
     void hideTrayBox();

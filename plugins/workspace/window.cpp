@@ -56,16 +56,16 @@ Window::~Window()
 
 void Window::paintEvent(QPaintEvent *event)
 {
-    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(KIRAN_APPEARANCE_SCHEMA_ID));
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(APPEARANCE_SCHEMA_ID));
     if (gsettings.isNull())
     {
-        KLOG_ERROR() << KIRAN_APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
+        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
         return;
     }
-    auto desktopBackgroundValue = gsettings->get(DESKTOP_BACKGROUND_SCHEMA_KEY);
+    auto desktopBackgroundValue = gsettings->get(APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND);
     if (desktopBackgroundValue.isNull() || !desktopBackgroundValue.isValid())
     {
-        KLOG_ERROR() << KIRAN_APPEARANCE_SCHEMA_ID << DESKTOP_BACKGROUND_SCHEMA_KEY << "QGSettings key get failed";
+        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND << "QGSettings key get failed";
         return;
     }
     auto desktopBackground = desktopBackgroundValue.toString();

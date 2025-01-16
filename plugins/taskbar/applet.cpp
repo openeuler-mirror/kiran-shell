@@ -12,8 +12,6 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem>
 #include <QBoxLayout>
@@ -26,9 +24,11 @@
 
 #include "applet.h"
 #include "ks-config.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
+#include "plugin-i.h"
 
 namespace Kiran
 {

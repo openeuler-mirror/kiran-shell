@@ -12,18 +12,16 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem/NETWM>
 #include <QBoxLayout>
 #include <QTimer>
 
 #include "app-previewer.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "plugin-i.h"
 #include "window.h"
 
 #define PREVIEWER_SPACING 3

@@ -162,7 +162,7 @@ void WindowInfoHelper::closeWindow(WId wid)
     }
     case KWindowSystem::Platform::Wayland:
     {
-        //TODO:wayland关闭软件
+        // TODO:wayland关闭软件
         QWindow *window = QWindow::fromWinId(wid);
         if (window)
         {

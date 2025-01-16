@@ -12,6 +12,8 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
+#pragma once
+
 namespace Kiran
 {
 #define KS_ICON_MENU "ks-menu"
@@ -51,6 +53,56 @@ namespace Kiran
 #define KS_ICON_HWCONF_AUDIO_LOW "ksvg-ks-audio-low"
 #define KS_ICON_HWCONF_AUDIO_MEDIUM "ksvg-ks-audio-medium"
 #define KS_ICON_HWCONF_AUDIO_LOUD "ksvg-ks-audio-loud"
+
+
+#define LOCKDOWN_SCHEMA_ID "com.kylinsec.kiran.shell.lockdown"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_LOCK_SCREEN "disableLockScreen"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_USER_SWITCHING "disableUserSwitching"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_LOG_OUT "disableLogOut"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_SUSPEND "disableSuspend"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_HIBERNATE "disableHibernate"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_REBOOT "disableReboot"
+#define LOCKDOWN_SCHEMA_KEY_DISABLE_SHUTDOWN "disableShutdown"
+
+#define SHELL_SCHEMA_ID "com.kylinsec.kiran.shell"
+#define SHELL_SCHEMA_KEY_PERSONALITY_MODE "enablePersonalityMode"
+#define SHELL_SCHEMA_KEY_AUTO_HIDE "enableAutoHide"
+#define SHELL_SCHEMA_KEY_DEFAULT_LAYOUT "defaultLayout"
+#define SHELL_SCHEMA_KEY_PANEL_UIDS "panelUids"
+#define SHELL_SCHEMA_KEY_APPLET_UIDS "appletUids"
+
+#define POWER_SCHEMA_ID "com.kylinsec.kiran.power"
+#define POWER_SCHEMA_TRAY_ICON_POLICY "trayIconPolicy"
+
+#define TASKBAR_SCHEMA_ID "com.kylinsec.kiran.shell.taskbar"
+#define TASKBAR_SCHEMA_KEY_SHOW_APP_NAME "showAppName"
+
+#define MENU_SCHEMA_ID "com.kylinsec.kiran.shell.menu"
+#define MENU_SCHEMA_KEY_NEW_APPS "newApps"
+
+#define TASKBAR_SCHEMA_ID "com.kylinsec.kiran.shell.taskbar"
+#define TASKBAR_SCHEMA_KEY_FIXED_APPS "fixedApps"
+
+#define SYSTEMTRAY_SCHEMA_ID "com.kylinsec.kiran.shell.systemtray"
+#define SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS "foldingApps"
+
+#define APPEARANCE_SCHEMA_ID "com.kylinsec.kiran.appearance"
+#define APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND "desktopBackground"
+
+#define APPLET_SCHEMA_ID "com.kylinsec.kiran.shell.applet"
+#define APPLET_SCHEMA_PATH "/com/kylinsec/kiran/shell/applets"
+#define APPLET_SCHEMA_KEY_ID "id"
+#define APPLET_SCHEMA_KEY_PANEL "panel"
+#define APPLET_SCHEMA_KEY_POSITION "position"
+#define APPLET_SCHEMA_KEY_PRS "panelRightStick"
+
+#define PANEL_SCHEMA_ID "com.kylinsec.kiran.shell.panel"
+#define PANEL_SCHEMA_PATH "/com/kylinsec/kiran/shell/panels"
+#define PANEL_SCHEMA_KEY_SIZE "size"
+#define PANEL_SCHEMA_KEY_ORIENTATION "orientation"
+#define PANEL_SCHEMA_KEY_MONITOR "monitor"
+
+#define BUTTON_BLANK_SPACE 6
 
 enum PanelOrientation
 {

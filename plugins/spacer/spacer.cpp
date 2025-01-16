@@ -13,9 +13,9 @@
  */
 
 #include <kiran-color-block.h>
-#include <ks-i.h>
 #include <QPainter>
 
+#include "ks-i.h"
 #include "spacer.h"
 
 namespace Kiran

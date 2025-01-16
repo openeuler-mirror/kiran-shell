@@ -1,36 +1,33 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "profile.h"
-#include <ks-definition.h>
 #include <qt5-log-i.h>
 #include <QGSettings>
 #include <QScopedPointer>
+
+#include "ks-definition.h"
+#include "ks-i.h"
 #include "layout.h"
 #include "profile-applet.h"
 #include "profile-panel.h"
+#include "profile.h"
 
 namespace Kiran
 {
-#define KS_SCHEMA_ID "com.kylinsec.kiran.shell"
-#define KS_SCHEMA_KEY_DEFAULT_LAYOUT "default-layout"
-#define KS_SCHEMA_KEY_PANEL_UIDS "panel-uids"
-#define KS_SCHEMA_KEY_APPLET_UIDS "applet-uids"
-
-GSETTINGS_PROPERTY_STRING_DEFINITION(Profile, defaultLayout, DefaultLayout, KS_SCHEMA_KEY_DEFAULT_LAYOUT)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, panelUIDs, PanelUIDs, KS_SCHEMA_KEY_PANEL_UIDS)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, appletUIDs, AppletUIDs, KS_SCHEMA_KEY_APPLET_UIDS)
+GSETTINGS_PROPERTY_STRING_DEFINITION(Profile, defaultLayout, DefaultLayout, SHELL_SCHEMA_KEY_DEFAULT_LAYOUT)
+GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, panelUIDs, PanelUIDs, SHELL_SCHEMA_KEY_PANEL_UIDS)
+GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, appletUIDs, AppletUIDs, SHELL_SCHEMA_KEY_APPLET_UIDS)
 
 Profile* Profile::m_instance = nullptr;
 void Profile::globalInit()
@@ -46,7 +43,7 @@ void Profile::globalDeinit()
 
 Profile::Profile()
 {
-    this->m_settings = new QGSettings(KS_SCHEMA_ID, QByteArray(), this);
+    this->m_settings = new QGSettings(SHELL_SCHEMA_ID, "", this);
 
     connect(this->m_settings, SIGNAL(changed(const QString&)), this, SLOT(updateSettings(const QString&)));
 }
@@ -72,9 +69,9 @@ void Profile::initSettings()
 {
     // 初始化阶段不发送信号，避免其他模块重复处理
     this->blockSignals(true);
-    this->updateSettings(KS_SCHEMA_KEY_DEFAULT_LAYOUT);
-    this->updateSettings(KS_SCHEMA_KEY_PANEL_UIDS);
-    this->updateSettings(KS_SCHEMA_KEY_APPLET_UIDS);
+    this->updateSettings(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT);
+    this->updateSettings(SHELL_SCHEMA_KEY_PANEL_UIDS);
+    this->updateSettings(SHELL_SCHEMA_KEY_APPLET_UIDS);
     this->blockSignals(false);
 }
 
@@ -200,9 +197,9 @@ void Profile::updateSettings(const QString& key)
 {
     switch (shash(key.toUtf8().data()))
     {
-        GSETTINGS_CASE_STRING_CHANGE(KS_SCHEMA_KEY_DEFAULT_LAYOUT, DefaultLayout)
-        GSETTINGS_CASE_STRINGLIST_CHANGE(KS_SCHEMA_KEY_PANEL_UIDS, PanelUIDs)
-        GSETTINGS_CASE_STRINGLIST_CHANGE(KS_SCHEMA_KEY_APPLET_UIDS, AppletUIDs)
+        GSETTINGS_CASE_STRING_CHANGE(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT, DefaultLayout)
+        GSETTINGS_CASE_STRINGLIST_CHANGE(SHELL_SCHEMA_KEY_PANEL_UIDS, PanelUIDs)
+        GSETTINGS_CASE_STRINGLIST_CHANGE(SHELL_SCHEMA_KEY_APPLET_UIDS, AppletUIDs)
         GSETTINGS_CASE_DEFAULT
     }
 }

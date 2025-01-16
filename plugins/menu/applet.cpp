@@ -12,7 +12,6 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <QGridLayout>
 #include <QPainter>
@@ -22,7 +21,7 @@
 
 #include "applet.h"
 #include "ks-config.h"
-#include "lib/common/define.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "window.h"
 

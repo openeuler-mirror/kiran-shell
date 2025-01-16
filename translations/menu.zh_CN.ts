@@ -4,17 +4,6 @@
 <context>
     <name>AppItem</name>
     <message>
-        <location filename="../plugins/menu/app-item.ui" line="26"/>
-        <source>Form</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../plugins/menu/app-item.ui" line="53"/>
-        <location filename="../plugins/menu/app-item.ui" line="63"/>
-        <source>TextLabel</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../plugins/menu/app-item.cpp" line="74"/>
         <source>Run app</source>
         <translatorcomment>运行</translatorcomment>
@@ -62,7 +51,7 @@
 <context>
     <name>Kiran::Menu::Applet</name>
     <message>
-        <location filename="../plugins/menu/applet.cpp" line="63"/>
+        <location filename="../plugins/menu/applet.cpp" line="59"/>
         <source>Start Menu</source>
         <translatorcomment>开始菜单</translatorcomment>
         <translation>开始菜单</translation>
@@ -71,103 +60,103 @@
 <context>
     <name>Kiran::Menu::AppsOverview</name>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="64"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="67"/>
         <source>Search application</source>
         <translatorcomment>搜索应用</translatorcomment>
         <translation>搜索应用</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="112"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="110"/>
         <source>Accessories</source>
         <translatorcomment>辅助程序</translatorcomment>
         <translation>辅助程序</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="113"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="111"/>
         <source>Development</source>
         <translatorcomment>开发</translatorcomment>
         <translation>开发</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="114"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="112"/>
         <source>Graphics</source>
         <translatorcomment>图像</translatorcomment>
         <translation>图像</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="115"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="113"/>
         <source>Internet</source>
         <translatorcomment>互联网</translatorcomment>
         <translation>互联网</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="116"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="114"/>
         <source>Multimedia</source>
         <translatorcomment>多媒体</translatorcomment>
         <translation>多媒体</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="117"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="115"/>
         <source>Office</source>
         <translatorcomment>办公</translatorcomment>
         <translation>办公</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="118"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="116"/>
         <source>System Tools</source>
         <translatorcomment>系统工具</translatorcomment>
         <translation>系统工具</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="119"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="117"/>
         <source>Other</source>
         <translatorcomment>其他</translatorcomment>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="216"/>
-        <location filename="../plugins/menu/apps-overview.cpp" line="229"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="219"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="232"/>
         <source>New App</source>
         <translation>新应用</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="324"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="327"/>
         <source>Run app</source>
         <translatorcomment>启动</translatorcomment>
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="328"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="331"/>
         <source>Add to desktop</source>
         <translatorcomment>添加到桌面</translatorcomment>
         <translation>添加到桌面</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="336"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="339"/>
         <source>Add to favorite</source>
         <translatorcomment>添加到收藏夹</translatorcomment>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="343"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="346"/>
         <source>Remove from favorite</source>
         <translatorcomment>从收藏夹中移除</translatorcomment>
         <translation>从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="355"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="358"/>
         <source>Add to tasklist</source>
         <translatorcomment>固定到任务栏</translatorcomment>
         <translation>固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="364"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="367"/>
         <source>Remove from tasklist</source>
         <translatorcomment>取消固定到任务栏</translatorcomment>
         <translation>取消固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="418"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="421"/>
         <source>result</source>
         <translatorcomment>搜索结果</translatorcomment>
         <translation>搜索结果</translation>
@@ -185,48 +174,48 @@
 <context>
     <name>Kiran::Menu::Window</name>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="247"/>
+        <location filename="../plugins/menu/window.cpp" line="226"/>
         <source>Lock screen</source>
         <translation>锁定屏幕</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="263"/>
+        <location filename="../plugins/menu/window.cpp" line="242"/>
         <source>Switch user</source>
         <translatorcomment>切换用户</translatorcomment>
         <translation>切换用户</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="255"/>
+        <location filename="../plugins/menu/window.cpp" line="234"/>
         <source>Logout</source>
         <translatorcomment>注销</translatorcomment>
         <translation>注销</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="279"/>
+        <location filename="../plugins/menu/window.cpp" line="258"/>
         <source>Suspend</source>
         <translatorcomment>待机</translatorcomment>
         <translation>待机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="287"/>
+        <location filename="../plugins/menu/window.cpp" line="266"/>
         <source>Hibernate</source>
         <translatorcomment>休眠</translatorcomment>
         <translation>休眠</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="295"/>
+        <location filename="../plugins/menu/window.cpp" line="274"/>
         <source>Reboot</source>
         <translatorcomment>重启</translatorcomment>
         <translation>重启</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="303"/>
+        <location filename="../plugins/menu/window.cpp" line="282"/>
         <source>Shutdown</source>
         <translatorcomment>关机</translatorcomment>
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="434"/>
+        <location filename="../plugins/menu/window.cpp" line="433"/>
         <source>Hello,</source>
         <translatorcomment>你好，</translatorcomment>
         <translation>你好，</translation>

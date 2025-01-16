@@ -21,6 +21,7 @@
 #include <QBoxLayout>
 #include <QFileSystemWatcher>
 
+class QGSettings;
 class StyledButton;
 namespace Kiran
 {
@@ -91,6 +92,8 @@ private:
     void endMoveGroup(AppGroup *appGroup);
     void moveGroup(AppGroup *appGroup);
 
+    void settingChanged(const QString &key);
+
 signals:
     //  打开或关闭窗口软件
     void windowAdded(QByteArray wmClass, WId wid);
@@ -106,6 +109,9 @@ signals:
 
 private:
     IAppletImport *m_import;
+
+    QGSettings *m_gsettings;
+
     QBoxLayout *m_layout;
 
     QMap<QByteArray, AppGroup *> m_mapAppGroupOpened;  // 打开的应用组，key:wm_class

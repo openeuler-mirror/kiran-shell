@@ -28,7 +28,7 @@ qt5_add_dbus_interface(
 set(statusnotifieritemxml org.kde.StatusNotifierItem.xml)
 set_source_files_properties(
   ${statusnotifieritemxml}
-  PROPERTIES NO_NAMESPACE false
+  PROPERTIES NO_NAMESPACE TRUE
              INCLUDE "tray-data-types.h"
              CLASSNAME OrgKdeStatusNotifierItem)
 # statusnotifieriteminterface

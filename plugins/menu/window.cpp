@@ -12,7 +12,6 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <unistd.h>
 #include <KIO/ApplicationLauncherJob>
@@ -28,7 +27,6 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QProcess>
-#include <QSettings>
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QToolButton>
@@ -36,10 +34,9 @@
 #include "app-item.h"
 #include "apps-overview.h"
 #include "ks-config.h"
+#include "ks-i.h"
 #include "ks_accounts_interface.h"
 #include "ks_accounts_user_interface.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
 #include "lib/common/utility.h"
 #include "power.h"
 #include "recent-files-overview.h"
@@ -335,7 +332,13 @@ void Window::runApp(QString appId)
         // 通知kactivitymanagerd
         KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
 
-        SettingProcess::removeValueFromKey(MENU_NEW_APP, appId);
+        auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
+        QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
+        if (newApps.contains(newApps))
+        {
+            newApps.removeAll(appId);
+            gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, newApps);
+        }
     }
 }
 
@@ -367,17 +370,31 @@ void Window::removeFromFavorite(const QString &appId)
 
 void Window::isInTasklist(const QUrl &url, bool &checkResult)
 {
-    checkResult = SettingProcess::isValueInKey(TASKBAR_LOCK_APP_KEY, url);
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
+    QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    checkResult = data.contains(url);
 }
 
 void Window::addToTasklist(const QUrl &url)
 {
-    SettingProcess::addValueToKey(TASKBAR_LOCK_APP_KEY, url);
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
+    QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    if (!data.contains(url))
+    {
+        data.append(url);
+        gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, data);
+    }
 }
 
 void Window::removeFromTasklist(const QUrl &url)
 {
-    SettingProcess::removeValueFromKey(TASKBAR_LOCK_APP_KEY, url);
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
+    QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    if (data.contains(url))
+    {
+        data.removeAll(url);
+        gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, data);
+    }
 }
 
 void Window::addToDesktop(const QString &appId)

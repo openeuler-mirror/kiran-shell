@@ -13,9 +13,6 @@
  */
 
 #include <kiran-color-block.h>
-
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
 #include <KActivities/Stats/ResultSet>
@@ -24,20 +21,20 @@
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <QDragEnterEvent>
+#include <QGSettings>
 #include <QMimeData>
 #include <QPainter>
-#include <QSettings>
 #include <QTimer>
 
 #include "app-button.h"
 #include "app-group.h"
 #include "app-previewer.h"
 #include "applet.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
+#include "plugin-i.h"
 #include "window.h"
 
 namespace KAStats = KActivities::Stats;
@@ -57,6 +54,8 @@ Window::Window(IAppletImport *import, Applet *parent)
       m_indicatorWidget(nullptr),
       m_curPageIndex(-1)
 {
+    m_gsettings = new QGSettings(TASKBAR_SCHEMA_ID, "", this);
+
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     m_layout->setMargin(appMargin);
@@ -92,18 +91,7 @@ Window::Window(IAppletImport *import, Applet *parent)
 
     updateLockApp();
 
-    QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
-    // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
-    m_settingFileWatcher.addPath(settingDir);
-    connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, [=]()
-            {
-                for (auto appGroup : m_listAppGroupShow)
-                {
-                    appGroup->updateLayout();
-                }
-                updateLockApp();
-                updateLayout();
-            });
+    connect(m_gsettings, &QGSettings::changed, this, &Window::settingChanged);
 
     m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
@@ -411,10 +399,10 @@ void Window::updateLayout(int showPageIndex)
 {
     Utility::clearLayout(m_layout, false, false);
 
-    //横竖摆放
+    // 横竖摆放
     auto direction = getLayoutDirection();
     m_layout->setDirection(direction);
-    //子控件对齐方式：左右、上下
+    // 子控件对齐方式：左右、上下
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
@@ -433,10 +421,10 @@ void Window::updateLayout(int showPageIndex)
         setFixedWidth(size);
     }
 
-    int appSizeCount = appMargin * 2;  //　累计app宽或高
+    int appSizeCount = appMargin * 2;  // 累计app宽或高
 
     m_appPage.clear();
-    m_appPage.push_back(QList<AppGroup *>());  //　新建空页
+    m_appPage.push_back(QList<AppGroup *>());  // 新建空页
 
     int totalSize = width();
     if (QBoxLayout::Direction::LeftToRight != direction)
@@ -579,8 +567,7 @@ void Window::updateLayout(int showPageIndex)
 
 void Window::updateLockApp()
 {
-    QVariantList appUrls = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY).toList();
-
+    QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
     for (auto appUrl : appUrls)
     {
         addLockApp(appUrl.toUrl());
@@ -690,7 +677,8 @@ void Window::removeFromFavorite(const QString &appId)
 
 void Window::isInTasklist(const QUrl &url, bool &checkResult)
 {
-    checkResult = SettingProcess::isValueInKey(TASKBAR_LOCK_APP_KEY, url);
+    QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    checkResult = appUrls.contains(url);
 }
 
 void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
@@ -703,17 +691,13 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
     {
         // 本来就是锁定应用
         // 锁定应用调整位置
-        QVariant values = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY);
-        QVariantList valuesList = values.toList();
+        QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
 
         int newIndex = m_listAppGroupLocked.indexOf(appGroup);
         int oldIndex = valuesList.indexOf(url);
-
         valuesList.move(oldIndex, newIndex);
-
         KLOG_INFO() << "AppButtonContainer::addToTasklist move" << oldIndex << newIndex;
-
-        SettingProcess::setValue(TASKBAR_LOCK_APP_KEY, valuesList);
+        m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
 
         return;
     }
@@ -737,8 +721,7 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
         }
     }
 
-    QVariant values = SettingProcess::getValue(TASKBAR_LOCK_APP_KEY);
-    QVariantList valuesList = values.toList();
+    QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
     if (inserIndex >= valuesList.size())
     {
         valuesList.append(url);
@@ -749,15 +732,15 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
         valuesList.insert(inserIndex, url);
         m_listAppGroupLocked.insert(inserIndex, appGroup);
     }
-
     KLOG_INFO() << "AppButtonContainer::addToTasklist" << inserIndex << valuesList.size();
-
-    SettingProcess::setValue(TASKBAR_LOCK_APP_KEY, valuesList);
+    m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
 }
 
 void Window::removeFromTasklist(const QUrl &url)
 {
-    SettingProcess::removeValueFromKey(TASKBAR_LOCK_APP_KEY, url);
+    QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    valuesList.removeAll(url);
+    m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
 }
 
 void Window::removeGroup(AppGroup *group)
@@ -1018,6 +1001,19 @@ void Window::moveGroup(AppGroup *appGroup)
     }
 }
 
+void Window::settingChanged(const QString &key)
+{
+    if (TASKBAR_SCHEMA_KEY_FIXED_APPS == key)
+    {
+        for (auto appGroup : m_listAppGroupShow)
+        {
+            appGroup->updateLayout();
+        }
+        updateLockApp();
+        updateLayout();
+    }
+}
+
 Qt::AlignmentFlag Window::getLayoutAlignment()
 {
     int orientation = m_import->getPanel()->getOrientation();
@@ -1073,7 +1069,7 @@ void Window::openFileByDrop(QDropEvent *event)
     job->setUrls(urls);
     job->start();
 
-    //通知kactivitymanagerd
+    // 通知kactivitymanagerd
     KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
 }
 

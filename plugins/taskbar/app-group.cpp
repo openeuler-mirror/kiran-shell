@@ -12,20 +12,19 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QDrag>
+#include <QGSettings>
 #include <QMimeData>
 #include <QMouseEvent>
 
 #include "app-button.h"
 #include "app-group.h"
 #include "app-previewer.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "plugin-i.h"
 #include "window.h"
 
 namespace Kiran
@@ -80,7 +79,7 @@ void AppGroup::setDragData(const QUrl &url)
 
 void AppGroup::getRelationAppSize(int &size)
 {
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool() && m_mapWidButton.size() > 0)
+    if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool() && m_mapWidButton.size() > 0)
     {
         size = 1;
     }
@@ -93,7 +92,7 @@ void AppGroup::getRelationAppSize(int &size)
 void AppGroup::showPreviewer(WId wid)
 {
     QList<WId> wids;
-    if (!SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    if (!m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
     {
         wids = m_mapWidButton.keys();
     }
@@ -107,7 +106,7 @@ void AppGroup::showPreviewer(WId wid)
 void AppGroup::changePreviewerShow(WId wid)
 {
     QList<WId> wids;
-    if (!SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    if (!m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
     {
         wids = m_mapWidButton.keys();
     }
@@ -129,6 +128,8 @@ void AppGroup::windowCloseAll()
 
 void AppGroup::init()
 {
+    m_gsettings = new QGSettings(TASKBAR_SCHEMA_ID, "", this);
+
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     m_layout->setSpacing(8);
@@ -307,7 +308,7 @@ void AppGroup::changedActiveWindow(WId wid)
 
     // 按钮分离显示时，只需要将wid对应的按钮切换状态
     // 否则，需要查找该类的第一个按钮切换状态
-    if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+    if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
     {
         iter.value()->setChecked(true);
     }
@@ -337,7 +338,7 @@ void AppGroup::updateLayout()
     else
     {
         // 根据当前模式，显示不一样的结果
-        if (SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool())
+        if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
         {
             for (auto iter : m_mapWidButton)
             {

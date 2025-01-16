@@ -13,7 +13,6 @@
  */
 
 #include <kiran-integration/theme/palette.h>
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
 #include <QActionGroup>
@@ -29,13 +28,11 @@
 #include <QPainter>
 #include <QScopedPointer>
 #include <QScreen>
-#include <QSettings>
 #include <QTimer>
 
 #include "applet.h"
 #include "ks-config.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "line-frame.h"
@@ -46,16 +43,12 @@
 #define PERSONALITY_MODE_LAYOUT_MARGIN 4
 #define PERSONALITY_MODE_RADIUS 4
 
-#define SHELL_SCHEMA_ID "com.kylinsec.kiran.shell"
-#define SHELL_SCHEMA_KEY_PERSONALITY_MODE "enablePersonalityMode"
-#define SHELL_SCHEMA_KEY_AUTO_HIDE "enableAutoHide"
-
 namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
     : QWidget(nullptr, Qt::FramelessWindowHint),
       m_profilePanel(profilePanel),
-      m_shellGsettings(nullptr),
+      m_gsettings(nullptr),
       m_isPersonalityMode(false),
       m_layoutMargin(0),
       m_radius(0),
@@ -123,17 +116,6 @@ void Panel::contextMenuEvent(QContextMenuEvent *event)
                     PanelOrientation orientation =
                         (PanelOrientation)menuLevel1Group->actions().indexOf(action);
                     m_profilePanel->setOrientation(orientationEnum2Str(orientation));
-                });
-    }
-
-    {
-        QAction *act = m_menu->addAction(tr("Show application name"));
-        act->setCheckable(true);
-        act->setChecked(
-            SettingProcess::getValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY).toBool());
-        connect(act, &QAction::triggered, this, [=]()
-                {
-                    SettingProcess::setValue(TASKBAR_SHOW_APP_BTN_TAIL_KEY, act->isChecked());
                 });
     }
 
@@ -228,18 +210,8 @@ void Panel::init()
     connect(m_profilePanel, &ProfilePanel::orientationChanged, this,
             &Panel::updateLayout);
 
-    try
-    {
-        m_shellGsettings = new QGSettings(SHELL_SCHEMA_ID);
-    }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QGSettings failed:" << SHELL_SCHEMA_ID;
-    }
-    if (m_shellGsettings)
-    {
-        connect(m_shellGsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
-    }
+    m_gsettings = new QGSettings(SHELL_SCHEMA_ID, "", this);
+    connect(m_gsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
 
     initChildren();
 
@@ -491,7 +463,7 @@ void Panel::shellSettingChanged(const QString &key)
 
 void Panel::updatePersonalityMode()
 {
-    m_isPersonalityMode = m_shellGsettings && m_shellGsettings->get(SHELL_SCHEMA_KEY_PERSONALITY_MODE).toBool();
+    m_isPersonalityMode = m_gsettings && m_gsettings->get(SHELL_SCHEMA_KEY_PERSONALITY_MODE).toBool();
 
     if (m_isPersonalityMode)
     {
@@ -536,7 +508,7 @@ void Panel::updatePersonalityMode()
 
 void Panel::updateAutoHide()
 {
-    m_isAutoHide = m_shellGsettings && m_shellGsettings->get(SHELL_SCHEMA_KEY_AUTO_HIDE).toBool();
+    m_isAutoHide = m_gsettings && m_gsettings->get(SHELL_SCHEMA_KEY_AUTO_HIDE).toBool();
     updateGeometry(m_isAutoHide);  // 配置更新，初始状态：开启自动隐藏->显示一个像素（int)true = 1  未开启自动隐藏->按配置的大小显示（int)false = 0
 }
 

@@ -14,10 +14,11 @@
 
 #include <qt5-log-i.h>
 #include <QDragEnterEvent>
+#include <QGSettings>
 
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
+#include "statusnotifieriteminterface.h"
 #include "window-popup.h"
 
 namespace Kiran
@@ -44,7 +45,7 @@ WindowPopup::WindowPopup(IAppletImport *import, QWidget *parent)
     setAcceptDrops(true);
 
     updateItemLayout();
-    //事件过滤器
+    // 事件过滤器
     installEventFilter(this);
 }
 
@@ -79,7 +80,7 @@ void WindowPopup::AddItem(QString serviceAndPath)
 
 bool WindowPopup::eventFilter(QObject *object, QEvent *event)
 {
-    //window was deactivated
+    // window was deactivated
     if (QEvent::WindowDeactivate == event->type())
     {
         emit hideTrayBox();
@@ -270,8 +271,8 @@ TrayItem *WindowPopup::itemAdd(QString serviceAndPath)
 
     connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {
-                //m_items.removeAll(dragItem);
-                //dragItem->hide();
+                // m_items.removeAll(dragItem);
+                // dragItem->hide();
                 updateItemLayout();
             });
     m_services.insert(serviceAndPath, item);
@@ -294,17 +295,62 @@ void WindowPopup::itemRemove(const QString &serviceAndPath)
 
 void WindowPopup::addWindowPopupItem(const QString &serviceAndPath)
 {
-    SettingProcess::addValueToKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    QString itemId = getStatusNotifierItemId(serviceAndPath);
+    if (itemId.isEmpty())
+    {
+        return;
+    }
+
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
+    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
+    if (!foldingApps.contains(itemId))
+    {
+        foldingApps.append(itemId);
+        gsettings->set(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS, foldingApps);
+    }
 }
 
 void WindowPopup::removeWindowPopupItem(const QString &serviceAndPath)
 {
-    SettingProcess::removeValueFromKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    QString itemId = getStatusNotifierItemId(serviceAndPath);
+    if (itemId.isEmpty())
+    {
+        return;
+    }
+
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
+    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
+    if (foldingApps.contains(itemId))
+    {
+        foldingApps.removeAll(itemId);
+        gsettings->set(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS, foldingApps);
+    }
 }
 
 bool WindowPopup::isWindowPopupItem(const QString &serviceAndPath)
 {
-    return SettingProcess::isValueInKey(SYSTEM_TRAY_WINDOW_POPUP_ITEMS_KEY, serviceAndPath);
+    QString itemId = getStatusNotifierItemId(serviceAndPath);
+    if (itemId.isEmpty())
+    {
+        return false;
+    }
+
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
+    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
+    return foldingApps.contains(itemId);
+}
+
+QString WindowPopup::getStatusNotifierItemId(const QString &serviceAndPath)
+{
+    int index = serviceAndPath.indexOf('/');
+    QString service = serviceAndPath.left(index);
+    QString path = serviceAndPath.mid(index);
+    OrgKdeStatusNotifierItem statusNotifierItem(service, path, QDBusConnection::sessionBus());
+    if (statusNotifierItem.isValid())
+    {
+        return statusNotifierItem.id();
+    }
+    return "";
 }
 
 }  // namespace Systemtray

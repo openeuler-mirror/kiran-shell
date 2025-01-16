@@ -16,6 +16,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QGuiApplication>
+#include <QLayout>
 #include <QProcess>
 #include <QScreen>
 #include <QWidget>

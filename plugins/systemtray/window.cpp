@@ -12,11 +12,11 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <QDragEnterEvent>
 #include <QUuid>
 
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "tray-item.h"
 #include "tray-server.h"

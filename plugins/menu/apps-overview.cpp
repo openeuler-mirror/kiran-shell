@@ -12,22 +12,21 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>
+#include <KService/KServiceGroup>
 #include <KSycoca>
-#include <QAbstractItemModel>
 #include <QAction>
 #include <QCursor>
 #include <QFileInfo>
+#include <QGSettings>
 #include <QMap>
 #include <QMenu>
-#include <QProcess>
+#include <QTreeWidgetItem>
 
 #include "apps-overview.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "ui_apps-overview.h"
 
 namespace Kiran
@@ -55,6 +54,10 @@ void AppsOverview::init()
     m_ui->m_treeWidgetApps->setExpandsOnDoubleClick(false);
     // 隐藏小三角
     m_ui->m_treeWidgetApps->setRootIsDecorated(false);
+
+    m_gsettings = new QGSettings(MENU_SCHEMA_ID, "", this);
+    connect(m_gsettings, &QGSettings::changed, this, &AppsOverview::updateNewApp);
+
     // 载入应用列表
     loadApps();
 
@@ -68,11 +71,6 @@ void AppsOverview::init()
     m_ui->m_lineEditSearch->setPalette(p);
 
     connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
-
-    QString settingDir = QFileInfo(KIRAN_SHELL_SETTING_FILE).dir().path();
-    // QSettings 保存时，会删除原有文件，重新创建一个新文件，所以不能监视文件，此处监视文件夹
-    m_settingFileWatcher.addPath(settingDir);
-    connect(&m_settingFileWatcher, &QFileSystemWatcher::directoryChanged, this, &AppsOverview::updateNewApp);
 }
 
 void AppsOverview::loadApps()
@@ -206,9 +204,14 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
     m_appIds.insert(s->storageId());
 }
 
-void AppsOverview::updateNewApp()
+void AppsOverview::updateNewApp(QString key)
 {
-    QVariantList apps = SettingProcess::getValue(MENU_NEW_APP).toList();
+    if (!key.isEmpty() && MENU_SCHEMA_KEY_NEW_APPS != key)
+    {
+        return;
+    }
+
+    QVariantList apps = m_gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
 
     KLOG_INFO() << "AppsOverview::updateNewApp" << apps;
 
@@ -242,7 +245,7 @@ void AppsOverview::updateNewApp()
 
 void AppsOverview::clearNewApp()
 {
-    QVariantList newApps = SettingProcess::getValue(MENU_NEW_APP).toList();
+    QVariantList newApps = m_gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
     QSet<QString> newAppSet;
     for (auto app : newApps)
     {
@@ -254,7 +257,7 @@ void AppsOverview::clearNewApp()
     {
         valuesList.push_back(value);
     }
-    SettingProcess::setValue(MENU_NEW_APP, valuesList);
+    m_gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, valuesList);
 }
 
 void AppsOverview::updateApp()
@@ -276,7 +279,7 @@ void AppsOverview::updateApp()
             valuesList.push_back(value);
         }
 
-        SettingProcess::setValue(MENU_NEW_APP, valuesList);
+        m_gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, valuesList);
     }
 }
 

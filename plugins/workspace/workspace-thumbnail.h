@@ -16,9 +16,6 @@
 
 #include <QWidget>
 
-#define KIRAN_APPEARANCE_SCHEMA_ID "com.kylinsec.kiran.appearance"
-#define DESKTOP_BACKGROUND_SCHEMA_KEY "desktop-background"
-
 namespace Ui
 {
 class WorkspaceThumbnail;
