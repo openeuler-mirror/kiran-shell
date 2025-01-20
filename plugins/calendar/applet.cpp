@@ -108,16 +108,15 @@ void Applet::serviceOwnerChanged(const QString &service, const QString &oldOwner
 
 void Applet::clickButton()
 {
-    auto oriention = m_import->getPanel()->getOrientation();
-    Utility::updatePopWidgetPos(oriention, this, m_window);
-
     m_window->setVisible(true);
     m_calendarButton->setEnabled(false);
+
+    auto oriention = m_import->getPanel()->getOrientation();
+    Utility::updatePopWidgetPos(oriention, this, m_window);
 }
 
 void Applet::hideWindow()
 {
-    KLOG_INFO() << "hide calendar";
     m_window->setVisible(false);
     m_calendarButton->setChecked(false);
     m_calendarButton->setEnabled(true);

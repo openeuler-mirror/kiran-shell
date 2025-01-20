@@ -7,27 +7,27 @@ class Lunar : public QObject
 {
     Q_OBJECT
 public:
-    //农历日 字符串 闰三月/三月/初三/植树节
+    // 农历日 字符串 闰三月/三月/初三/植树节
     static QString getLunarDayStr(int year, int month, int day);
-    //农历月日 字符串 闰三月初三
+    // 农历月日 字符串 闰三月初三
     static QString getLunarMonDayStr(int year, int month, int day);
-    //农历年 字符串 甲辰龙年
-    static QString getLunarYearStr(int year);
+    // 农历年 字符串 甲辰龙年
+    static QString getLunarYearStr(int year, int month, int day);
 
 private:
-    Lunar(){};
+    Lunar() {};
 
-    //计算当前日期距离春节的天数
+    // 计算当前日期距离春节的天数
     static int daysSinceSpringFestival(int year, int month, int day, int &yearCountData);
-    //判断是否是闰年
+    // 判断是否是闰年
     static bool isLoopYear(int year);
 
-    //公历假日
+    // 公历假日
     static QString holiday(int month, int day);
-    //计算24节气
+    // 计算24节气
     static QString solarTerms(int year, int month, int day);
-    //农历节日
+    // 农历节日
     static QString lunarFestival(int year, int month, int day);
-    //计算转换的农历日期
+    // 计算转换的农历日期
     static bool findLunarData(int &year, int &month, int &day);
 };

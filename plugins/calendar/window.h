@@ -36,6 +36,7 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
     void showEvent(QShowEvent *event) override;
     bool eventFilter(QObject *object, QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     //顶部设置导航栏加载
@@ -48,12 +49,16 @@ private:
     //今天按钮操作
     void gotoToday();
 
+    //上/下年月按钮切换操作
+    void changeDateTimeBtnClicked();
+
+    void showDate(QDate date);
+
+private slots:
     //输入年份操作
     void enterYear();
     //输入月份操作
     void enterMonth();
-    //上/下年月按钮切换操作
-    void changeDateTimeBtnClicked();
 
 signals:
     void windowDeactivated();

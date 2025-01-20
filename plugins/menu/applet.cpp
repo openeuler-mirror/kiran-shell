@@ -74,10 +74,11 @@ void Applet::clickButton(bool checked)
     // KLOG_INFO() << "Applet::clickButton" << checked;
     if (checked)
     {
-        auto oriention = m_import->getPanel()->getOrientation();
-        Utility::updatePopWidgetPos(oriention, this, m_window);
         m_window->show();
         m_appletButton->setEnabled(false);
+
+        auto oriention = m_import->getPanel()->getOrientation();
+        Utility::updatePopWidgetPos(oriention, this, m_window);
     }
 }
 
