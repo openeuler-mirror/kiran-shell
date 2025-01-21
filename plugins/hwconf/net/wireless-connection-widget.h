@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <kiran-desktop/network-common.h>
 #include <QWidget>
 
 #include "net-common.h"
@@ -40,11 +41,26 @@ public:
 
     void updateStatus();
 
+    void requestPassword();
+
+protected:
+    void mouseDoubleClickEvent(QMouseEvent *event);
+
 private slots:
-    void on_pushButtonConnect_clicked();
+    void on_btnOkPassword_clicked();
+    void on_btnCancelPassword_clicked();
+
+private:
+    void setPasswordEditorVisible(bool isVisible);
+
+    void setActiveStatus(NetworkManager::ActiveConnection::State state);
+    void resetStatus();
+    void signalStrengthChanged(int strength);
 
 signals:
-    void addAndActivateConnection(QString deviceUni, QString ssid, const QString password);
+    void addAndActivateNetwork(QString deviceUni, QString ssid, const QString password);
+    void respondPasswdRequest(QString ssid, QString password, bool isCancel);
+
     void resizeShow();
 
 private:
@@ -53,6 +69,7 @@ private:
     // 固定属性
     QString m_deviceUni;
     QString m_ssid;
+    WifiSecurityType m_securityType;
 
     // 变动属性
     bool m_isConnected;

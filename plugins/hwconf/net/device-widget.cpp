@@ -19,6 +19,7 @@
 #include "device-widget.h"
 #include "net-common.h"
 #include "ui_device-widget.h"
+#include "wireless-manager.h"
 
 namespace Kiran
 {
@@ -45,7 +46,7 @@ void DeviceWidget::Init()
 
     if (NetworkManager::Device::Type::Wifi == m_deviceType)
     {
-        wifiScan();
+        WirelessManagerInstance.scan(m_deviceUni);
     }
     else
     {
@@ -61,30 +62,11 @@ void DeviceWidget::updateInfo()
     ui->labelName->setText(device->interfaceName());
 }
 
-void DeviceWidget::wifiScan()
-{
-    KLOG_INFO() << "wifiScan";
-
-    auto device = NetworkManager::findNetworkInterface(m_deviceUni);
-    if (!device)
-    {
-        KLOG_ERROR() << "find network interface failed:" << m_deviceUni;
-        return;
-    }
-    NetworkManager::WirelessDevice::Ptr wifiDevice = device.objectCast<NetworkManager::WirelessDevice>();
-    QDBusPendingReply<> reply = wifiDevice->requestScan();
-    reply.waitForFinished();
-    if (reply.isError())
-    {
-        KLOG_ERROR() << "wireless Device name:" << wifiDevice->interfaceName() << " requestScan error:" << reply.error();
-    }
-}
-
 void DeviceWidget::on_toolButtonScan_clicked()
 {
     if (NetworkManager::Device::Type::Wifi == m_deviceType)
     {
-        wifiScan();
+        WirelessManagerInstance.scan(m_deviceUni);
     }
 }
 

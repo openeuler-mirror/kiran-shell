@@ -54,8 +54,11 @@ private:
 
     void removeConnection(QString deviceUni, QString connectUuid);
 
-    // 激活点变化
-    void activeConnectionChanged();
+    // 连接状态变化
+    void updateActiveStatus(QString deviceUni, NetworkManager::Device::State state);
+    void activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state);
+
+    void requestPassword(const QString &devicePath, const QString &ssid, bool wait);
 
 private:
     QMap<QString, QPair<QTreeWidgetItem *, QWidget *>> m_netDeviceItems;                    // <device uuid,<>>

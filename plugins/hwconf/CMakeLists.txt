@@ -60,9 +60,13 @@ add_library(${TARGET_NAME} SHARED ${SRC_FILES} ${QM_FILES} ${DBUS_INTERFACES})
 
 target_include_directories(
   ${TARGET_NAME}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
-          ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS} ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS})
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+          ${PROJECT_BINARY_DIR}
+          ${PROJECT_SOURCE_DIR}
+          ${PROJECT_SOURCE_DIR}/include
+          ${KLOG_QT5_INCLUDE_DIRS}
+          ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS}
+          ${KIRAN_DESKTOP_INCLUDE_DIRS})
 
 target_link_libraries(
   ${TARGET_NAME}
@@ -70,10 +74,10 @@ target_link_libraries(
           KF5::NetworkManagerQt
           ${KLOG_QT5_LIBRARIES}
           ${KIRAN_WIDGETS_QT5_LIBRARIES}
+          ${KIRAN_DESKTOP_LIBRARIES}
           kiran-integration-theme
           widgets
-          common
-          network-demo)
+          common)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

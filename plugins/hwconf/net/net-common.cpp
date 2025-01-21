@@ -12,8 +12,8 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <networkmanagerqt/wirelesssetting.h>
 #include <qt5-log-i.h>
+#include <NetworkManagerQt/WirelessSetting>
 #include <QDBusReply>
 
 #include "ks-i.h"
@@ -399,7 +399,7 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
         {UNKNOWN, {KS_ICON_WIRED_ERROR, tr("Network unknow error")}},
         {WIRED_CONNECTED, {KS_ICON_WIRED_CONNECTED, tr("Network connected")}},
         {WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET, {KS_ICON_WIRED_ERROR, tr("The network is connected, but you cannot access the Internet")}},
-        {WIRELESS_CONNECTED, {KS_ICON_WIRELESS_3, tr("Network connected")}},
+        {WIRELESS_CONNECTED, {KS_ICON_WIRELESS, tr("Network connected")}},
         {WIRELESS_CONNECTED_BUT_NOT_ACCESS_INTERNET, {KS_ICON_WIRED_ERROR, tr("The network is connected, but you cannot access the Internet")}},
         {DISCONNECTED, {KS_ICON_NET_DISCONNECTED, tr("Network disconnected")}}};
 
