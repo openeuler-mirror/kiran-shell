@@ -21,6 +21,7 @@
 #include <QUrl>
 #include <QWidget>
 
+class QGSettings;
 namespace Kiran
 {
 class IAppletImport;
@@ -157,6 +158,8 @@ private:
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint dragStartPosition;    // 鼠标按下时的全局坐标
     QPoint buttonStartPosition;  // 按钮在父窗口中的位置
+
+    QGSettings *m_gsettings;  // gsettings
 };
 }  // namespace Taskbar
 }  // namespace Kiran

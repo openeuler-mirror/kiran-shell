@@ -8,36 +8,35 @@
         <translation type="vanished">任务栏</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="129"/>
         <source>Show application name</source>
-        <translation>显示应用名称</translation>
+        <translation type="vanished">显示应用名称</translation>
     </message>
     <message>
         <source>Panel</source>
         <translation type="vanished">面板</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="91"/>
+        <location filename="../src/shell/panel.cpp" line="89"/>
         <source>Position</source>
         <translation>调整位置</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="92"/>
+        <location filename="../src/shell/panel.cpp" line="90"/>
         <source>Top</source>
         <translation>上</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="93"/>
+        <location filename="../src/shell/panel.cpp" line="91"/>
         <source>Bottom</source>
         <translation>下</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="94"/>
+        <location filename="../src/shell/panel.cpp" line="92"/>
         <source>Left</source>
         <translation>左</translation>
     </message>
     <message>
-        <location filename="../src/shell/panel.cpp" line="95"/>
+        <location filename="../src/shell/panel.cpp" line="93"/>
         <source>Right</source>
         <translation>右</translation>
     </message>

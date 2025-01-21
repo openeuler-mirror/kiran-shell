@@ -1,0 +1,48 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <schema id="com.kylinsec.kiran.shell.lockdown" path="/com/kylinsec/kiran/shell/lockdown/">
+
+        <key name="disable-lock-screen" type="b">
+            <default>false</default>
+            <summary>Disable lock screen</summary>
+            <description>Prevent the user from locking the screen.</description>
+        </key>
+
+        <key name="disable-user-switching" type="b">
+            <default>false</default>
+            <summary>Disable user switching</summary>
+            <description>Prevent the user from switching to another account while his session is active.</description>
+        </key>
+
+        <key name="disable-log-out" type="b">
+            <default>false</default>
+            <summary>Disable log out session</summary>
+            <description>Prevent the user from loging out session.</description>
+        </key>
+
+        <key name="disable-suspend" type="b">
+            <default>false</default>
+            <summary>Disable power suspend</summary>
+            <description>Prevent the user from suspend the system.</description>
+        </key>
+
+        <key name="disable-hibernate" type="b">
+            <default>false</default>
+            <summary>Disable power hibernate</summary>
+            <description>Prevent the user from hibernate the system.</description>
+        </key>
+
+        <key name="disable-reboot" type="b">
+            <default>false</default>
+            <summary>Disable reboot system</summary>
+            <description>Prevent the user from reboot the system.</description>
+        </key>
+
+        <key name="disable-shutdown" type="b">
+            <default>false</default>
+            <summary>Disable shutdown system</summary>
+            <description>Prevent the user from shutdown the system.</description>
+        </key>
+
+    </schema>
+</schemalist>

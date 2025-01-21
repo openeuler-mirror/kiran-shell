@@ -143,7 +143,7 @@
 <context>
     <name>Kiran::HwConf::ThemeConfItem</name>
     <message>
-        <location filename="../plugins/hwconf/theme/theme-conf-item.cpp" line="46"/>
+        <location filename="../plugins/hwconf/theme/theme-conf-item.cpp" line="41"/>
         <source>theme switch</source>
         <translation>主题切换</translation>
     </message>
@@ -155,7 +155,7 @@
         <translation type="vanished">声音设置</translation>
     </message>
     <message>
-        <location filename="../plugins/hwconf/volume/volume-button.cpp" line="114"/>
+        <location filename="../plugins/hwconf/volume/volume-button.cpp" line="116"/>
         <source>Audio Settings</source>
         <translation>声音设置</translation>
     </message>

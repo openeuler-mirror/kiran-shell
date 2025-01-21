@@ -19,6 +19,7 @@
 #include <QGSettings>
 
 #include "bettery-button.h"
+#include "ks-i.h"
 #include "lib/common/dbus-service-watcher.h"
 #include "upower_device_interface.h"
 #include "upower_interface.h"
@@ -27,9 +28,6 @@
 #define UPOWER_DBUS_OBJECT_PATH "/org/freedesktop/UPower"
 #define PROPERTIES_INTERFACE "org.freedesktop.DBus.Properties"
 #define PROPERTIES_CHANGED "PropertiesChanged"
-
-#define POWER_SCHEMA_ID "com.kylinsec.kiran.power"
-#define POWER_SCHEMA_TRAY_ICON_POLICY "trayIconPolicy"
 
 #define DEFAULT_ICON_NAME "ksvg-ks-ac-adapter-symbolic"
 
@@ -50,7 +48,7 @@ BatteryButton::BatteryButton(QWidget *parent)
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &BatteryButton::serviceOwnerChanged);
     DBusWatcher.AddService(UPOWER_DBUS_SERVICE, QDBusConnection::SystemBus);
 
-    m_gsettings = new QGSettings(POWER_SCHEMA_ID);
+    m_gsettings = new QGSettings(POWER_SCHEMA_ID, "", this);
     connect(m_gsettings, &QGSettings::changed, this, &BatteryButton::settingChanged);
 }
 

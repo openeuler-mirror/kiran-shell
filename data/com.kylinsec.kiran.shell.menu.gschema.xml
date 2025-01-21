@@ -1,0 +1,11 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <schema id="com.kylinsec.kiran.shell.menu" path="/com/kylinsec/kiran/shell/menu/">
+
+        <key name="new-apps" type="as">
+            <default>[]</default>
+            <description>List of new applications.</description>
+        </key>
+
+    </schema>
+</schemalist>

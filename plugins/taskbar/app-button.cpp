@@ -13,8 +13,6 @@
  */
 
 #include <kiran-integration/theme/palette.h>
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
 #include <KDesktopFile>
@@ -24,21 +22,20 @@
 #include <KWindowSystem>
 #include <QColor>
 #include <QDesktopServices>
+#include <QFileInfo>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
-#include <QProcess>
-#include <QSettings>
 #include <QTimer>
 
 #include "app-button.h"
 #include "app-group.h"
-#include "lib/common/define.h"
-#include "lib/common/setting-process.h"
+#include "ks-i.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "plugin-i.h"
 
 namespace Kiran
 {

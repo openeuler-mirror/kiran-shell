@@ -12,8 +12,6 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <ks-i.h>
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QCoreApplication>
 #include <QGridLayout>
@@ -24,7 +22,8 @@
 
 #include "applet.h"
 #include "ks-config.h"
-#include "lib/common/define.h"
+#include "ks-i.h"
+#include "plugin-i.h"
 #include "window.h"
 
 namespace Kiran

@@ -43,5 +43,5 @@ signals:
     void updateToolTip();
 
 private:
-    org::kde::StatusNotifierItem m_statusNotifierItem;
+    OrgKdeStatusNotifierItem m_statusNotifierItem;
 };

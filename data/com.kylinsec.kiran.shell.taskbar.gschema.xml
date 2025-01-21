@@ -1,0 +1,16 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <schema id="com.kylinsec.kiran.shell.taskbar" path="/com/kylinsec/kiran/shell/taskbar/">
+
+        <key name="show-app-name" type="b">
+            <default>false</default>
+            <description>If it's true, display the name of the application.</description>
+        </key>
+
+        <key name="fixed-apps" type="as">
+            <default>[]</default>
+            <description>The list of applications that are fixed on the taskbar.</description>
+        </key>
+
+    </schema>
+</schemalist>

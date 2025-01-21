@@ -72,7 +72,7 @@ signals:
 private:
     ProfilePanel* m_profilePanel;  // 面板配置
     QBoxLayout* m_appletsLayout;
-    QGSettings* m_shellGsettings;
+    QGSettings* m_gsettings;
 
     QList<Applet*> m_applets;
 

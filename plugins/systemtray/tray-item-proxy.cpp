@@ -19,12 +19,12 @@
 TrayItemProxy::TrayItemProxy(const QString &service, const QString &path, QObject *parent)
     : QObject(parent), m_statusNotifierItem{service, path, QDBusConnection::sessionBus()}
 {
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewIcon, this, &TrayItemProxy::updateIcon);
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewAttentionIcon, this, &TrayItemProxy::updateAttentionIcon);
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewOverlayIcon, this, &TrayItemProxy::updateOverlayIcon);
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewStatus, this, &TrayItemProxy::updateStatus);
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewTitle, this, &TrayItemProxy::updateTitle);
-    connect(&m_statusNotifierItem, &org::kde::StatusNotifierItem::NewToolTip, this, &TrayItemProxy::updateToolTip);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewIcon, this, &TrayItemProxy::updateIcon);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewAttentionIcon, this, &TrayItemProxy::updateAttentionIcon);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewOverlayIcon, this, &TrayItemProxy::updateOverlayIcon);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewStatus, this, &TrayItemProxy::updateStatus);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewTitle, this, &TrayItemProxy::updateTitle);
+    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewToolTip, this, &TrayItemProxy::updateToolTip);
 }
 
 QDBusVariant TrayItemProxy::getProperty(const QString &name)

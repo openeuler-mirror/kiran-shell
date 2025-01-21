@@ -12,13 +12,13 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
 #include <QCoreApplication>
 #include <QTranslator>
 
 #include "ks-config.h"
+#include "ks-i.h"
 #include "showdesktop.h"
 
 namespace Kiran

@@ -16,9 +16,9 @@
 
 #include <QDBusConnection>
 #include <QFontMetrics>
-#include <QLayout>
 #include <QObject>
 
+class QLayout;
 class Utility : public QObject
 {
     Q_OBJECT

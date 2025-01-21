@@ -4,7 +4,7 @@
 <context>
     <name>Kiran::Workspace::Applet</name>
     <message>
-        <location filename="../plugins/workspace/applet.cpp" line="59"/>
+        <location filename="../plugins/workspace/applet.cpp" line="60"/>
         <source>Workspace switcher</source>
         <translation>工作区</translation>
     </message>

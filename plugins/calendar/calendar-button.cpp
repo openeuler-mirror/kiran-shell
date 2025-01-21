@@ -13,7 +13,6 @@
  */
 
 #include <kiran-integration/theme/palette.h>
-#include <ks-i.h>
 #include <qt5-log-i.h>
 #include <QMouseEvent>
 #include <QPainter>
@@ -21,6 +20,7 @@
 #include <QToolTip>
 
 #include "calendar-button.h"
+#include "ks-i.h"
 
 namespace Kiran
 {

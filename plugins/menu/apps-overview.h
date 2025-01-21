@@ -14,15 +14,17 @@
 
 #pragma once
 
-#include <KService/KServiceGroup>
-#include <QFileSystemWatcher>
-#include <QTreeWidgetItem>
+#include <QSet>
 #include <QWidget>
 
 namespace Ui
 {
 class AppsOverview;
 };  // namespace Ui
+
+class QGSettings;
+class QTreeWidgetItem;
+class KSycocaEntry;
 
 namespace Kiran
 {
@@ -58,7 +60,7 @@ private:
     void addGroup(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
 
-    void updateNewApp();
+    void updateNewApp(QString key = "");
     void clearNewApp();
 
 signals:
@@ -80,8 +82,9 @@ signals:
 private:
     Ui::AppsOverview* m_ui;
 
-    QSet<QString> m_appIds;                   // 缓存所有的应用id
-    QFileSystemWatcher m_settingFileWatcher;  // 用于检测新应用变化
+    QSet<QString> m_appIds;  // 缓存所有的应用id
+
+    QGSettings* m_gsettings;  // gsettings
 };
 }  // namespace Menu
 }  // namespace Kiran

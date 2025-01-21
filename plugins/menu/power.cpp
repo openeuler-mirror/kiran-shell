@@ -19,6 +19,7 @@
 
 #include "free_login1_manager_interface.h"
 #include "gnome_session_manager_interface.h"
+#include "ks-i.h"
 #include "power.h"
 #include "src/shell/utils.h"
 
@@ -36,15 +37,6 @@
 
 #define DBUS_PROXY_TIMEOUT_MSEC 300
 
-#define STARTMENU_LOCKDOWN_SCHEMA_ID "com.kylinsec.kiran.shell.lockdown"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_LOCK_SCREEN "disable-lock-screen"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_USER_SWITCHING "disable-user-switching"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_LOG_OUT "disable-log-out"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_SUSPEND "disable-suspend"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_HIBERNATE "disable-hibernate"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_REBOOT "disable-reboot"
-#define STARTMENU_LOCKDOWN_KEY_DISABLE_SHUTDOWN "disable-shutdown"
-
 std::shared_ptr<Power> Power::m_instance = nullptr;
 std::shared_ptr<Power> Power::getDefault()
 {
@@ -56,53 +48,34 @@ std::shared_ptr<Power> Power::getDefault()
 }
 
 Power::Power(QObject *parent)
-    : QObject(parent),
-      m_gsettings(nullptr)
+    : QObject(parent)
 {
-    try
-    {
-        m_gsettings = new QGSettings(STARTMENU_LOCKDOWN_SCHEMA_ID);
-    }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QGSettings failed:" << STARTMENU_LOCKDOWN_SCHEMA_ID;
-    }
+    m_gsettings = new QGSettings(LOCKDOWN_SCHEMA_ID, "", this);
+
     // 电源选项D-Bus
-    try
-    {
-        m_freelogin1Manager = new Freelogin1Manager(LOGIN_MANAGER_DBUS,
-                                                    LOGIN_MANAGER_PATH,
-                                                    QDBusConnection::systemBus(),
-                                                    this);
-
-        m_gnomeSessionManager = new GnomeSessionManager(SESSION_MANAGER_DBUS,
-                                                        SESSION_MANAGER_PATH,
-                                                        QDBusConnection::sessionBus(),
-                                                        this);
-
-        m_seatManagerProxy = new QDBusInterface(DISPLAY_MANAGER_DBUS,
-                                                qgetenv("XDG_SEAT_PATH"),
-                                                DISPLAY_MANAGER_INTERFACE,
+    m_freelogin1Manager = new Freelogin1Manager(LOGIN_MANAGER_DBUS,
+                                                LOGIN_MANAGER_PATH,
                                                 QDBusConnection::systemBus(),
                                                 this);
 
-        m_freelogin1Manager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
-        m_gnomeSessionManager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
-        m_seatManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
-    }
-    catch (...)
-    {
-        KLOG_WARNING() << "new QDBusInterface failed";
-    }
+    m_gnomeSessionManager = new GnomeSessionManager(SESSION_MANAGER_DBUS,
+                                                    SESSION_MANAGER_PATH,
+                                                    QDBusConnection::sessionBus(),
+                                                    this);
+
+    m_seatManagerProxy = new QDBusInterface(DISPLAY_MANAGER_DBUS,
+                                            qgetenv("XDG_SEAT_PATH"),
+                                            DISPLAY_MANAGER_INTERFACE,
+                                            QDBusConnection::systemBus(),
+                                            this);
+
+    m_freelogin1Manager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+    m_gnomeSessionManager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+    m_seatManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
 }
 
 Power::~Power()
 {
-    if (m_gsettings)
-    {
-        delete m_gsettings;
-        m_gsettings = nullptr;
-    }
 }
 
 uint32_t Power::getNtvsTotal()
@@ -189,7 +162,7 @@ bool Power::lockScreen()
 
 bool Power::canSuspend()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_SUSPEND).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_SUSPEND).toBool(), false);
     RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
     auto reply = m_freelogin1Manager->CanSuspend();
@@ -206,7 +179,7 @@ bool Power::canSuspend()
 
 bool Power::canHibernate()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_HIBERNATE).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_HIBERNATE).toBool(), false);
     RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
     auto reply = m_freelogin1Manager->CanHibernate();
@@ -223,7 +196,7 @@ bool Power::canHibernate()
 
 bool Power::canShutdown()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_SHUTDOWN).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_SHUTDOWN).toBool(), false);
     RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
     auto reply = m_freelogin1Manager->CanPowerOff();
@@ -240,7 +213,7 @@ bool Power::canShutdown()
 
 bool Power::canReboot()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_REBOOT).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_REBOOT).toBool(), false);
     RETURN_VAL_IF_FALSE(m_freelogin1Manager, false);
 
     auto reply = m_freelogin1Manager->CanReboot();
@@ -257,14 +230,14 @@ bool Power::canReboot()
 
 bool Power::canLogout()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_LOG_OUT).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_LOG_OUT).toBool(), false);
 
     return true;
 }
 
 bool Power::canSwitchUser()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_USER_SWITCHING).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_USER_SWITCHING).toBool(), false);
     RETURN_VAL_IF_FALSE(m_seatManagerProxy, false);
 
     return m_seatManagerProxy->property("CanSwitch").toBool();
@@ -272,7 +245,7 @@ bool Power::canSwitchUser()
 
 bool Power::canLockScreen()
 {
-    RETURN_VAL_IF_TRUE(m_gsettings->get(STARTMENU_LOCKDOWN_KEY_DISABLE_LOCK_SCREEN).toBool(), false);
+    RETURN_VAL_IF_TRUE(m_gsettings->get(LOCKDOWN_SCHEMA_KEY_DISABLE_LOCK_SCREEN).toBool(), false);
 
     return QFile::exists("/usr/bin/kiran-screensaver-command");
 }

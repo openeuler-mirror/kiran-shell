@@ -13,12 +13,12 @@
  */
 
 #include <kiran-integration/theme/palette.h>
-#include <ks-i.h>
 #include <QDate>
 #include <QPainter>
 #include <QProcess>
 #include <QWheelEvent>
 
+#include "ks-i.h"
 #include "lunar.h"
 #include "ui_window.h"
 #include "window.h"
