@@ -40,7 +40,6 @@ public:
     void Init();
 
 private:
-    void wifiScan();
     void updateInfo();
 
 signals:

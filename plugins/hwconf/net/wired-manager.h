@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <NetworkManagerQt/Device>
 #include <QObject>
 
 // 有线管理类
@@ -41,6 +42,10 @@ signals:
     // 有线连接点变化
     void availableConnectionAppeared(QString deviceUni, QString connectionUuid);
     void availableConnectionDisappeared(QString deviceUni, QString connectionUuid);
+
+    // 设备状态
+    void stateChanged(QString deviceUni, NetworkManager::Device::State state);
+    void activeConnectionChanged();
 
 private:
     QStringList m_deviceUnis;

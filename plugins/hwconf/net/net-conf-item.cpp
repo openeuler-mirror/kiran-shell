@@ -82,11 +82,11 @@ void NetConfItem::initUI()
     {
     case NetworkManager::Device::Type::Ethernet:
         titlelabel->setText(tr("Wired network"));
-        setIcon(QIcon::fromTheme(KS_ICON_WIRED_CONNECTED));
+        setIcon(QIcon::fromTheme(KS_ICON_WIRED));
         break;
     case NetworkManager::Device::Type::Wifi:
         titlelabel->setText(tr("Wireless network"));
-        setIcon(QIcon::fromTheme(KS_ICON_WIRELESS_3));
+        setIcon(QIcon::fromTheme(KS_ICON_WIRELESS));
         break;
     default:
         break;

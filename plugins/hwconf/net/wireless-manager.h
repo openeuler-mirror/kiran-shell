@@ -14,13 +14,17 @@
 
 #pragma once
 
-#include <network-demo/wireless-network-manager.h>
+#include <kiran-desktop/network-common.h>
+#include <NetworkManagerQt/ActiveConnection>
+#include <NetworkManagerQt/Device>
 #include <QObject>
 
 // 无线管理类
 
 namespace Kiran
 {
+class WirelessNetworkManager;
+class NMSecretAgent;
 namespace HwConf
 {
 #define WirelessManagerInstance WirelessManager::getInstance()
@@ -37,20 +41,38 @@ public:
 
     // 无线信息获取
     WirelessNetworkInfoList getNetworkInfoList(const QString& deviceUni);
+    WifiSecurityType networkBestSecurityType(const QString& deviceUni, const QString& ssid);
 
+    // 无线连接判断
+    bool checkNetworkCanDirectConn(const QString& deviceUni, const QString& ssid);
     // 无线连接
-    void addAndActivateConnection(const QString& deviceUni, const QString& ssid, const QString& password);
+    void activateNetowrk(const QString& deviceUni, const QString& ssid);
+    void addAndActivateNetwork(const QString& deviceUni, const QString& ssid, const QString& password);
+    void respondPasswdRequest(const QString& ssid, const QString& password, bool isCancel);
+
+    void scan(const QString& deviceUni);
 
 private:
     explicit WirelessManager(QObject* parent = nullptr);
+
+    void changeActiveConnection();
 
 signals:
     // 无线连接点变化
     void networkAppeared(QString deviceUni, QString ssid);
     void networkDisappeared(QString deviceUni, QString ssid);
 
+    // 设备状态
+    void stateChanged(QString deviceUni, NetworkManager::Device::State state);
+    void activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state);
+
+    // SecretAgent请求密码
+    void requestPassword(const QString& devicePath, const QString& ssid, bool wait);
+
 private:
     QMap<QString, WirelessNetworkManager*> m_deviceManagerMap;
+    QMap<QString, NetworkManager::ActiveConnection::Ptr> m_deviceActiveConnectMap;
+    NMSecretAgent* m_secretAgent = NULL;
 };
 }  // namespace HwConf
 }  // namespace Kiran

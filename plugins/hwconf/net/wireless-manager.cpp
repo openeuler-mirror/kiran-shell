@@ -12,9 +12,14 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-desktop/nm-secret-agent.h>
+#include <kiran-desktop/wireless-network-manager.h>
+#include <qt5-log-i.h>
 #include <NetworkManagerQt/Device>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/WirelessDevice>
+#include <QInputDialog>
+#include <thread>
 
 #include "wireless-manager.h"
 
@@ -25,6 +30,35 @@ namespace HwConf
 WirelessManager::WirelessManager(QObject *parent)
     : QObject{parent}
 {
+    // 尝试连接时，SecretAgent请求密码，弹出密码框
+    m_secretAgent = new NMSecretAgent(this);
+    connect(m_secretAgent, &NMSecretAgent::requestPassword, this, &WirelessManager::requestPassword);
+}
+
+void WirelessManager::changeActiveConnection()
+{
+    auto device = qobject_cast<NetworkManager::Device *>(sender());
+    auto deviceUni = device->uni();
+
+    auto activeConnection = device->activeConnection();
+    if (activeConnection)
+    {
+        if (!m_deviceActiveConnectMap.contains(deviceUni))
+        {
+            m_deviceActiveConnectMap[deviceUni] = activeConnection;
+            connect(activeConnection.data(), &NetworkManager::ActiveConnection::stateChanged, [this, deviceUni](NetworkManager::ActiveConnection::State state)
+                    {
+                        emit activeConnectionStateChanged(deviceUni, state);
+                    });
+        }
+    }
+    else
+    {
+        if (m_deviceActiveConnectMap.contains(deviceUni))
+        {
+            m_deviceActiveConnectMap.remove(deviceUni);
+        }
+    }
 }
 
 WirelessManager &WirelessManager::getInstance()
@@ -37,17 +71,25 @@ void WirelessManager::AddToManager(const QString &deviceUni)
 {
     if (!m_deviceManagerMap.contains(deviceUni))
     {
-        m_deviceManagerMap[deviceUni] = new WirelessNetworkManager(deviceUni);
         auto device = NetworkManager::findNetworkInterface(deviceUni);
-        NetworkManager::WirelessDevice::Ptr wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
+        auto wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
+        m_deviceManagerMap[deviceUni] = new WirelessNetworkManager(wirelessDevice);
 
-        connect(m_deviceManagerMap[deviceUni], &WirelessNetworkManager::networkAppeared, [this, deviceUni](QString ssid)
+        connect(device.data(), &NetworkManager::Device::activeConnectionChanged, this, &WirelessManager::changeActiveConnection);
+
+        connect(m_deviceManagerMap[deviceUni], &WirelessNetworkManager::networkAppeared, [this, deviceUni](const QString &ssid)
                 {
                     emit networkAppeared(deviceUni, ssid);
                 });
-        connect(m_deviceManagerMap[deviceUni], &WirelessNetworkManager::networkDisappeared, [this, deviceUni](QString ssid)
+        connect(m_deviceManagerMap[deviceUni], &WirelessNetworkManager::networkDisappeared, [this, deviceUni](const QString &ssid)
                 {
                     emit networkDisappeared(deviceUni, ssid);
+                });
+
+        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
+                {
+                    KLOG_INFO() << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
+                    emit stateChanged(deviceUni, newstate);
                 });
 
         for (auto networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())
@@ -77,13 +119,42 @@ WirelessNetworkInfoList WirelessManager::getNetworkInfoList(const QString &devic
     return m_deviceManagerMap[deviceUni]->getNetworkInfoList();
 }
 
-void WirelessManager::addAndActivateConnection(const QString &deviceUni, const QString &ssid, const QString &password)
+WifiSecurityType WirelessManager::networkBestSecurityType(const QString &deviceUni, const QString &ssid)
 {
+    return m_deviceManagerMap[deviceUni]->networkBestSecurityType(ssid);
+}
+
+bool WirelessManager::checkNetworkCanDirectConn(const QString &deviceUni, const QString &ssid)
+{
+    return m_deviceManagerMap[deviceUni]->checkNetworkCanDirectConn(ssid);
+}
+
+void WirelessManager::activateNetowrk(const QString &deviceUni, const QString &ssid)
+{
+    return m_deviceManagerMap[deviceUni]->activateNetowrk(ssid);
+}
+
+void WirelessManager::addAndActivateNetwork(const QString &deviceUni, const QString &ssid, const QString &password)
+{
+    KLOG_INFO() << "WirelessManager::addAndActivateNetwork" << deviceUni << ssid;
     if (!m_deviceManagerMap.contains(deviceUni))
     {
         return;
     }
     m_deviceManagerMap[deviceUni]->addAndActivateNetwork(ssid, password);
+}
+
+void WirelessManager::respondPasswdRequest(const QString &ssid, const QString &password, bool isCancel)
+{
+    m_secretAgent->respondPasswdRequest(ssid, password, isCancel);
+}
+void WirelessManager::scan(const QString &deviceUni)
+{
+    if (!m_deviceManagerMap.contains(deviceUni))
+    {
+        return;
+    }
+    m_deviceManagerMap[deviceUni]->requestScan();
 }
 }  // namespace HwConf
 }  // namespace Kiran

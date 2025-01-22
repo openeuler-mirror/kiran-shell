@@ -14,13 +14,18 @@
 
 #include <qt5-log-i.h>
 #include <NetworkManagerQt/AccessPoint>
+#include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/Utils>
 #include <NetworkManagerQt/WirelessDevice>
-#include <NetworkManagerQt/WirelessSecuritySetting>
+#include <NetworkManagerQt/WirelessNetwork>
 #include <NetworkManagerQt/WirelessSetting>
+#include <QInputDialog>
+#include <QToolTip>
 
+#include "ks-i.h"
 #include "ui_wireless-connection-widget.h"
 #include "wireless-connection-widget.h"
+#include "wireless-manager.h"
 
 namespace Kiran
 {
@@ -34,11 +39,21 @@ WirelessConnectionWidget::WirelessConnectionWidget(QString deviceUni, QString ss
       m_isConnected(false)
 {
     ui->setupUi(this);
-    ui->lineEditSsid->setVisible(false);
-    ui->lineEditPassword->setVisible(false);
+    setPasswordEditorVisible(false);
 
     ui->labelName->setText(ssid);
     ui->labelInfo->clear();
+
+    m_securityType = WirelessManagerInstance.networkBestSecurityType(m_deviceUni, m_ssid);
+
+    auto device = NetworkManager::findNetworkInterface(deviceUni);
+    auto wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
+    auto wirelessNetwork = wirelessDevice->findNetwork(ssid);
+    // wifi信号变化
+    connect(wirelessNetwork.data(), &NetworkManager::WirelessNetwork::signalStrengthChanged, this, &WirelessConnectionWidget::signalStrengthChanged);
+    signalStrengthChanged(wirelessNetwork->signalStrength());
+
+    resetStatus();
 }
 
 WirelessConnectionWidget::~WirelessConnectionWidget()
@@ -50,27 +65,82 @@ void WirelessConnectionWidget::updateStatus()
 {
     auto device = NetworkManager::findNetworkInterface(m_deviceUni);
     NetworkManager::WirelessDevice::Ptr wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
-    NetworkManager::AccessPoint::Ptr activeAccessPoint = wirelessDevice->activeAccessPoint();
-    QString activeSsid = activeAccessPoint ? activeAccessPoint->ssid() : "";
+    auto state = wirelessDevice->state();
 
-    ui->labelInfo->clear();
-    if (activeSsid == m_ssid)
+    auto activeConnection = wirelessDevice->activeConnection();
+    if (!activeConnection)
     {
-        ui->toolButtonConnectStatu->setVisible(true);
-        ui->pushButtonConnect->setText(tr("disconnect"));
-        m_isConnected = true;
+        resetStatus();
+        return;
+    }
+
+    auto connectionSettings = activeConnection->connection()->settings();
+    auto wifiSetting = connectionSettings->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
+
+    if (wifiSetting->ssid() != m_ssid)
+    {
+        // 这个ssid不是激活的
+        // 重置状态
+        resetStatus();
+        return;
+    }
+
+    KLOG_INFO() << "设备状态" << state;
+    KLOG_INFO() << "正在激活" << wifiSetting->ssid();
+    KLOG_INFO() << "WirelessConnectionWidget::updateStatus" << state << activeConnection << activeConnection->state();
+
+    setActiveStatus(activeConnection->state());
+}
+
+void WirelessConnectionWidget::requestPassword()
+{
+    bool isOK = false;
+    QString title = tr("please input password");
+    QString label = tr("WI-FI(%1) requires password re-entry").arg(m_ssid);
+
+    QInputDialog dialog;
+    dialog.setWindowTitle(title);
+    dialog.setLabelText(label);
+    dialog.setOkButtonText(tr("OK"));
+    dialog.setCancelButtonText(tr("Cancel"));
+    dialog.setTextEchoMode(QLineEdit::PasswordEchoOnEdit);
+
+    QString passwd;
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        passwd = dialog.textValue();
+        isOK = true;
     }
     else
     {
-        ui->toolButtonConnectStatu->setVisible(false);
-        ui->pushButtonConnect->setText(tr("connect"));
-        m_isConnected = false;
+        isOK = false;
     }
-    //    KLOG_INFO() << m_ssid << "----------connect state:" << m_isConnected;
+    while (isOK && passwd.length() < 8)
+    {
+        dialog.setLabelText(label + "\n" + tr("The password must be at least 8 characters long."));
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            passwd = dialog.textValue();
+            isOK = true;
+        }
+        else
+        {
+            isOK = false;
+        }
+    }
+
+    // 被动输入密码连接
+    emit respondPasswdRequest(m_ssid, passwd, !isOK);
 }
 
-void WirelessConnectionWidget::on_pushButtonConnect_clicked()
+void WirelessConnectionWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    // 密码输入框已显示，则隐藏
+    if (ui->widgetPassword->isVisible())
+    {
+        setPasswordEditorVisible(false);
+    }
+
     if (m_isConnected)
     {
         auto connection = NetCommon::getAvailableConnectionBySsid(m_deviceUni, m_ssid);
@@ -79,33 +149,119 @@ void WirelessConnectionWidget::on_pushButtonConnect_clicked()
     }
     else
     {
-        auto connection = NetCommon::getAvailableConnectionBySsid(m_deviceUni, m_ssid);
-        if (!connection.isNull())
+        bool canDirectConn = WirelessManagerInstance.checkNetworkCanDirectConn(m_deviceUni, m_ssid);
+        KLOG_INFO() << m_deviceUni << m_ssid << "checkNetworkCanDirectConn" << canDirectConn;
+        if (canDirectConn)
         {
-            NetCommon::activateConnection(m_deviceUni, connection->uuid());
+            WirelessManagerInstance.activateNetowrk(m_deviceUni, m_ssid);
             return;
         }
 
-        // 密码输入框未显示，则显示，让用户输入密码
-        if (!ui->lineEditPassword->isVisible())
+        if (SECURITY_TYPE_NONE == m_securityType)
         {
-            ui->lineEditPassword->setVisible(true);
-            emit resizeShow();
+            emit addAndActivateNetwork(m_deviceUni, m_ssid, "");
+        }
+        else if (SECURITY_TYPE_WPA_AND_WPA2_PERSON == m_securityType || SECURITY_TYPE_WPA3_PERSON == m_securityType)
+        {
+            // 让用户输入密码
+            setPasswordEditorVisible(true);
+        }
+        else
+        {
+            KLOG_WARNING() << "security type can not Support" << m_deviceUni << m_ssid << "securityType" << m_securityType;
+            QString errorMessage = tr("security type can not Support");
+            setToolTip(errorMessage);
+            QToolTip::showText(ui->labelName->mapToGlobal({0, 0}), errorMessage, this);
             return;
         }
-
-        // 密码输入框已显示，则获取输入的密码，进行连接
-        QString password = ui->lineEditPassword->text();
-        if (password.isEmpty())
-        {
-            return;
-        }
-
-        emit addAndActivateConnection(m_deviceUni, m_ssid, password);
-
-        ui->lineEditPassword->setVisible(false);
-        emit resizeShow();
     }
 }
+
+void WirelessConnectionWidget::on_btnOkPassword_clicked()
+{
+    // 密码输入框已显示，则获取输入的密码
+    QString password = ui->lineEditPassword->text();
+
+    if (password.length() < 8)
+    {
+        QString errorMessage = tr("The password must be at least 8 characters long.");
+        ui->lineEditPassword->setToolTip(errorMessage);
+        QToolTip::showText(ui->labelName->mapToGlobal({0, 0}), errorMessage, ui->lineEditPassword);
+        return;
+    }
+
+    // 主动输入密码连接
+    emit addAndActivateNetwork(m_deviceUni, m_ssid, password);
+
+    // 隐藏密码框
+    on_btnCancelPassword_clicked();
+}
+
+void WirelessConnectionWidget::on_btnCancelPassword_clicked()
+{
+    setPasswordEditorVisible(false);
+}
+
+void WirelessConnectionWidget::setPasswordEditorVisible(bool isVisible)
+{
+    ui->widgetPassword->setVisible(isVisible);
+    emit resizeShow();
+}
+
+void WirelessConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state)
+{
+    KLOG_INFO() << "WirelessConnectionWidget::setActiveStatus" << m_ssid << state;
+    switch (state)
+    {
+    case NetworkManager::ActiveConnection::State::Activating:
+    case NetworkManager::ActiveConnection::State::Deactivating:
+        // 载入状态
+        ui->labelLoading->setVisible(true);
+        ui->toolButtonConnectStatu->setVisible(false);
+        break;
+    case NetworkManager::ActiveConnection::State::Activated:
+        ui->labelLoading->setVisible(false);
+        ui->toolButtonConnectStatu->setVisible(true);
+        m_isConnected = true;
+        break;
+    default:
+        // 重置状态
+        resetStatus();
+        break;
+    }
+
+    KLOG_INFO() << m_ssid << "Active Status:" << state;
+}
+
+void WirelessConnectionWidget::resetStatus()
+{
+    ui->labelLoading->setVisible(false);
+    ui->toolButtonConnectStatu->setVisible(false);
+    m_isConnected = false;
+}
+
+void WirelessConnectionWidget::signalStrengthChanged(int strength)
+{
+    QString themeIcon = KS_ICON_WIRELESS_PREFIX;
+    themeIcon += "-";
+    if (SECURITY_TYPE_NONE != m_securityType)
+    {
+        themeIcon += KS_ICON_WIRELESS_SECURITY;
+    }
+    themeIcon += "-";
+    if (0 <= strength && strength < 25)
+        themeIcon += "0";
+    else if (25 <= strength && strength < 50)
+        themeIcon += "1";
+    else if (50 <= strength && strength < 75)
+        themeIcon += "2";
+    else if (75 <= strength && strength <= 100)
+        themeIcon += "3";
+
+    //    KLOG_INFO() << "wireless signal strength changed" << m_ssid << strength;
+
+    ui->toolButtonSignalStrength->setIcon(QIcon::fromTheme(themeIcon));
+}
+
 }  // namespace HwConf
 }  // namespace Kiran

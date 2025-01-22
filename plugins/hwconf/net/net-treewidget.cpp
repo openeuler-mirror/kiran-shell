@@ -12,10 +12,14 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/Settings>
 #include <QHeaderView>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
 
 #include "device-widget.h"
 #include "net-common.h"
@@ -25,8 +29,87 @@
 #include "wireless-connection-widget.h"
 #include "wireless-manager.h"
 
+#define ROW_HEIGHT 40
+#define ICON_SIZE 24
+#define ICON_TEXT_MARGIN 12
+#define INDENTATION 10
+
 namespace Kiran
 {
+class ItemDelegate : public QStyledItemDelegate
+{
+public:
+    ItemDelegate(QObject *parent = nullptr)
+        : QStyledItemDelegate(parent)
+    {
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QSize size = QStyledItemDelegate::sizeHint(option, index);
+        size.setHeight(ROW_HEIGHT);
+        return size;
+    };
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        auto palette = Kiran::Theme::Palette::getDefault();
+
+        // 选中底色
+        if (option.state & QStyle::State_Selected)
+        {
+            QColor bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
+
+            painter->fillRect(option.rect, bgColor);
+        }
+        // 鼠标移入底色
+        if (option.state & QStyle::State_MouseOver)
+        {
+            QColor bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
+            painter->fillRect(option.rect, bgColor);
+        }
+
+        //        QString text = index.data(Qt::DisplayRole).toString();
+        //        QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
+
+        //        QRect baseRect = option.rect;
+        //        // 缩进
+        //        baseRect.adjust(INDENTATION, 0, INDENTATION, 0);
+
+        //        QRect iconRect = baseRect;
+
+        //        if (!icon.isNull())
+        //        {
+        //            // 分类图标有点大，略微缩小
+        //            if (!index.parent().isValid())
+        //            {
+        //                iconRect.setSize(QSize(ICON_SIZE - 5, ICON_SIZE - 5));
+        //            }
+        //            else
+        //            {
+        //                iconRect.setSize(QSize(ICON_SIZE, ICON_SIZE));
+        //            }
+
+        //            //此时图标在左上，移到左中
+        //            int yAdjust = (option.rect.height() - iconRect.height()) / 2;
+        //            if (!index.parent().isValid())
+        //            {
+        //                iconRect.adjust(0, yAdjust, 0, yAdjust);
+        //            }
+        //            else
+        //            {
+        //                // 子节点再次缩进
+        //                iconRect.adjust(INDENTATION, yAdjust, INDENTATION, yAdjust);
+        //            }
+
+        //            icon.paint(painter, iconRect, Qt::AlignCenter);
+        //        }
+
+        //        QRect textRect = baseRect;
+        //        textRect.adjust(iconRect.right() - baseRect.x() + ICON_TEXT_MARGIN, 0, 0, 0);
+        //        painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
+};
+
 namespace HwConf
 {
 netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *parent)
@@ -38,16 +121,20 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         // 有线接入点变化信号
         connect(&WiredManagerInstance, &WiredManager::availableConnectionAppeared, this, &netTreeWidget::wiredNetworkAppeared);
         connect(&WiredManagerInstance, &WiredManager::availableConnectionDisappeared, this, &netTreeWidget::wiredNetworkDisappeared);
+        connect(&WiredManagerInstance, &WiredManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
     }
     else if (NetworkManager::Device::Type::Wifi == m_netType)
     {
         // 无线接入点变化信号
         connect(&WirelessManagerInstance, &WirelessManager::networkAppeared, this, &netTreeWidget::wirelessNetworkAppeared);
         connect(&WirelessManagerInstance, &WirelessManager::networkDisappeared, this, &netTreeWidget::wirelessNetworkDisappeared);
+        // 被动请求密码信号
+        connect(&WirelessManagerInstance, &WirelessManager::requestPassword, this, &netTreeWidget::requestPassword);
+        connect(&WirelessManagerInstance, &WirelessManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
+        connect(&WirelessManagerInstance, &WirelessManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
     }
 
     // 激活连接信号
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionsChanged, this, &netTreeWidget::activeConnectionChanged);
 
     // 其他信号
     //    connect(&NetworkInstance, &Network::netStatusChanged, this, &netTreeWidget::updateNetworkStatus);
@@ -57,9 +144,16 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
 
     // 表头隐藏
     setHeaderHidden(true);
-    // 设置 QTreeWidget 点击无颜色变化
-    setSelectionMode(QAbstractItemView::NoSelection);
-    setFocusPolicy(Qt::NoFocus);
+
+    // 为了绘制底色时，区域为完整一行，设置缩进为0，在绘制中加入缩进
+    setIndentation(0);
+
+    setMouseTracking(true);
+    setRootIsDecorated(true);
+
+    // 样式代理
+    ItemDelegate *itemDelegate = new ItemDelegate(this);
+    setItemDelegate(itemDelegate);
 
     // 背景透明
     QPalette p = this->palette();
@@ -128,7 +222,7 @@ void netTreeWidget::updateNetworkStatus()
 
 void netTreeWidget::updateNetDevice(NetworkManager::Device::Ptr device)
 {
-    qInfo() << "netTreeWidget::updateNetDevice" << device->uni();
+    KLOG_INFO() << "netTreeWidget::updateNetDevice" << device->uni();
 
     QString deviceUni = device->uni();
     if (!m_netDeviceItems.contains(deviceUni))
@@ -178,7 +272,7 @@ void netTreeWidget::updateNetDevice(NetworkManager::Device::Ptr device)
 
 void netTreeWidget::updateWiredConnection(QString deviceUni, QString connectionUuid)
 {
-    qInfo() << "netTreeWidget::updateNetConnection" << deviceUni << connectionUuid;
+    KLOG_INFO() << "netTreeWidget::updateNetConnection" << deviceUni << connectionUuid;
 
     WiredConnectionWidget *netConnectionItem;
     if (!m_netConnectionItem[deviceUni].contains(connectionUuid))
@@ -199,11 +293,6 @@ void netTreeWidget::updateWiredConnection(QString deviceUni, QString connectionU
 
 void netTreeWidget::updateWirelessConnection(QString deviceUni, QString ssid)
 {
-    qInfo() << "netTreeWidget::updateNetConnectionWifi" << deviceUni << ssid;
-
-    // 信号强度变化
-    // connect(network.data(), &NetworkManager::WirelessNetwork::signalStrengthChanged, this, &ConnectTreeWidget::wirelessNetworkSignalChanged, Qt::UniqueConnection);
-
     WirelessConnectionWidget *netConnectionItem;
 
     if (!m_netConnectionItem[deviceUni].contains(ssid))
@@ -214,8 +303,10 @@ void netTreeWidget::updateWirelessConnection(QString deviceUni, QString ssid)
 
         m_netConnectionItem[deviceUni][ssid] = qMakePair(treeWidgetItem, netConnectionItem);
 
-        connect(netConnectionItem, &WirelessConnectionWidget::addAndActivateConnection,
-                &WirelessManagerInstance, &WirelessManager::addAndActivateConnection);
+        connect(netConnectionItem, &WirelessConnectionWidget::respondPasswdRequest,
+                &WirelessManagerInstance, &WirelessManager::respondPasswdRequest);
+        connect(netConnectionItem, &WirelessConnectionWidget::addAndActivateNetwork,
+                &WirelessManagerInstance, &WirelessManager::addAndActivateNetwork);
         connect(netConnectionItem, &WirelessConnectionWidget::resizeShow, [this, treeWidgetItem]()
                 {
                     // 要自适应行高，暂时没有好的方式
@@ -235,35 +326,35 @@ void netTreeWidget::updateWirelessConnection(QString deviceUni, QString ssid)
 
 void netTreeWidget::wiredNetworkAppeared(const QString &deviceUni, const QString &connectionUuid)
 {
-    qInfo() << "netTreeWidget::wiredNetworkAppeared" << deviceUni << connectionUuid;
+    KLOG_INFO() << "wiredNetworkAppeared" << deviceUni << connectionUuid;
 
     updateWiredConnection(deviceUni, connectionUuid);
 }
 
 void netTreeWidget::wiredNetworkDisappeared(const QString &deviceUni, const QString &connectionUuid)
 {
-    qInfo() << "netTreeWidget::wiredNetworkDisappeared" << deviceUni << connectionUuid;
+    KLOG_INFO() << "wiredNetworkDisappeared" << deviceUni << connectionUuid;
 
     removeConnection(deviceUni, connectionUuid);
 }
 
 void netTreeWidget::wirelessNetworkAppeared(const QString &deviceUni, const QString &ssid)
 {
-    qInfo() << "netTreeWidget::wirelessNetworkAppeared" << deviceUni << ssid;
+    KLOG_INFO() << "wirelessNetworkAppeared" << deviceUni << ssid;
 
     updateWirelessConnection(deviceUni, ssid);
 }
 
 void netTreeWidget::wirelessNetworkDisappeared(const QString &deviceUni, const QString &ssid)
 {
-    qInfo() << "netTreeWidget::wirelessNetworkDisappeared" << deviceUni << ssid;
+    KLOG_INFO() << "wirelessNetworkDisappeared" << deviceUni << ssid;
 
     removeConnection(deviceUni, ssid);
 }
 
 void netTreeWidget::removeConnection(QString deviceUni, QString connectUuid)
 {
-    qInfo() << "netTreeWidget::removeConnection" << deviceUni << connectUuid;
+    KLOG_INFO() << "netTreeWidget::removeConnection" << deviceUni << connectUuid;
 
     if (m_netConnectionItem.contains(deviceUni) && m_netConnectionItem[deviceUni].contains(connectUuid))
     {
@@ -278,9 +369,13 @@ void netTreeWidget::removeConnection(QString deviceUni, QString connectUuid)
     }
 }
 
-void netTreeWidget::activeConnectionChanged()
+void netTreeWidget::updateActiveStatus(QString deviceUni, NetworkManager::Device::State state)
 {
-    qInfo() << "netTreeWidget::activeConnectionChanged";
+    if (!m_netConnectionItem.contains(deviceUni))
+    {
+        KLOG_ERROR() << "!m_netConnectionItem.contains(deviceUni)" << deviceUni;
+        return;
+    }
 
     for (auto connection : m_netConnectionItem)
     {
@@ -297,6 +392,42 @@ void netTreeWidget::activeConnectionChanged()
                 item->updateStatus();
             }
         }
+    }
+}
+
+void netTreeWidget::activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state)
+{
+    if (!m_netConnectionItem.contains(deviceUni))
+    {
+        KLOG_ERROR() << "!m_netConnectionItem.contains(deviceUni)" << deviceUni;
+        return;
+    }
+
+    KLOG_INFO() << "activeConnectionStateChanged" << deviceUni << state;
+
+    for (auto connection : m_netConnectionItem[deviceUni])
+    {
+        if (NetworkManager::Device::Type::Ethernet == m_netType)
+        {
+            auto *item = (WiredConnectionWidget *)connection.second;
+            item->updateStatus();
+        }
+        else if (NetworkManager::Device::Type::Wifi == m_netType)
+        {
+            auto *item = (WirelessConnectionWidget *)connection.second;
+            item->updateStatus();
+        }
+    }
+}
+
+void netTreeWidget::requestPassword(const QString &devicePath, const QString &ssid, bool wait)
+{
+    KLOG_INFO() << "netTreeWidget::requestPassword" << devicePath << ssid << wait;
+
+    if (m_netConnectionItem.contains(devicePath) && m_netConnectionItem[devicePath].contains(ssid))
+    {
+        auto netConnectionItem = (WirelessConnectionWidget *)m_netConnectionItem[devicePath][ssid].second;
+        netConnectionItem->requestPassword();
     }
 }
 

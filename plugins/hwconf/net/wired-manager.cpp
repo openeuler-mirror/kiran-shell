@@ -12,6 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
 #include <NetworkManagerQt/Device>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/Settings>
@@ -42,6 +43,7 @@ void WiredManager::AddToManager(const QString &deviceUni)
         auto device = NetworkManager::findNetworkInterface(deviceUni);
         NetworkManager::WiredDevice::Ptr wiredDevice = device.objectCast<NetworkManager::WiredDevice>();
 
+        connect(device.data(), &NetworkManager::Device::activeConnectionChanged, this, &WiredManager::activeConnectionChanged);
         connect(device.data(), &NetworkManager::Device::availableConnectionAppeared, [this, deviceUni](const QString &connectionPath)
                 {
                     auto connection = NetworkManager::findConnection(connectionPath);
@@ -53,6 +55,12 @@ void WiredManager::AddToManager(const QString &deviceUni)
                     auto connection = NetworkManager::findConnection(connectionPath);
                     emit availableConnectionDisappeared(deviceUni, connection->uuid());
                 });
+        // 这个信号捕获不到 连接已active，设备active了，连接仍未active，需要NetworkManager::Device::activeConnectionChanged
+        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
+                {
+                    KLOG_INFO() << "WirelessNetworkManager::stateChanged" << newstate;
+                    emit stateChanged(deviceUni, newstate);
+                });  // this, &WirelessManager::stateChanged);
     }
 }
 
