@@ -12,16 +12,14 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <plugin-i.h>
 #include <qt5-log-i.h>
-#include <KWindowSystem>
 #include <QMenu>
 #include <QMouseEvent>
-#include <QTimer>
 
 #include "app-previewer.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
+#include "plugin-i.h"
 #include "window-previewer.h"
 
 namespace Kiran
@@ -55,7 +53,7 @@ void WindowPreviewer::changedActiveWindow(WId wid)
     m_widLastActive = wid;
 }
 
-void WindowPreviewer::on_m_btnClose_clicked()
+void WindowPreviewer::on_btnClose_clicked()
 {
     emit closeWindow(m_wid);
 }

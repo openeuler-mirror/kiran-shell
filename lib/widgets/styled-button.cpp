@@ -39,15 +39,11 @@ void StyledButton::setTextColor(QColor color)
 void StyledButton::enterEvent(QEvent *event)
 {
     m_hovered = true;
-
-    //    QToolButton::enterEvent(event);
 }
 
 void StyledButton::leaveEvent(QEvent *event)
 {
     m_hovered = false;
-
-    //    QToolButton::leaveEvent(event);
 }
 
 void StyledButton::mousePressEvent(QMouseEvent *event)

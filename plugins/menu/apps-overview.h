@@ -38,28 +38,26 @@ public:
     AppsOverview(QWidget* parent = nullptr);
     virtual ~AppsOverview();
 
-private slots:
-    // 应用项点击
-    void on_m_treeWidgetApps_itemClicked(QTreeWidgetItem* item, int column);
-    // 应用项右键
-    void on_m_treeWidgetApps_itemPressed(QTreeWidgetItem* item, int column);
-
-    void on_m_lineEditSearch_textChanged(const QString& arg1);
-
-    void updateApp();
-
 protected:
     void showEvent(QShowEvent* event) override;
 
-private:
-    void init();
+private slots:
+    // 应用项点击
+    void on_treeWidgetApps_itemClicked(QTreeWidgetItem* item, int column);
+    // 应用项右键
+    void on_treeWidgetApps_itemPressed(QTreeWidgetItem* item, int column);
+    // 应用搜索
+    void on_lineEditSearch_textChanged(const QString& arg1);
+    // 应用更新
+    void updateApp();
 
-    // 加载应用
+private:
+    // 应用加载和管理
     void loadApps();
-    // 增加应用
     void addGroup(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
     void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
 
+    // 新应用更新
     void updateNewApp(QString key = "");
     void clearNewApp();
 

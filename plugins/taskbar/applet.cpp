@@ -13,23 +13,18 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem>
-#include <QBoxLayout>
 #include <QCoreApplication>
-#include <QPainter>
-#include <QPixmap>
-#include <QRect>
 #include <QSizePolicy>
 #include <QTranslator>
 
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "plugin-i.h"
-
 namespace Kiran
 {
 namespace Taskbar
@@ -40,28 +35,25 @@ Applet::Applet(IAppletImport *import)
     static QTranslator translator;
     if (!translator.load(QLocale(), "taskbar", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
     {
-        KLOG_WARNING() << "Load translator failed!";
+        KLOG_WARNING(LCTaskbar) << "Load translator failed!";
     }
     else
     {
         QCoreApplication::installTranslator(&translator);
     }
 
-    //最大化
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
     m_window = new Window(m_import, this);
-
     QGridLayout *gridLayout = new QGridLayout(this);
     gridLayout->setMargin(0);
     gridLayout->setSpacing(0);
     gridLayout->addWidget(m_window);
+    // 最大化
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(&WindowManagerInstance, &Common::WindowManager::windowAdded, this, &Applet::windowAdded);
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &Applet::windowRemoved);
     connect(&WindowManagerInstance, &Common::WindowManager::activeWindowChanged, this, &Applet::activeWindowChanged);
-    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged,
-            m_window, &Window::windowChanged);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, m_window, &Window::windowChanged);
 }
 
 Applet::~Applet()

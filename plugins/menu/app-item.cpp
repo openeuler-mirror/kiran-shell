@@ -24,9 +24,11 @@
 #include <QMouseEvent>
 
 #include "app-item.h"
+#include "lib/common/logging-category.h"
 
 AppItem::AppItem(QWidget *parent)
-    : StyledButton(parent)
+    : StyledButton(parent),
+      m_appId("")
 {
     setFixedSize(90, 90);
     setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -176,7 +178,7 @@ void AppItem::mouseMoveEvent(QMouseEvent *event)
         KService::Ptr s = KService::serviceByMenuId(m_appId);
         if (!s)
         {
-            KLOG_WARNING() << "Invalid service for app ID:" << m_appId;
+            KLOG_WARNING(LCMenu) << "Invalid service for app ID:" << m_appId;
             return;
         }
 

@@ -24,6 +24,7 @@
 #include "ks-config.h"
 #include "ks_timedate_interface.h"
 #include "lib/common/dbus-service-watcher.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "window.h"
 
@@ -44,20 +45,43 @@ Applet::Applet(IAppletImport *import)
       m_dateShortFormat(0),
       m_hourFormat(0)
 {
+    initTranslator();
+    initPanelConnections();
+    initUI();
+    initDBusConnections();
+
+    initTimer();
+}
+
+void Applet::initTranslator()
+{
     static QTranslator translator;
     if (!translator.load(QLocale(), "calendar", ".", KS_INSTALL_TRANSLATIONDIR,
                          ".qm"))
     {
-        KLOG_WARNING() << "Load translator failed!";
+        KLOG_INFO(LCCalendar) << "Load translator failed!";
     }
     else
     {
         QCoreApplication::installTranslator(&translator);
     }
+}
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+void Applet::initPanelConnections()
+{
+    QObject *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    if (panelObject)
+    {
+        connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    }
+    else
+    {
+        KLOG_INFO(LCCalendar) << "Failed to cast panel object!";
+    }
+}
 
+void Applet::initUI()
+{
     m_window = new Window(this);
     m_window->hide();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
@@ -75,7 +99,10 @@ Applet::Applet(IAppletImport *import)
     layout->setMargin(4);
     layout->setSpacing(0);
     layout->addWidget(m_calendarButton);
+}
 
+void Applet::initDBusConnections()
+{
     QDBusConnection::systemBus().connect(
         KIRAN_TIMEDATA_BUS, KIRAN_TIMEDATA_PATH, PROPERTIES_INTERFACE,
         PROPERTIES_CHANGED, this, SLOT(timeInfoChanged()));
@@ -87,7 +114,14 @@ Applet::Applet(IAppletImport *import)
     {
         initTimeDbusProxy();
     }
+    else
+    {
+        KLOG_INFO(LCCalendar) << "dbus service not registered:" << KIRAN_TIMEDATA_BUS;
+    }
+}
 
+void Applet::initTimer()
+{
     m_timeUpdateTimer = new QTimer(this);
     connect(m_timeUpdateTimer, &QTimer::timeout, this, &Applet::timeUpdate);
     m_timeUpdateTimer->start(1000);
@@ -101,7 +135,7 @@ void Applet::serviceOwnerChanged(const QString &service, const QString &oldOwner
     }
     if (oldOwner.isEmpty())
     {
-        KLOG_INFO() << "dbus service registered:" << service;
+        KLOG_INFO(LCCalendar) << "dbus service registered:" << service;
         initTimeDbusProxy();
     }
 }
@@ -168,7 +202,7 @@ void Applet::updateLayout()
         setFixedSize(size, size * 3);
         break;
     default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
+        KLOG_INFO(LCCalendar) << "Unknown oriention " << oriention;
         break;
     }
 
@@ -226,7 +260,7 @@ void Applet::timeUpdate()
         m_calendarButton->setText(dateTimeStr);
         break;
     default:
-        KLOG_WARNING() << "Unknown oriention " << oriention;
+        KLOG_INFO(LCCalendar) << "Unknown oriention " << oriention;
         break;
     }
 

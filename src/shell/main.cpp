@@ -17,7 +17,9 @@
 #include <QCommandLineParser>
 #include <QFileInfo>
 #include <QTranslator>
+
 #include "ks-config.h"
+#include "lib/common/logging-category.h"
 #include "profile/profile.h"
 #include "shell.h"
 
@@ -42,11 +44,11 @@ int main(int argc, char *argv[])
 #endif
 
     auto local = QLocale();
-    KLOG_INFO() << "current local:" << local << local.name();
+    KLOG_INFO(LCShell) << "current local:" << local << local.name();
     QTranslator translator;
     if (!translator.load(QLocale(), "kiran-shell", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
     {
-        KLOG_WARNING() << "Load translator failed!";
+        KLOG_WARNING(LCShell) << "Load translator failed!";
     }
     else
     {

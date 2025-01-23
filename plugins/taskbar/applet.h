@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include <plugin-i.h>
 #include <QWidget>
 
+#include "plugin-i.h"
 #include "window.h"
 
 namespace Kiran

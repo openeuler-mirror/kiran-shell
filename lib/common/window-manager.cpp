@@ -71,7 +71,6 @@ void Window::startUpdatePreviewer()
 
 void Window::updatePreviewer()
 {
-    //    KLOG_INFO() << "Window::updatePreviewer" << m_wid;
     QScreen* screen = QGuiApplication::primaryScreen();
     m_pixPreviewer = screen->grabWindow(m_wid);
     if (m_pixPreviewer.isNull())
@@ -117,8 +116,6 @@ void Window::updatePreviewerByIcon()
 
 WindowManager::WindowManager()
 {
-    //    KLOG_INFO() << "WindowManager::WindowManager";
-
     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &WindowManager::addWindow);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &WindowManager::removeWindow);
 
@@ -230,7 +227,7 @@ void WindowManager::changedWindow(WId wid, NET::Properties properties, NET::Prop
     if (m_windows.contains(wid))
     {
         // 窗口位置变化
-        // KLOG_INFO() << "WindowPreviewer::changedWindow" << properties << properties2;
+        // KLOG_INFO(LCLib) << "WindowPreviewer::changedWindow" << properties << properties2;
         if (properties.testFlag(NET::WMGeometry))
         {
             m_windows[wid]->startUpdatePreviewer();

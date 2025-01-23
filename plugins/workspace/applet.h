@@ -15,9 +15,9 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <plugin-i.h>
 
 #include "lib/widgets/styled-button.h"
+#include "plugin-i.h"
 
 namespace Kiran
 {

@@ -100,15 +100,6 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
     QTreeWidget::mouseMoveEvent(event);
 }
 
-//void StyledTreeWidget::paintEvent(QPaintEvent *event)
-//{
-//    //    QPainter painter(this);
-//    //    QColor bgColor = Qt::transparent;
-//    //    painter.fillRect(rect(), Qt::red);
-
-//    QTreeWidget::paintEvent(event);
-//}
-
 QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize size = QStyledItemDelegate::sizeHint(option, index);
@@ -155,7 +146,7 @@ void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
             iconRect.setSize(QSize(ICON_SIZE, ICON_SIZE));
         }
 
-        //此时图标在左上，移到左中
+        // 此时图标在左上，移到左中
         int yAdjust = (option.rect.height() - iconRect.height()) / 2;
         if (!index.parent().isValid())
         {

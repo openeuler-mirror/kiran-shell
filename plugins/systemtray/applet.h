@@ -15,8 +15,8 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <plugin-i.h>
-#include <QBoxLayout>
+
+#include "plugin-i.h"
 
 namespace Kiran
 {
@@ -24,7 +24,7 @@ class IAppletImport;
 
 namespace Systemtray
 {
-class Window;
+class Tray;
 
 class Applet : public QWidget
 {
@@ -37,7 +37,7 @@ public:
 private:
     IAppletImport *m_import;
 
-    Window *m_window;
+    Tray *m_tray;
 };
 
 class Plugin : public QObject, public IPlugin

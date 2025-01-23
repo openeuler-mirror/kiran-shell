@@ -20,6 +20,7 @@
 #include "free_login1_manager_interface.h"
 #include "gnome_session_manager_interface.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "power.h"
 #include "src/shell/utils.h"
 
@@ -131,7 +132,7 @@ bool Power::logout()
     auto reply = m_gnomeSessionManager->Logout(mode);
     if (reply.isError())
     {
-        KLOG_WARNING() << "failed to call Logout" << reply.error();
+        KLOG_WARNING(LCMenu) << "failed to call Logout" << reply.error();
         return false;
     }
 
@@ -145,7 +146,7 @@ bool Power::switchUser()
     QDBusMessage msg = m_seatManagerProxy->call("SwitchToGreeter");
     if (QDBusMessage::ErrorMessage == msg.type())
     {
-        KLOG_WARNING() << msg;
+        KLOG_WARNING(LCMenu) << msg;
         return false;
     }
     return true;
@@ -169,7 +170,7 @@ bool Power::canSuspend()
     if (reply.isError())
     {
         // 如果获取失败，就假设其可以待机，由待机操作调用时做检查
-        KLOG_WARNING() << "failed to call CanSuspend" << reply.error();
+        KLOG_WARNING(LCMenu) << "failed to call CanSuspend" << reply.error();
         return true;
     }
 
@@ -186,7 +187,7 @@ bool Power::canHibernate()
     if (reply.isError())
     {
         // 如果获取失败，就假设其可以休眠，由休眠操作调用时做检查
-        KLOG_WARNING() << "failed to call CanHibernate" << reply.error();
+        KLOG_WARNING(LCMenu) << "failed to call CanHibernate" << reply.error();
         return true;
     }
 
@@ -203,7 +204,7 @@ bool Power::canShutdown()
     if (reply.isError())
     {
         // 如果获取失败，就假设其可以关机，由关机操作调用时做检查
-        KLOG_WARNING() << "failed to call CanPowerOff" << reply.error();
+        KLOG_WARNING(LCMenu) << "failed to call CanPowerOff" << reply.error();
         return true;
     }
 
@@ -220,7 +221,7 @@ bool Power::canReboot()
     if (reply.isError())
     {
         // 如果获取失败，就假设其可以重启，由重启操作调用时做检查
-        KLOG_WARNING() << "failed to call CanReboot" << reply.error();
+        KLOG_WARNING(LCMenu) << "failed to call CanReboot" << reply.error();
         return true;
     }
 

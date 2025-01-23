@@ -20,7 +20,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
      <item>
-      <widget class="QLabel" name="m_labelAppIcon">
+      <widget class="QLabel" name="labelAppIcon">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -39,14 +39,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="m_labelAppName">
+      <widget class="QLabel" name="labelAppName">
        <property name="text">
         <string>TextLabel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="m_btnClose">
+      <widget class="QPushButton" name="btnClose">
        <property name="minimumSize">
         <size>
          <width>20</width>
@@ -67,7 +67,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelGrabWindow">
+    <widget class="QLabel" name="labelGrabWindow">
      <property name="styleSheet">
       <string notr="true"/>
      </property>

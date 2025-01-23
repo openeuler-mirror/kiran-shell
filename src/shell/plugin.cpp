@@ -1,26 +1,25 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "plugin.h"
 #include <qt5-log-i.h>
 #include <QDir>
-#include <QGlobalStatic>
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QPluginLoader>
-#include <QScopedPointer>
+
 #include "ks-config.h"
+#include "lib/common/logging-category.h"
+#include "plugin.h"
 #include "utils.h"
 
 namespace Kiran
@@ -82,11 +81,11 @@ void PluginPool::loadPluginsMeta()
 
         if (!entryInfo.fileName().endsWith(".so"))
         {
-            KLOG_WARNING() << "Ignore file " << entryInfo.absoluteFilePath() << ", because it doesn't end with so.";
+            KLOG_WARNING(LCShell) << "Ignore file " << entryInfo.absoluteFilePath() << ", because it doesn't end with so.";
             continue;
         }
 
-        KLOG_DEBUG() << "Load metadata for plugin " << entryInfo.absoluteFilePath();
+        KLOG_DEBUG(LCShell) << "Load metadata for plugin " << entryInfo.absoluteFilePath();
 
         auto pluginInfo = QSharedPointer<PluginInfo>(new PluginInfo());
         pluginInfo->loader = QSharedPointer<QPluginLoader>::create(entryInfo.absoluteFilePath());

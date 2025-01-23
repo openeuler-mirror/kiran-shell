@@ -33,15 +33,25 @@
     <widget class="KiranColorBlock" name="widget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="KiranSearchBox" name="m_lineEditSearch"/>
+       <widget class="KiranSearchBox" name="lineEditSearch">
+        <property name="placeholderText">
+         <string>Search file</string>
+        </property>
+       </widget>
       </item>
       <item>
-       <widget class="StyledTreeWidget" name="m_treeWidgetShowFiles">
+       <widget class="StyledTreeWidget" name="treeWidgetShowFiles">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
+        <property name="rootIsDecorated">
+         <bool>false</bool>
+        </property>
         <property name="headerHidden">
          <bool>true</bool>
+        </property>
+        <property name="expandsOnDoubleClick">
+         <bool>false</bool>
         </property>
         <property name="columnCount">
          <number>1</number>

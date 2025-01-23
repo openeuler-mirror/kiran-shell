@@ -41,9 +41,9 @@ Window::Window(QWidget *parent)
     initTopSettingWidget();
     initDateChangeWidget();
 
-    connect(m_ui->m_calendarWidget, &QCalendarWidget::selectionChanged, [this]()
+    connect(m_ui->calendarWidget, &QCalendarWidget::selectionChanged, [this]()
             {
-                QDate date = m_ui->m_calendarWidget->selectedDate();
+                QDate date = m_ui->calendarWidget->selectedDate();
                 showDate(date);
             });
 }
@@ -62,34 +62,34 @@ void Window::wheelEvent(QWheelEvent *event)
         if (m_currentMonth > 1)
         {
             m_currentMonth -= 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
         }
         else
         {
             m_currentMonth = 12;
             m_currentYear -= 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
-            m_ui->m_yearSpinBox->setValue(m_currentYear);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
+            m_ui->yearSpinBox->setValue(m_currentYear);
         }
 
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
     else if (numSteps < 0)
     {
         if (m_currentMonth < 12)
         {
             m_currentMonth += 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
         }
         else
         {
             m_currentMonth = 1;
             m_currentYear += 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
-            m_ui->m_yearSpinBox->setValue(m_currentYear);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
+            m_ui->yearSpinBox->setValue(m_currentYear);
         }
 
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
     // 超过年份限度自动跳回当前日期
     if (m_currentYear > 2100 || m_currentYear < 1901)
@@ -130,28 +130,28 @@ void Window::paintEvent(QPaintEvent *event)
 
 void Window::initTopSettingWidget()
 {
-    m_ui->m_todayBtn->setCheckable(false);
-    m_ui->m_todayBtn->setText(tr("Today"));
+    m_ui->todayBtn->setCheckable(false);
+    m_ui->todayBtn->setText(tr("Today"));
 
     auto palette = Kiran::Theme::Palette::getDefault();
     auto bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED,
                                      Kiran::Theme::Palette::WIDGET);
-    m_ui->m_todayBtn->setTextColor(bgColor);
+    m_ui->todayBtn->setTextColor(bgColor);
 
-    m_ui->m_settingBtn->setCheckable(false);
-    m_ui->m_settingBtn->setText("");
-    m_ui->m_settingBtn->setIcon(QIcon::fromTheme(KS_ICON_MENU_SETTINGS_SYMBOLIC));
+    m_ui->settingBtn->setCheckable(false);
+    m_ui->settingBtn->setText("");
+    m_ui->settingBtn->setIcon(QIcon::fromTheme(KS_ICON_MENU_SETTINGS_SYMBOLIC));
 
     QFont font = this->font();
     font.setPixelSize(18);
     font.setWeight(QFont::Light);
-    m_ui->m_lunarYear->setFont(font);
-    m_ui->m_lunarDay->setFont(font);
-    m_ui->m_settingBtn->setFont(font);
-    m_ui->m_todayBtn->setFont(font);
+    m_ui->lunarYear->setFont(font);
+    m_ui->lunarDay->setFont(font);
+    m_ui->settingBtn->setFont(font);
+    m_ui->todayBtn->setFont(font);
 
-    connect(m_ui->m_todayBtn, &QAbstractButton::clicked, this, &Window::gotoToday);
-    connect(m_ui->m_settingBtn, &QToolButton::clicked, this, &Window::settingBtnClicked);
+    connect(m_ui->todayBtn, &QAbstractButton::clicked, this, &Window::gotoToday);
+    connect(m_ui->settingBtn, &QToolButton::clicked, this, &Window::settingBtnClicked);
 
     showDate(QDate::currentDate());
 }
@@ -161,21 +161,21 @@ void Window::initDateChangeWidget()
     QLocale locale;
     if (locale.language() == QLocale::Chinese)
     {
-        m_ui->m_yearLabel->setText("年");
-        m_ui->m_monthLabel->setText("月");
+        m_ui->yearLabel->setText("年");
+        m_ui->monthLabel->setText("月");
     }
     else
     {
-        m_ui->m_yearLabel->setText("-");
-        m_ui->m_monthLabel->setText("");
+        m_ui->yearLabel->setText("-");
+        m_ui->monthLabel->setText("");
     }
 
-    connect(m_ui->m_subMonthBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
-    connect(m_ui->m_addMonthBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
-    connect(m_ui->m_subYearBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
-    connect(m_ui->m_addYearBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
-    connect(m_ui->m_yearSpinBox, SIGNAL(valueChanged(int)), this, SLOT(enterYear()));
-    connect(m_ui->m_monthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(enterMonth()));
+    connect(m_ui->subMonthBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
+    connect(m_ui->addMonthBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
+    connect(m_ui->subYearBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
+    connect(m_ui->addYearBtn, &QAbstractButton::clicked, this, &Window::changeDateTimeBtnClicked);
+    connect(m_ui->yearSpinBox, SIGNAL(valueChanged(int)), this, SLOT(enterYear()));
+    connect(m_ui->monthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(enterMonth()));
 }
 
 void Window::settingBtnClicked()
@@ -193,17 +193,17 @@ void Window::gotoToday()
     QDate date = QDate::currentDate();
     m_currentYear = date.year();
     m_currentMonth = date.month();
-    m_ui->m_yearSpinBox->setValue(m_currentYear);
-    m_ui->m_monthSpinBox->setValue(m_currentMonth);
-    m_ui->m_calendarWidget->setSelectedDate(QDate::currentDate());
+    m_ui->yearSpinBox->setValue(m_currentYear);
+    m_ui->monthSpinBox->setValue(m_currentMonth);
+    m_ui->calendarWidget->setSelectedDate(QDate::currentDate());
 
     showDate(date);
 }
 
 void Window::enterYear()
 {
-    int year = m_ui->m_yearSpinBox->value();
-    int month = m_ui->m_monthSpinBox->value();
+    int year = m_ui->yearSpinBox->value();
+    int month = m_ui->monthSpinBox->value();
     m_currentYear = year;
     // 超过年份限度自动跳回当前日期
     if (m_currentYear > 2100 || m_currentYear < 1901 || month < 1 || month > 12)
@@ -211,14 +211,14 @@ void Window::enterYear()
         gotoToday();
         return;
     }
-    m_ui->m_calendarWidget->setCurrentPage(year, month);
-    m_ui->m_calendarWidget->setSelectedDate(QDate(year, month, m_ui->m_calendarWidget->selectedDate().day()));
+    m_ui->calendarWidget->setCurrentPage(year, month);
+    m_ui->calendarWidget->setSelectedDate(QDate(year, month, m_ui->calendarWidget->selectedDate().day()));
 }
 
 void Window::enterMonth()
 {
-    int year = m_ui->m_yearSpinBox->value();
-    int month = m_ui->m_monthSpinBox->value();
+    int year = m_ui->yearSpinBox->value();
+    int month = m_ui->monthSpinBox->value();
     m_currentMonth = month;
     // 超过年份限度自动跳回当前日期
     if (m_currentYear > 2100 || m_currentYear < 1901 || month < 1 || month > 12)
@@ -226,61 +226,61 @@ void Window::enterMonth()
         gotoToday();
         return;
     }
-    m_ui->m_calendarWidget->setCurrentPage(year, month);
-    m_ui->m_calendarWidget->setSelectedDate(QDate(year, month, m_ui->m_calendarWidget->selectedDate().day()));
-    m_ui->m_monthSpinBox->setValue(month);
+    m_ui->calendarWidget->setCurrentPage(year, month);
+    m_ui->calendarWidget->setSelectedDate(QDate(year, month, m_ui->calendarWidget->selectedDate().day()));
+    m_ui->monthSpinBox->setValue(month);
 }
 
 void Window::changeDateTimeBtnClicked()
 {
     StyledButton *senderBtn = qobject_cast<StyledButton *>(sender());
-    if (senderBtn == m_ui->m_subMonthBtn)
+    if (senderBtn == m_ui->subMonthBtn)
     {
-        m_ui->m_calendarWidget->showPreviousMonth();
+        m_ui->calendarWidget->showPreviousMonth();
         if (m_currentMonth > 1)
         {
             m_currentMonth -= 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
         }
         else
         {
             m_currentMonth = 12;
             m_currentYear -= 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
-            m_ui->m_yearSpinBox->setValue(m_currentYear);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
+            m_ui->yearSpinBox->setValue(m_currentYear);
         }
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
-    else if (senderBtn == m_ui->m_addMonthBtn)
+    else if (senderBtn == m_ui->addMonthBtn)
     {
-        m_ui->m_calendarWidget->showNextMonth();
+        m_ui->calendarWidget->showNextMonth();
         if (m_currentMonth < 12)
         {
             m_currentMonth += 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
         }
         else
         {
             m_currentMonth = 1;
             m_currentYear += 1;
-            m_ui->m_monthSpinBox->setValue(m_currentMonth);
-            m_ui->m_yearSpinBox->setValue(m_currentYear);
+            m_ui->monthSpinBox->setValue(m_currentMonth);
+            m_ui->yearSpinBox->setValue(m_currentYear);
         }
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
-    else if (senderBtn == m_ui->m_subYearBtn)
+    else if (senderBtn == m_ui->subYearBtn)
     {
-        m_ui->m_calendarWidget->showPreviousYear();
+        m_ui->calendarWidget->showPreviousYear();
         m_currentYear -= 1;
-        m_ui->m_yearSpinBox->setValue(m_currentYear);
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->yearSpinBox->setValue(m_currentYear);
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
-    else if (senderBtn == m_ui->m_addYearBtn)
+    else if (senderBtn == m_ui->addYearBtn)
     {
-        m_ui->m_calendarWidget->showNextYear();
+        m_ui->calendarWidget->showNextYear();
         m_currentYear += 1;
-        m_ui->m_yearSpinBox->setValue(m_currentYear);
-        m_ui->m_calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->m_calendarWidget->selectedDate().day()));
+        m_ui->yearSpinBox->setValue(m_currentYear);
+        m_ui->calendarWidget->setSelectedDate(QDate(m_currentYear, m_currentMonth, m_ui->calendarWidget->selectedDate().day()));
     }
     // 超过年份限度自动跳回当前日期
     if (m_currentYear > 2100 || m_currentYear < 1901)
@@ -302,14 +302,14 @@ void Window::showDate(QDate date)
             strLunar += " " + lunarDayExtraName;
         }
 
-        m_ui->m_lunarYear->setText(strLunarYear);
-        m_ui->m_lunarDay->setText(strLunar);
+        m_ui->lunarYear->setText(strLunarYear);
+        m_ui->lunarDay->setText(strLunar);
     }
     else
     {
         QString curDateStr = date.toString("yyyy-MM-dd");
-        m_ui->m_lunarYear->setText(curDateStr);
-        m_ui->m_lunarDay->clear();
+        m_ui->lunarYear->setText(curDateStr);
+        m_ui->lunarDay->clear();
     }
 }
 }  // namespace Calendar

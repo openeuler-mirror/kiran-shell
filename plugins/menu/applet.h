@@ -15,10 +15,10 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <plugin-i.h>
 
 #include "lib/widgets/applet-button.h"
 #include "lib/widgets/styled-button.h"
+#include "plugin-i.h"
 
 namespace Kiran
 {
@@ -36,15 +36,19 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
-private Q_SLOTS:
+private:
+    void initializeTranslator();
+    void setupWindow();
+    void setupAppletButton();
+    void setupLayout();
+
     void clickButton(bool checked);
     void hideMenu();
 
 private:
-    StyledButton *m_appletButton;
-
-    Window *m_window;
     IAppletImport *m_import;
+    Window *m_window;
+    StyledButton *m_appletButton;
 };
 
 class Plugin : public QObject, public IPlugin

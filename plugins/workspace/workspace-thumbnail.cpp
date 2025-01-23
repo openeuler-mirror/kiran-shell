@@ -17,12 +17,12 @@
 #include <KWindowSystem/NETWM>
 #include <QGSettings>
 #include <QPainter>
-#include <QPalette>
 #include <QScreen>
 #include <QtX11Extras/QX11Info>
 
 #include "desktop-helper.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "ui_workspace-thumbnail.h"
@@ -47,12 +47,12 @@ WorkspaceThumbnail::WorkspaceThumbnail(int desktop, QWidget* parent)
     QString style = "QPushButton{background:transparent; border:none; image:url(:/images/images/close_normal.png);} \
                     QPushButton:hover{image:url(:/images/images/close_hover.png);} \
                     QPushButton:pressed{image:url(:/images/images/close_pressed.png);}";
-    m_ui->m_btnClose->setStyleSheet(style);
-    m_ui->m_btnClose->hide();
+    m_ui->btnClose->setStyleSheet(style);
+    m_ui->btnClose->hide();
 
-    m_ui->m_labelIndex->setText(QString::number(m_workspaceIndex));
+    m_ui->labelIndex->setText(QString::number(m_workspaceIndex));
 
-    m_ui->m_labelGrabWorkspace->clear();
+    m_ui->labelGrabWorkspace->clear();
 
     getDesktopBackground();
 
@@ -60,11 +60,6 @@ WorkspaceThumbnail::WorkspaceThumbnail(int desktop, QWidget* parent)
             {
                 update();
             });
-
-    //    if (m_workspaceIndex == DesktopHelper::currentDesktop())
-    //    {
-    //        updatePreviewer();
-    //    }
 }
 
 WorkspaceThumbnail::~WorkspaceThumbnail()
@@ -82,14 +77,14 @@ void WorkspaceThumbnail::updatePreviewer()
     //    if (screen)
     //    {
     //        QPixmap screenshot = screen->grabWindow(0);
-    //        m_ui->m_labelGrabWorkspace->setPixmap(screenshot.scaledToWidth(230));
+    //        m_ui->labelGrabWorkspace->setPixmap(screenshot.scaledToWidth(230));
     //    }
 
     // 参考kiran-menu的方式,先获取各个窗口的位置截图,跟桌面壁纸组合成工作区截图
     // 见 paintEvent
 }
 
-void WorkspaceThumbnail::on_m_btnClose_clicked()
+void WorkspaceThumbnail::on_btnClose_clicked()
 {
     emit removeDesktop(m_workspaceIndex);
 }
@@ -97,7 +92,7 @@ void WorkspaceThumbnail::on_m_btnClose_clicked()
 void WorkspaceThumbnail::enterEvent(QEvent* event)
 {
     m_isHover = true;
-    m_ui->m_btnClose->show();
+    m_ui->btnClose->show();
 
     update();  // 触发重绘
     QWidget::enterEvent(event);
@@ -106,7 +101,7 @@ void WorkspaceThumbnail::enterEvent(QEvent* event)
 void WorkspaceThumbnail::leaveEvent(QEvent* event)
 {
     m_isHover = false;
-    m_ui->m_btnClose->hide();
+    m_ui->btnClose->hide();
 
     update();  // 触发重绘
     QWidget::leaveEvent(event);
@@ -138,7 +133,7 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
 
     NETRootInfo ri(QX11Info::connection(), NET::DesktopGeometry);
     auto geo = ri.desktopGeometry();
-    auto paintRect = m_ui->m_labelGrabWorkspace->geometry();
+    auto paintRect = m_ui->labelGrabWorkspace->geometry();
     painter.drawPixmap(paintRect, pixPaint, QRect(0, 0, geo.width, geo.height));
     painter.end();
 
@@ -174,13 +169,13 @@ void WorkspaceThumbnail::getDesktopBackground()
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(APPEARANCE_SCHEMA_ID));
     if (gsettings.isNull())
     {
-        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
+        KLOG_ERROR(LCWorkspace) << APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
         return;
     }
     auto desktopBackgroundValue = gsettings->get(APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND);
     if (desktopBackgroundValue.isNull() || !desktopBackgroundValue.isValid())
     {
-        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND << "QGSettings key get failed";
+        KLOG_ERROR(LCWorkspace) << APPEARANCE_SCHEMA_ID << APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND << "QGSettings key get failed";
         return;
     }
     auto desktopBackground = desktopBackgroundValue.toString();

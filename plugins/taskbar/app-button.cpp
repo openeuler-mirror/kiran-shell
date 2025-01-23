@@ -15,7 +15,6 @@
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
-#include <KDesktopFile>
 #include <KIO/ApplicationLauncherJob>
 #include <KIOCore/KFileItem>
 #include <KService/KService>
@@ -24,15 +23,14 @@
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QMenu>
-#include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
-#include <QTimer>
 
 #include "app-button.h"
 #include "app-group.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "plugin-i.h"
@@ -67,12 +65,9 @@ void AppButton::setAppInfo(const QByteArray &wmClass, const WId &wid)
 {
     m_appBaseInfo.m_url = WindowInfoHelper::getUrlByWId(wid);
 
-    //    KLOG_INFO() << "AppButton::setAppInfo" << wmClass << wid <<
-    //    m_appBaseInfo.m_url;
     m_appBaseInfo.m_wmClass = wmClass;
     m_wid = wid;
 
-    //    KLOG_INFO() << "desktop file:" << m_desktopFile;
     if (m_appBaseInfo.m_url.isEmpty())
     {
         // 找不到 desktop file 的app
@@ -100,7 +95,7 @@ void AppButton::getInfoFromUrl()
     KFileItem fileItem(m_appBaseInfo.m_url);
     if (fileItem.isNull())
     {
-        KLOG_ERROR() << "get url info failed, url:" << m_appBaseInfo.m_url;
+        KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appBaseInfo.m_url;
         return;
     }
 
@@ -563,7 +558,7 @@ void AppButton::buttonClicked()
         KFileItem fileItem(m_appBaseInfo.m_url);
         if (fileItem.isNull())
         {
-            KLOG_ERROR() << "get url info failed, url:" << m_appBaseInfo.m_url;
+            KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appBaseInfo.m_url;
             return;
         }
 
@@ -584,7 +579,7 @@ void AppButton::buttonClicked()
             bool ret = QDesktopServices::openUrl(m_appBaseInfo.m_url);
             if (!ret)
             {
-                KLOG_ERROR() << "start programe failed，url:" << m_appBaseInfo.m_url;
+                KLOG_WARNING(LCTaskbar) << "start programe failed，url:" << m_appBaseInfo.m_url;
             }
         }
     }

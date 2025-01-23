@@ -27,6 +27,7 @@
 
 #include "apps-overview.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "ui_apps-overview.h"
 
 namespace Kiran
@@ -39,7 +40,15 @@ AppsOverview::AppsOverview(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    init();
+    m_gsettings = new QGSettings(MENU_SCHEMA_ID, "", this);
+    connect(m_gsettings, &QGSettings::changed, this, &AppsOverview::updateNewApp);
+    connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
+
+    // 载入应用列表
+    loadApps();
+
+    // 清理配置文件中的新应用
+    clearNewApp();
 }
 
 AppsOverview::~AppsOverview()
@@ -47,35 +56,9 @@ AppsOverview::~AppsOverview()
     delete m_ui;
 }
 
-void AppsOverview::init()
-{
-    //    m_ui->m_treeWidgetApps->clear();
-    // 禁用双击展开
-    m_ui->m_treeWidgetApps->setExpandsOnDoubleClick(false);
-    // 隐藏小三角
-    m_ui->m_treeWidgetApps->setRootIsDecorated(false);
-
-    m_gsettings = new QGSettings(MENU_SCHEMA_ID, "", this);
-    connect(m_gsettings, &QGSettings::changed, this, &AppsOverview::updateNewApp);
-
-    // 载入应用列表
-    loadApps();
-
-    // 清理配置文件中的新应用
-    clearNewApp();
-
-    m_ui->m_lineEditSearch->setPlaceholderText(tr("Search application"));
-
-    QPalette p = m_ui->m_lineEditSearch->palette();
-
-    m_ui->m_lineEditSearch->setPalette(p);
-
-    connect(KSycoca::self(), SIGNAL(databaseChanged()), this, SLOT(updateApp()));
-}
-
 void AppsOverview::loadApps()
 {
-    m_ui->m_treeWidgetApps->clear();
+    m_ui->treeWidgetApps->clear();
     m_appIds.clear();
 
     KServiceGroup::Ptr group = KServiceGroup::root();
@@ -83,20 +66,19 @@ void AppsOverview::loadApps()
     for (auto it = groups.begin(); it != groups.end(); it++)
     {
         KSycocaEntry *p = it->data();
-        //        KLOG_INFO() << "KServiceGroup:" << p->name();
         addGroup(p);
     }
 
     // 展开应用列表
-    m_ui->m_treeWidgetApps->expandAll();
+    m_ui->treeWidgetApps->expandAll();
 
     // 剔除列表下为空的顶级项
-    for (int i = 0; i < m_ui->m_treeWidgetApps->topLevelItemCount(); i++)
+    for (int i = 0; i < m_ui->treeWidgetApps->topLevelItemCount(); i++)
     {
-        auto item = m_ui->m_treeWidgetApps->topLevelItem(i);
+        auto item = m_ui->treeWidgetApps->topLevelItem(i);
         if (0 == item->childCount())
         {
-            delete m_ui->m_treeWidgetApps->takeTopLevelItem(i);
+            delete m_ui->treeWidgetApps->takeTopLevelItem(i);
         }
     }
 
@@ -122,18 +104,14 @@ void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidg
         return;
     }
 
-    //    KLOG_INFO() << "addGroup:" << g->name() << g->caption() << "parent ptr:" << parent << g->entries().size();
-
     // 中间层级省略,显示一级目录
     if (!parent)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetApps);
+        QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
         item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
         item->setText(0, TR_NOOP_STRING.contains(g->caption()) ? tr(TR_NOOP_STRING[g->caption()]) : g->caption());
         parent = item;
     }
-
-    //    KLOG_INFO() << "KServiceGroup:" << g->name() << g->caption() << "group ptr:" << parent;
 
     KServiceGroup::List list = g->entries();
     for (KServiceGroup::List::ConstIterator it = list.begin(); it != list.end(); it++)
@@ -189,7 +167,7 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
 
     if (!parent)
     {
-        parent = m_ui->m_treeWidgetApps->topLevelItem(m_ui->m_treeWidgetApps->topLevelItemCount() - 1);
+        parent = m_ui->treeWidgetApps->topLevelItem(m_ui->treeWidgetApps->topLevelItemCount() - 1);
         if (!parent)
         {
             return;
@@ -213,12 +191,10 @@ void AppsOverview::updateNewApp(QString key)
 
     QVariantList apps = m_gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
 
-    KLOG_INFO() << "AppsOverview::updateNewApp" << apps;
-
-    if (m_ui->m_treeWidgetApps->topLevelItemCount() > 0 &&
-        m_ui->m_treeWidgetApps->topLevelItem(0)->text(0) == tr("New App"))
+    if (m_ui->treeWidgetApps->topLevelItemCount() > 0 &&
+        m_ui->treeWidgetApps->topLevelItem(0)->text(0) == tr("New App"))
     {
-        delete m_ui->m_treeWidgetApps->takeTopLevelItem(0);
+        delete m_ui->treeWidgetApps->takeTopLevelItem(0);
     }
     QSet<QString> newAppSet;
     for (auto app : apps)
@@ -231,7 +207,7 @@ void AppsOverview::updateNewApp(QString key)
     {
         QTreeWidgetItem *groupItem = new QTreeWidgetItem({tr("New App")});
         groupItem->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-        m_ui->m_treeWidgetApps->insertTopLevelItem(0, groupItem);
+        m_ui->treeWidgetApps->insertTopLevelItem(0, groupItem);
 
         for (auto app : newAppSet)
         {
@@ -262,14 +238,14 @@ void AppsOverview::clearNewApp()
 
 void AppsOverview::updateApp()
 {
-    KLOG_INFO() << "AppsOverview::updateApp";
+    KLOG_INFO(LCMenu) << "AppsOverview::updateApp";
 
     auto oldAppIds = m_appIds;
     loadApps();
     auto newAppIds = m_appIds;
     auto subtract = newAppIds.subtract(oldAppIds);
 
-    KLOG_INFO() << "新应用:" << subtract;
+    KLOG_INFO(LCMenu) << "新应用:" << subtract;
     // 处理新应用分类
     if (!subtract.isEmpty())
     {
@@ -283,7 +259,7 @@ void AppsOverview::updateApp()
     }
 }
 
-void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)
+void AppsOverview::on_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int column)
 {
     QVariant itemData = item->data(0, Qt::UserRole);
     if (itemData.isValid())
@@ -295,21 +271,21 @@ void AppsOverview::on_m_treeWidgetApps_itemClicked(QTreeWidgetItem *item, int co
         if (item->isExpanded())
         {
             // 折叠
-            // m_ui->m_treeWidgetApps->collapseAll();
+            // m_ui->treeWidgetApps->collapseAll();
             item->setExpanded(false);
         }
         else
         {
             // 展开后滚动到最上面
-            // m_ui->m_treeWidgetApps->expandAll();
+            // m_ui->treeWidgetApps->expandAll();
             item->setExpanded(true);
 
-            m_ui->m_treeWidgetApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
+            m_ui->treeWidgetApps->scrollToItem(item, QAbstractItemView::PositionAtTop);
         }
     }
 }
 
-void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int column)
+void AppsOverview::on_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int column)
 {
     if (qApp->mouseButtons() == Qt::RightButton)
     {
@@ -404,7 +380,7 @@ void AppsOverview::on_m_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int co
     }
 }
 
-void AppsOverview::on_m_lineEditSearch_textChanged(const QString &arg1)
+void AppsOverview::on_lineEditSearch_textChanged(const QString &arg1)
 {
     if (arg1.isEmpty())
     {
@@ -412,25 +388,25 @@ void AppsOverview::on_m_lineEditSearch_textChanged(const QString &arg1)
         return;
     }
 
-    m_ui->m_treeWidgetApps->clear();
+    m_ui->treeWidgetApps->clear();
 
-    QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->m_treeWidgetApps);
+    QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
     item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-    //        KLOG_INFO() << "propertyNames:" << g->name() << g->caption() << g->icon() << g->comment() << g->noDisplay() << g->baseGroupName();
+    //        KLOG_INFO(LCMenu)() << "propertyNames:" << g->name() << g->caption() << g->icon() << g->comment() << g->noDisplay() << g->baseGroupName();
 
     item->setText(0, tr("result"));
-    m_ui->m_treeWidgetApps->addTopLevelItem(item);
+    m_ui->treeWidgetApps->addTopLevelItem(item);
 
     KServiceGroup::Ptr group = KServiceGroup::root();
     addGroup(group.data(), arg1, item);
 
-    m_ui->m_treeWidgetApps->expandAll();
+    m_ui->treeWidgetApps->expandAll();
 }
 
 void AppsOverview::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-    m_ui->m_lineEditSearch->setFocus();
+    m_ui->lineEditSearch->setFocus();
 }
 
 }  // namespace Menu

@@ -23,6 +23,7 @@
 
 #include "desktop-helper.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/window-manager.h"
 #include "ui_window.h"
 #include "window.h"
@@ -38,13 +39,13 @@ Window::Window(QWidget *parent)
       m_ui(new Ui::Window)
 {
     m_ui->setupUi(this);
-    setAttribute(Qt::WA_TranslucentBackground);
 
-    m_ui->m_listWidgetThumbnail->setSpacing(10);
-    QPalette palette = m_ui->m_listWidgetThumbnail->palette();
+    setAttribute(Qt::WA_TranslucentBackground);
+    m_ui->listWidgetThumbnail->setSpacing(10);
+    QPalette palette = m_ui->listWidgetThumbnail->palette();
     palette.setBrush(QPalette::Base, Qt::NoBrush);    // 基本背景透明
     palette.setBrush(QPalette::Window, Qt::NoBrush);  // 窗口背景透明
-    m_ui->m_listWidgetThumbnail->setPalette(palette);
+    m_ui->listWidgetThumbnail->setPalette(palette);
 
     init();
 }
@@ -59,13 +60,13 @@ void Window::paintEvent(QPaintEvent *event)
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(APPEARANCE_SCHEMA_ID));
     if (gsettings.isNull())
     {
-        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
+        KLOG_ERROR(LCWorkspace) << APPEARANCE_SCHEMA_ID << "QGSettings schema create failed";
         return;
     }
     auto desktopBackgroundValue = gsettings->get(APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND);
     if (desktopBackgroundValue.isNull() || !desktopBackgroundValue.isValid())
     {
-        KLOG_ERROR() << APPEARANCE_SCHEMA_ID << APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND << "QGSettings key get failed";
+        KLOG_ERROR(LCWorkspace) << APPEARANCE_SCHEMA_ID << APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND << "QGSettings key get failed";
         return;
     }
     auto desktopBackground = desktopBackgroundValue.toString();
@@ -85,17 +86,17 @@ void Window::paintEvent(QPaintEvent *event)
     painter.setBrush(bg);
     painter.drawRect(rect());
 
-    m_ui->m_widgetThumbnail->setAttribute(Qt::WA_TranslucentBackground);
+    m_ui->widgetThumbnail->setAttribute(Qt::WA_TranslucentBackground);
     bg.setAlpha(120);
     painter.setBrush(bg);
-    painter.drawRect(m_ui->m_widgetThumbnail->geometry());
+    painter.drawRect(m_ui->widgetThumbnail->geometry());
 
     QWidget::paintEvent(event);
 }
 
 void Window::showEvent(QShowEvent *event)
 {
-    //任务栏不显示
+    // 任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
 
 #if 0  // 调试用,将显示画面缩小
@@ -150,7 +151,7 @@ void Window::init()
 
     changeCurrentDesktop(DesktopHelper::currentDesktop());
 
-    //事件过滤器
+    // 事件过滤器
     installEventFilter(this);
 }
 
@@ -174,11 +175,11 @@ void Window::addWorkspace(int desktop)
 
     m_workspaces[desktop] = qMakePair(thumbnail, overview);
 
-    QListWidgetItem *item = new QListWidgetItem(m_ui->m_listWidgetThumbnail);
+    QListWidgetItem *item = new QListWidgetItem(m_ui->listWidgetThumbnail);
     item->setSizeHint(QSize(1, 120));
 
-    m_ui->m_listWidgetThumbnail->addItem(item);
-    m_ui->m_listWidgetThumbnail->setItemWidget(item, thumbnail);
+    m_ui->listWidgetThumbnail->addItem(item);
+    m_ui->listWidgetThumbnail->setItemWidget(item, thumbnail);
 
     connect(thumbnail, &WorkspaceThumbnail::removeDesktop, this, &Window::removeDesktop);
 }
@@ -196,7 +197,7 @@ void Window::clearWorkspace()
 
         it = m_workspaces.erase(it);
     }
-    m_ui->m_listWidgetThumbnail->clear();
+    m_ui->listWidgetThumbnail->clear();
 }
 
 void Window::changeCurrentDesktop(int desktop)
@@ -213,7 +214,7 @@ void Window::changeCurrentDesktop(int desktop)
     thumbnail->updatePreviewer();
 
     QLayoutItem *item;
-    while ((item = m_ui->m_layoutOverview->takeAt(0)) != nullptr)
+    while ((item = m_ui->layoutOverview->takeAt(0)) != nullptr)
     {
         if (item->widget())
         {
@@ -223,7 +224,7 @@ void Window::changeCurrentDesktop(int desktop)
         delete item;
     }
 
-    m_ui->m_layoutOverview->addWidget(overview);
+    m_ui->layoutOverview->addWidget(overview);
     overview->show();
 }
 
@@ -241,17 +242,17 @@ void Window::changeNumberOfDesktops(int numOfDesk)
     changeCurrentDesktop(DesktopHelper::currentDesktop());
 }
 
-void Window::on_m_btnAddWorkspace_clicked()
+void Window::on_btnAddWorkspace_clicked()
 {
     createDesktop();
 }
 
-void Window::on_m_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item)
+void Window::on_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item)
 {
-    DesktopHelper::setCurrentDesktop(m_ui->m_listWidgetThumbnail->row(item) + 1);
+    DesktopHelper::setCurrentDesktop(m_ui->listWidgetThumbnail->row(item) + 1);
 }
 
-void Window::on_m_listWidgetThumbnail_currentRowChanged(int currentRow)
+void Window::on_listWidgetThumbnail_currentRowChanged(int currentRow)
 {
     changeCurrentDesktop(currentRow + 1);
 }

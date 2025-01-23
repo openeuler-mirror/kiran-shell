@@ -13,15 +13,14 @@
  */
 
 #include <qt5-log-i.h>
-#include <QDrag>
 #include <QGSettings>
-#include <QMimeData>
 #include <QMouseEvent>
 
 #include "app-button.h"
 #include "app-group.h"
 #include "app-previewer.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "plugin-i.h"
@@ -69,7 +68,6 @@ void AppGroup::setLocked(bool lockFlag)
 
 void AppGroup::setDragData(const QUrl &url)
 {
-    //    KLOG_INFO() << "AppGroup::setDragData" << url << m_buttonFixed;
     if (m_buttonFixed)
     {
         m_buttonFixed->setUrl(url);
@@ -134,7 +132,6 @@ void AppGroup::init()
     m_layout = new QBoxLayout(direction, this);
     m_layout->setSpacing(8);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(m_layout);
 
     Window *window = (Window *)parent();
     connect(window, &Window::windowAdded, this, &AppGroup::addWindow);
@@ -198,7 +195,6 @@ void AppGroup::mouseMoveEvent(QMouseEvent *event)
 
 void AppGroup::mouseReleaseEvent(QMouseEvent *event)
 {
-    //    KLOG_INFO() << "AppGroup::mouseReleaseEvent";
     event->accept();
 
     emit moveGroupEnded(this);
@@ -253,15 +249,8 @@ void AppGroup::removeWindow(WId wid)
 
     AppButton *appButton = iter.value();
     m_mapWidButton.erase(iter);
-
     delete appButton;
     appButton = nullptr;
-
-    //    if (appButton != m_buttonFixed)
-    //    {
-
-    //    }
-    //    m_buttonFixed->reset();
 
     updateLayout();
 
