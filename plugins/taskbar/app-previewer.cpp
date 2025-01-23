@@ -34,7 +34,7 @@ AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::Tool),
       m_import(import)
 {
-    Window *window = (Window *)parent;
+    auto *window = (Window *)parent;
     connect(window, &Window::windowAdded, this, &AppPreviewer::addWindow);
     connect(window, &Window::windowRemoved, this, &AppPreviewer::removeWindow);
     connect(window, &Window::windowChanged, this, &AppPreviewer::windowChanged);
@@ -98,7 +98,7 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
         m_layout->addWidget(previwer);
     }
 
-    auto previwer = windowPreviewerShow.first();
+    auto *previwer = windowPreviewerShow.first();
     if (QBoxLayout::Direction::LeftToRight == direction)
     {
         setFixedSize((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING, previwer->height());
@@ -109,7 +109,7 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
     }
 }
 
-void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
+void AppPreviewer::addWindow(const QByteArray& wmClass, WId wid)
 {
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, [this](WId wid)
@@ -129,7 +129,7 @@ void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
 
 void AppPreviewer::removeWindow(WId wid)
 {
-    WindowPreviewer *previewr = m_mapWindowPreviewers.take(wid);
+    auto *previewr = m_mapWindowPreviewers.take(wid);
     if (previewr)
     {
         delete previewr;
@@ -137,7 +137,7 @@ void AppPreviewer::removeWindow(WId wid)
     }
 }
 
-void AppPreviewer::showPreviewer(QList<WId> wids, QWidget *triggerWidget)
+void AppPreviewer::showPreviewer(const QList<WId>& wids, QWidget *triggerWidget)
 {
     m_hideTimer->stop();
 
@@ -172,7 +172,7 @@ void AppPreviewer::hideTimeout()
     }
 }
 
-void AppPreviewer::previewerShowChange(QList<WId> wids, QWidget *triggerWidget)
+void AppPreviewer::previewerShowChange(const QList<WId>& wids, QWidget *triggerWidget)
 {
     if (isVisible())
     {

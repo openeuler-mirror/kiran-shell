@@ -42,16 +42,13 @@ namespace Taskbar
 AppButton::AppButton(IAppletImport *import, QWidget *parent)
     : StyledButton(parent), m_import(import), m_wid(0), m_isShowName(false), m_dragFlag(false)
 {
-    AppGroup *appGroup = (AppGroup *)parent;
+    auto *appGroup = (AppGroup *)parent;
     connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
     connect(appGroup, &AppGroup::moveGroupStarted, this, &AppButton::setDragFlag);
 
     connect(this, &QAbstractButton::clicked, this, &AppButton::buttonClicked);
 
-    auto panelSize = m_import->getPanel()->getSize();
-    int iconSize = panelSize - BUTTON_BLANK_SPACE * 2;
-    //    setIconSize(QSize(iconSize, iconSize));
-    setIconSize(QSize(24, 24));
+    setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 }
 
@@ -72,7 +69,7 @@ void AppButton::setAppInfo(const QByteArray &wmClass, const WId &wid)
     {
         // 找不到 desktop file 的app
         // 使用默认图标
-        QPixmap icon = KWindowSystem::icon(wid);
+        QPixmap icon = KWindowSystem::icon(wid, 25, 25, true);
         setIcon(QIcon(icon));
 
         // 获取名称
@@ -139,10 +136,8 @@ bool AppButton::checkDropAccept(QPoint pos)
         {
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     return false;
@@ -162,7 +157,7 @@ Qt::AlignmentFlag AppButton::getLayoutAlignment()
 
 void AppButton::setUrl(QUrl url)
 {
-    m_appBaseInfo.m_url = url;
+    m_appBaseInfo.m_url = std::move(url);
     getInfoFromUrl();
 }
 
@@ -316,7 +311,7 @@ void AppButton::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
 
     QPainterPath path;
     path.addRoundedRect(rect(), 4, 4);
@@ -542,7 +537,6 @@ void AppButton::updateShowName()
 
     setFixedSize(height, height);
     setText("");
-    return;
 }
 
 void AppButton::buttonClicked()
