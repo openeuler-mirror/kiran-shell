@@ -37,10 +37,7 @@ NetConfItem::NetConfItem(NetworkManager::Device::Type type, QWidget *parent)
 
 NetConfItem::~NetConfItem()
 {
-    if (m_settingWidget)
-    {
-        delete m_settingWidget;
-    }
+    delete m_settingWidget;
 }
 
 void NetConfItem::init()
@@ -55,14 +52,14 @@ void NetConfItem::init()
 void NetConfItem::initUI()
 {
     m_settingWidget = new QWidget;
-    auto verticalLayout = new QVBoxLayout;
-    auto horizontalLayout = new QHBoxLayout;
-    auto verticalLayoutItems = new QVBoxLayout;
-    auto horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    auto connectTreeBg = new KiranColorBlock(m_settingWidget);
+    auto *verticalLayout = new QVBoxLayout;
+    auto *horizontalLayout = new QHBoxLayout;
+    auto *verticalLayoutItems = new QVBoxLayout;
+    auto *horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    auto *connectTreeBg = new KiranColorBlock(m_settingWidget);
     m_connectTreeWidget = new netTreeWidget(m_netType, connectTreeBg);
     m_backBtn = new StyledButton(m_settingWidget);
-    QLabel *titlelabel = new QLabel(m_settingWidget);
+    auto *titlelabel = new QLabel(m_settingWidget);
 
     m_settingWidget->setLayout(verticalLayout);
     verticalLayout->setMargin(0);
@@ -111,7 +108,8 @@ void NetConfItem::updateNetworkStatus()
     default:
         break;
     }
-    for (auto device : devices)
+
+    for (const auto &device : devices)
     {
         if (NetworkManager::Device::State::Activated == device->state())
         {

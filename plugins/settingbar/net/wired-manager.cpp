@@ -19,6 +19,7 @@
 #include <NetworkManagerQt/WiredDevice>
 
 #include "lib/common/logging-category.h"
+#include "net-common.h"
 #include "wired-manager.h"
 
 namespace Kiran
@@ -28,12 +29,46 @@ namespace SettingBar
 WiredManager::WiredManager(QObject *parent)
     : QObject{parent}
 {
+    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WiredManager::updateNetworkStatus);
+    updateNetworkStatus();
+}
+
+void WiredManager::updateNetworkStatus()
+{
+    QStringList currentDeviceUnis;
+    NetworkManager::Device::List devices = NetCommonInstance.getEthernetDevices();
+    for (const auto &device : devices)
+    {
+        currentDeviceUnis.append(device->uni());
+    }
+
+    m_deviceUnis.erase(std::remove_if(m_deviceUnis.begin(), m_deviceUnis.end(), [&currentDeviceUnis](const QString &uni)
+                                      {
+                                          return !currentDeviceUnis.contains(uni);
+                                      }),
+                       m_deviceUnis.end());
+
+    for (const auto &uni : currentDeviceUnis)
+    {
+        if (m_deviceUnis.contains(uni))
+        {
+            continue;
+        }
+        AddToManager(uni);
+    }
+
+    emit netStatusChanged();
 }
 
 WiredManager &WiredManager::getInstance()
 {
     static WiredManager instance;
     return instance;
+}
+
+QStringList WiredManager::getDevices()
+{
+    return m_deviceUnis;
 }
 
 void WiredManager::AddToManager(const QString &deviceUni)

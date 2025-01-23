@@ -40,9 +40,9 @@ public:
 
 private:
     // 更新各类信息
-    void updateNetDevice(NetworkManager::Device::Ptr device);
-    void updateWiredConnection(QString deviceUni, QString connectionUuid);
-    void updateWirelessConnection(QString deviceUni, QString ssid);
+    void updateNetDevice(const QString &deviceUni);
+    void updateWiredConnection(const QString &deviceUni, const QString &connectionUuid);
+    void updateWirelessConnection(const QString &deviceUni, const QString &ssid);
 
     // 有线网络接入点变化
     void wiredNetworkAppeared(const QString &deviceUni, const QString &connectionUuid);
@@ -52,11 +52,11 @@ private:
     void wirelessNetworkAppeared(const QString &deviceUni, const QString &ssid);
     void wirelessNetworkDisappeared(const QString &deviceUni, const QString &ssid);
 
-    void removeConnection(QString deviceUni, QString connectUuid);
+    void removeConnection(const QString &deviceUni, const QString &connectUuid);
 
     // 连接状态变化
-    void updateActiveStatus(QString deviceUni, NetworkManager::Device::State state);
-    void activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state);
+    void updateActiveStatus(const QString &deviceUni, NetworkManager::Device::State state);
+    void activeConnectionStateChanged(const QString &deviceUni, NetworkManager::ActiveConnection::State state);
 
     void requestPassword(const QString &devicePath, const QString &ssid, bool wait);
 
