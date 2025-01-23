@@ -35,6 +35,6 @@ public:
     void setFrameShape(QFrame::Shape type);
 
 private:
-    Ui::LineFrame *ui;
+    Ui::LineFrame *m_ui;
 };
 }  // namespace Kiran

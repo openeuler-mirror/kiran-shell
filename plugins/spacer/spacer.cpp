@@ -13,7 +13,6 @@
  */
 
 #include <kiran-color-block.h>
-#include <QPainter>
 
 #include "ks-i.h"
 #include "spacer.h"
@@ -23,13 +22,13 @@ namespace Kiran
 Spacer::Spacer(IAppletImport *import)
     : m_import(import)
 {
+    m_prevBlock = new KiranColorBlock(this);
+    m_nextBlock = new KiranColorBlock(this);
+
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->setSpacing(4);
-    setLayout(m_layout);
-    m_prevBlock = new KiranColorBlock(this);
-    m_nextBlock = new KiranColorBlock(this);
     m_layout->addWidget(m_prevBlock);
     m_layout->addWidget(m_nextBlock);
 
@@ -63,18 +62,18 @@ void Spacer::updateLayout()
 
 Qt::AlignmentFlag Spacer::getLayoutAlignment()
 {
-    int orientation = m_import->getPanel()->getOrientation();
-    Qt::AlignmentFlag alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-                                   orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
-                                      ? Qt::AlignLeft
-                                      : Qt::AlignTop;
+    auto orientation = m_import->getPanel()->getOrientation();
+    auto alignment = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
+                      orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+                         ? Qt::AlignLeft
+                         : Qt::AlignTop;
 
     return alignment;
 }
 
 QBoxLayout::Direction Spacer::getLayoutDirection()
 {
-    int orientation = m_import->getPanel()->getOrientation();
+    auto orientation = m_import->getPanel()->getOrientation();
     auto direction = (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
                       orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
                          ? QBoxLayout::Direction::LeftToRight

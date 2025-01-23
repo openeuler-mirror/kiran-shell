@@ -21,6 +21,7 @@
 #include <QWindow>
 #include <QtX11Extras/QX11Info>
 
+#include "lib/common/logging-category.h"
 #include "utility.h"
 #include "window-info-helper.h"
 
@@ -57,7 +58,7 @@ QByteArray WindowInfoHelper::getWmClassByWId(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find pid by KWindowInfo:" << wid;
+        KLOG_WARNING(LCLib) << "can't find pid by KWindowInfo:" << wid;
         return "";
     }
 
@@ -77,7 +78,7 @@ QString WindowInfoHelper::getAppNameByWId(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find app name by wid:" << wid;
+        KLOG_WARNING(LCLib) << "can't find app name by wid:" << wid;
         return "";
     }
 }
@@ -91,7 +92,7 @@ QString WindowInfoHelper::getAppIconByWId(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find app icon by wid:" << wid;
+        KLOG_WARNING(LCLib) << "can't find app icon by wid:" << wid;
         return "";
     }
 }
@@ -222,7 +223,7 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
     }
     else
     {
-        KLOG_WARNING() << "can't find pid by Wid";
+        KLOG_WARNING(LCLib) << "can't find pid by Wid";
         return "";
     }
 
@@ -238,7 +239,7 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return desktopFile;
     }
 
-    KLOG_WARNING() << "can't find url by Wid:" << wid;
+    KLOG_WARNING(LCLib) << "can't find url by Wid:" << wid;
 
     return desktopFile;
 }
@@ -279,7 +280,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
     auto allKService = KService::allServices();
     for (auto service : allKService)
     {
-        //        KLOG_INFO() << service->storageId() << service->desktopEntryName() << service->entryPath() << service->keywords() << service->name();
+        //        KLOG_INFO(LCLib) << service->storageId() << service->desktopEntryName() << service->entryPath() << service->keywords() << service->name();
         QString desktopEntryName = service->desktopEntryName();
         if (desktopEntryName.isEmpty())
         {

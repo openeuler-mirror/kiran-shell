@@ -20,21 +20,21 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QLabel" name="m_labelName">
+      <widget class="QLabel" name="labelName">
        <property name="text">
         <string>workspace</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="m_labelIndex">
+      <widget class="QLabel" name="labelIndex">
        <property name="text">
         <string notr="true">TextLabel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="m_btnClose">
+      <widget class="QPushButton" name="btnClose">
        <property name="minimumSize">
         <size>
          <width>20</width>
@@ -55,7 +55,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="m_labelGrabWorkspace">
+    <widget class="QLabel" name="labelGrabWorkspace">
      <property name="text">
       <string notr="true">TextLabel</string>
      </property>

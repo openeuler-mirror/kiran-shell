@@ -1,18 +1,17 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "layout.h"
 #include <qgsettings.h>
 #include <qt5-log-i.h>
 #include <QDir>
@@ -21,7 +20,10 @@
 #include <QScopedPointer>
 #include <QSettings>
 #include <QVariant>
+
 #include "ks-config.h"
+#include "layout.h"
+#include "lib/common/logging-category.h"
 
 namespace Kiran
 {
@@ -127,7 +129,7 @@ Layout::Layout(const QString &layoutName)
     this->m_layoutFilePath = QString("%1/%2.layout").arg(KS_LAYOUTDIR).arg(layoutName);
     if (!QFile::exists(this->m_layoutFilePath))
     {
-        KLOG_WARNING() << "Not found the layout file " << this->m_layoutFilePath;
+        KLOG_WARNING(LCShell) << "Not found the layout file " << this->m_layoutFilePath;
     }
 
     this->load();
@@ -177,7 +179,7 @@ void Layout::load()
         }
         else
         {
-            KLOG_WARNING() << "Unknown group name: " << groupName;
+            KLOG_WARNING(LCShell) << "Unknown group name: " << groupName;
         }
     }
 }

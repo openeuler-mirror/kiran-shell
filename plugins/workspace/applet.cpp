@@ -15,14 +15,12 @@
 #include <qt5-log-i.h>
 #include <QCoreApplication>
 #include <QGridLayout>
-#include <QPainter>
-#include <QPixmap>
-#include <QRect>
 #include <QTranslator>
 
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "plugin-i.h"
 #include "window.h"
 
@@ -36,27 +34,25 @@ Applet::Applet(IAppletImport *import)
     static QTranslator translator;
     if (!translator.load(QLocale(), "workspace", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
     {
-        KLOG_WARNING() << "Load translator failed!";
+        KLOG_WARNING(LCWorkspace) << "Load translator failed!";
     }
     else
     {
         QCoreApplication::installTranslator(&translator);
     }
 
-    setRadius(0);
-    m_window = new Window();
-    connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
-
     auto size = m_import->getPanel()->getSize();
     setFixedSize(size, size);
+    setRadius(0);
+    setToolTip(tr("Workspace switcher"));
 
     m_appletButton = new StyledButton(this);
-    int iconSize = size - BUTTON_BLANK_SPACE * 2;
     m_appletButton->setIconSize(QSize(24, 24));
-
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
-    setToolTip(tr("Workspace switcher"));
+
+    m_window = new Window();
+    connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->setMargin(4);

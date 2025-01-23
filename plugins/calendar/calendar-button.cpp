@@ -102,15 +102,10 @@ void CalendarButton::paintEvent(QPaintEvent *event)
     path.addRoundedRect(rect(), 4, 4);
     painter.setBrush(bgColor);
 
-    QPen pen = painter.pen();
     painter.setPen(Qt::NoPen);
-
     painter.drawPath(path);
 
-    //    painter.fillRect(rect(), bgColor);
-
     QColor penColor = palette->getBaseColors().baseForeground;
-
     painter.setPen(penColor);
     painter.drawText(rect(), Qt::AlignCenter, text());
 }

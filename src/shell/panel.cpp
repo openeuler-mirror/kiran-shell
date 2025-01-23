@@ -18,21 +18,19 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QBoxLayout>
-#include <QDesktopWidget>
+#include <QContextMenuEvent>
 #include <QEvent>
-#include <QFile>
 #include <QFrame>
 #include <QGSettings>
 #include <QMenu>
-#include <QMouseEvent>
 #include <QPainter>
-#include <QScopedPointer>
 #include <QScreen>
 #include <QTimer>
 
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "line-frame.h"
@@ -268,7 +266,7 @@ void Panel::initChildren()
         }
     }
 
-    KLOG_DEBUG() << m_appletsLayout->geometry();
+    KLOG_DEBUG(LCShell) << m_appletsLayout->geometry();
 }
 
 int Panel::orientationStr2Enum(const QString &orientation)
@@ -338,7 +336,7 @@ void Panel::updateGeometry(int size)
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
-    //    KLOG_INFO() << "orientation: " << orientation
+    //    KLOG_INFO(LCShell) << "orientation: " << orientation
     //                << "screen geometry: " << showingScreen->geometry()
     //                << "panel size: " << getSize();
 
@@ -365,7 +363,7 @@ void Panel::updateGeometry(int size)
                      showingScreen->geometry().width(), panelSize);
     }
 
-    //    KLOG_INFO() << "panel geometry:" << rect;
+    //    KLOG_INFO(LCShell) << "panel geometry:" << rect;
     //    setGeometry(rect);
     move(rect.topLeft());
     setMinimumSize(rect.size());
@@ -394,8 +392,8 @@ void Panel::updateGeometry(int size)
                                         panelSize, rect.left(), rect.right());
     }
 
-    KLOG_DEBUG() << "Panel " << m_profilePanel->getUID()
-                 << "geometry: " << this->geometry();
+    KLOG_DEBUG(LCShell) << "Panel " << m_profilePanel->getUID()
+                        << "geometry: " << this->geometry();
 }
 
 void Panel::updateLayout()

@@ -13,8 +13,6 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem>
-#include <QGridLayout>
 #include <QLayoutItem>
 #include <QScrollArea>
 #include <QVBoxLayout>
@@ -49,7 +47,6 @@ WorkspaceOverview::WorkspaceOverview(int desktop, QWidget *parent)
 
     QVBoxLayout *overallLayout = new QVBoxLayout(this);
     overallLayout->addWidget(m_scrollArea);
-    this->setLayout(overallLayout);
 
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &WorkspaceOverview::updateGridLayout);
 }
@@ -118,7 +115,7 @@ void WorkspaceOverview::updateGridLayout()
         {
             subHeight = subWidth / aspectRatio;
         }
-        //最后加上不可缩放的部分
+        // 最后加上不可缩放的部分
         subWidth += extraWidth;
         subHeight += extraHeight;
         widget->setFixedSize(subWidth, subHeight);

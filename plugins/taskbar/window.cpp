@@ -31,6 +31,7 @@
 #include "app-previewer.h"
 #include "applet.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
@@ -52,19 +53,30 @@ Window::Window(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
       m_import(import),
       m_indicatorWidget(nullptr),
-      m_curPageIndex(-1)
+      m_curPageIndex(-1),
+      m_currentDropIndex(-1)
 {
-    m_gsettings = new QGSettings(TASKBAR_SCHEMA_ID, "", this);
+    initUI();
+    initWindowManager();
+    initConfig();
 
+    updateLockApp();
+    updateFavorite();
+    updateLayout();
+}
+
+Window::~Window()
+{
+}
+
+void Window::initUI()
+{
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     m_layout->setMargin(appMargin);
     m_layout->setSpacing(appSpacing);
-    setLayout(m_layout);
-
     setRadius(0);
-
-    m_appPreviewer = new AppPreviewer(m_import, this);
+    setAcceptDrops(true);
 
     // 翻页按钮
     m_upPageBtn = new StyledButton(this);
@@ -87,20 +99,19 @@ Window::Window(IAppletImport *import, Applet *parent)
                 updateLayout(m_curPageIndex + 1);
             });
 
-    connect(dynamic_cast<QObject *>(m_import->getPanel()), SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
+    // 拖动应用图标
+    m_indicatorWidget = new AppGroup(m_import, this);
+    m_indicatorWidget->hide();
 
-    updateLockApp();
+    // 应用预览窗口
+    m_appPreviewer = new AppPreviewer(m_import, this);
+}
 
-    connect(m_gsettings, &QGSettings::changed, this, &Window::settingChanged);
-
-    m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
-    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
-    updateFavorite();
-
-    connect(parent, &Applet::windowAdded, this, &Window::addWindow);
-    connect(parent, &Applet::windowRemoved, this, &Window::windowRemoved);
-    connect(parent, &Applet::activeWindowChanged, [this](WId wid)
+void Window::initWindowManager()
+{
+    connect((Applet *)parent(), &Applet::windowAdded, this, &Window::addWindow);
+    connect((Applet *)parent(), &Applet::windowRemoved, this, &Window::windowRemoved);
+    connect((Applet *)parent(), &Applet::activeWindowChanged, [this](WId wid)
             {
                 updateLayout();
                 emit activeWindowChanged(wid);
@@ -110,19 +121,21 @@ Window::Window(IAppletImport *import, Applet *parent)
     {
         addWindow(wid);
     }
+
     WId wid = WindowInfoHelper::activeWindow();
     emit activeWindowChanged(wid);
-
-    setAcceptDrops(true);
-    m_currentDropIndex = -1;
-    m_indicatorWidget = new AppGroup(m_import, this);
-    m_indicatorWidget->hide();
-
-    updateLayout();
 }
 
-Window::~Window()
+void Window::initConfig()
 {
+    m_gsettings = new QGSettings(TASKBAR_SCHEMA_ID, "", this);
+    connect(m_gsettings, &QGSettings::changed, this, &Window::settingChanged);
+
+    m_actStatsLinkedWatcher = new ResultWatcher(LinkedResources | Agent::global() | Type::any() | Activity::any(), this);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
+    connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
+
+    connect(dynamic_cast<QObject *>(m_import->getPanel()), SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
 }
 
 void Window::dragEnterEvent(QDragEnterEvent *event)
@@ -176,7 +189,7 @@ void Window::dragMoveEvent(QDragMoveEvent *event)
 
 void Window::dragLeaveEvent(QDragLeaveEvent *event)
 {
-    //    KLOG_INFO() << "AppButtonContainer::dragLeaveEvent";
+    //    KLOG_INFO(LCTaskbar) << "AppButtonContainer::dragLeaveEvent";
     m_currentDropIndex = -1;
     m_listAppGroupShow.removeAll(m_indicatorWidget);
     m_indicatorWidget->hide();
@@ -187,7 +200,7 @@ void Window::dragLeaveEvent(QDragLeaveEvent *event)
 
 void Window::dropEvent(QDropEvent *event)
 {
-    KLOG_INFO() << "AppButtonContainer::dropEvent";
+    KLOG_INFO(LCTaskbar) << "AppButtonContainer::dropEvent";
 
     if (-1 == m_currentDropIndex)
     {
@@ -211,7 +224,7 @@ void Window::dropEvent(QDropEvent *event)
     AppBaseInfo appBaseinfo;
 
     QList<QUrl> urls(event->mimeData()->urls());
-    KLOG_INFO() << "AppButtonContainer::dropEvent" << urls;
+    KLOG_INFO(LCTaskbar) << "AppButtonContainer::dropEvent" << urls;
     for (auto url : urls)
     {
         KFileItem fileItem(url);
@@ -352,13 +365,13 @@ void Window::addWindow(WId wid)
     QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
     if (wmClass.isEmpty())
     {
-        KLOG_WARNING() << "can't find wmclass by wid:" << wid;
+        KLOG_WARNING(LCTaskbar) << "can't find wmclass by wid:" << wid;
         return;
     }
 
     QUrl url = WindowInfoHelper::getUrlByWId(wid);
 
-    //    KLOG_INFO() << "AppButtonContainer::addWindow:" << wid << wmClass << url;
+    //    KLOG_INFO(LCTaskbar) << "AppButtonContainer::addWindow:" << wid << wmClass << url;
 
     // 锁定应用的打开
     AppGroup *appGroup = nullptr;
@@ -439,7 +452,7 @@ void Window::updateLayout(int showPageIndex)
         // 1.AppButton大小变化 2.当前窗口缩放时,引起AppGroup缩放
         // 以上缩放不会马上应用到实际大小,导致获取大小有偏差
         appGroup->adjustSize();
-        //        KLOG_INFO() <<"appGroup show size:" appGroup->size();
+        //        KLOG_INFO(LCTaskbar) <<"appGroup show size:" appGroup->size();
 
         int addSize = 0;
         if (QBoxLayout::Direction::LeftToRight == direction)
@@ -641,7 +654,7 @@ void Window::removeLockApp(const QUrl &url)
     }
     else
     {
-        KLOG_ERROR() << "can't find lock app:appId";
+        KLOG_WARNING(LCTaskbar) << "can't find lock app:appId";
     }
 }
 
@@ -665,7 +678,7 @@ void Window::isInFavorite(const QString &appId, bool &checkResult)
 void Window::addToFavorite(const QString &appId)
 {
     QString appIdReal = QLatin1String("applications:") + appId;
-    KLOG_WARNING() << "addToFavorite" << appIdReal;
+    KLOG_INFO(LCTaskbar) << "addToFavorite" << appIdReal;
     m_actStatsLinkedWatcher->linkToActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
@@ -696,7 +709,7 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
         int newIndex = m_listAppGroupLocked.indexOf(appGroup);
         int oldIndex = valuesList.indexOf(url);
         valuesList.move(oldIndex, newIndex);
-        KLOG_INFO() << "AppButtonContainer::addToTasklist move" << oldIndex << newIndex;
+        KLOG_INFO(LCTaskbar) << "AppButtonContainer::addToTasklist move" << oldIndex << newIndex;
         m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
 
         return;
@@ -732,7 +745,7 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
         valuesList.insert(inserIndex, url);
         m_listAppGroupLocked.insert(inserIndex, appGroup);
     }
-    KLOG_INFO() << "AppButtonContainer::addToTasklist" << inserIndex << valuesList.size();
+    KLOG_INFO(LCTaskbar) << "AppButtonContainer::addToTasklist" << inserIndex << valuesList.size();
     m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
 }
 
@@ -926,7 +939,7 @@ int Window::getMovedIndex(AppGroup *appGroup)
         }
         else
         {
-            // KLOG_INFO() << "两侧均有交值，取代该位置" << i << QTime::currentTime() << moveRect << rect;
+            // KLOG_INFO(LCTaskbar) << "两侧均有交值，取代该位置" << i << QTime::currentTime() << moveRect << rect;
             // 两侧均有交值，取代该位置
             return m_listAppGroupShow.indexOf(appGroup);
         }
@@ -995,7 +1008,7 @@ void Window::moveGroup(AppGroup *appGroup)
     int oldIndex = m_listAppGroupShow.indexOf(m_indicatorWidget);
     if (newIndex != oldIndex)
     {
-        // KLOG_INFO() << "moveGroup" << oldIndex << newIndex << m_listAppGroupShow.size();
+        // KLOG_INFO(LCTaskbar) << "moveGroup" << oldIndex << newIndex << m_listAppGroupShow.size();
         m_listAppGroupShow.move(oldIndex, newIndex);
         updateLayout(m_curPageIndex);
     }

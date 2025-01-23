@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -42,12 +42,12 @@ Showdesktop::Showdesktop(IAppletImport *import)
             });
 
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    bool ret = connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
-
-    updateLayout();
+    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     setToolTip(tr("Show desktop"));
     setCheckable(false);
+
+    updateLayout();
 }
 
 void Showdesktop::updateLayout()
@@ -55,8 +55,8 @@ void Showdesktop::updateLayout()
     int orientation = m_import->getPanel()->getOrientation();
     auto size = m_import->getPanel()->getSize();
 
-    if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
-        orientation == PanelOrientation::PANEL_ORIENTATION_TOP)
+    if (PanelOrientation::PANEL_ORIENTATION_BOTTOM == orientation ||
+        PanelOrientation::PANEL_ORIENTATION_TOP == orientation)
     {
         setFixedSize(size / 4, size);
     }

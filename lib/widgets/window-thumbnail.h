@@ -36,7 +36,7 @@ public:
     void getOriginalSize(int &scaleWidth, int &scaleHeight, int &extraWidth, int &extraHeight);
 
 private slots:
-    virtual void on_m_btnClose_clicked();
+    virtual void on_btnClose_clicked();
 
 protected:
     // 监测窗口变化

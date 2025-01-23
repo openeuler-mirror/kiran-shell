@@ -15,10 +15,9 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <plugin-i.h>
-#include <QPushButton>
 
 #include "ks-i.h"
+#include "plugin-i.h"
 
 class KSTimeDate;
 class QTimer;
@@ -44,6 +43,12 @@ private slots:
     void updateLayout();
 
 private:
+    void initTranslator();
+    void initPanelConnections();
+    void initUI();
+    void initDBusConnections();
+    void initTimer();
+
     void serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner);
 
     void initTimeDbusProxy();

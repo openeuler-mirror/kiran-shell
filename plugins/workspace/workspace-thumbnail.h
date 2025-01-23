@@ -38,7 +38,7 @@ public:
     void updatePreviewer();
 
 private slots:
-    void on_m_btnClose_clicked();
+    void on_btnClose_clicked();
 
 protected:
     void enterEvent(QEvent *event) override;

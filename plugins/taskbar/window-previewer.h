@@ -46,7 +46,7 @@ private:
     void changedActiveWindow(WId wid);
 
 private slots:
-    void on_m_btnClose_clicked() override;
+    void on_btnClose_clicked() override;
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event) override;

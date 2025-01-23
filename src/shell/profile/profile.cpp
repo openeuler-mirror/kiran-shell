@@ -19,10 +19,10 @@
 #include "ks-definition.h"
 #include "ks-i.h"
 #include "layout.h"
+#include "lib/common/logging-category.h"
 #include "profile-applet.h"
 #include "profile-panel.h"
 #include "profile.h"
-
 namespace Kiran
 {
 GSETTINGS_PROPERTY_STRING_DEFINITION(Profile, defaultLayout, DefaultLayout, SHELL_SCHEMA_KEY_DEFAULT_LAYOUT)
@@ -79,7 +79,7 @@ void Profile::loadFromLayout()
 {
     QScopedPointer<Layout> layout(new Layout(this->getDefaultLayout()));
 
-    KLOG_DEBUG() << "Load from layout " << this->getDefaultLayout();
+    KLOG_DEBUG(LCShell) << "Load from layout " << this->getDefaultLayout();
 
     auto layoutPanels = layout->getPanels();
     for (auto layoutPanel : layoutPanels)

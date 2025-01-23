@@ -52,6 +52,11 @@ private slots:
     void updateLayoutByProfile();
 
 private:
+    // 初始化相关
+    void initUI();
+    void initWindowManager();
+    void initConfig();
+
     AppGroup *genAppGroup(const AppBaseInfo &baseinfo);
 
     //  打开或关闭窗口软件

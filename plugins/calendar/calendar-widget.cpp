@@ -2,12 +2,8 @@
 
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
-#include <QApplication>
-#include <QHeaderView>
 #include <QLocale>
-#include <QMouseEvent>
 #include <QPainter>
-#include <QTableView>
 #include <QTextCharFormat>
 
 #include "calendar-widget.h"

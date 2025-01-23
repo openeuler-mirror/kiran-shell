@@ -72,12 +72,10 @@ namespace Kiran
 
 #define TASKBAR_SCHEMA_ID "com.kylinsec.kiran.shell.taskbar"
 #define TASKBAR_SCHEMA_KEY_SHOW_APP_NAME "showAppName"
+#define TASKBAR_SCHEMA_KEY_FIXED_APPS "fixedApps"
 
 #define MENU_SCHEMA_ID "com.kylinsec.kiran.shell.menu"
 #define MENU_SCHEMA_KEY_NEW_APPS "newApps"
-
-#define TASKBAR_SCHEMA_ID "com.kylinsec.kiran.shell.taskbar"
-#define TASKBAR_SCHEMA_KEY_FIXED_APPS "fixedApps"
 
 #define SYSTEMTRAY_SCHEMA_ID "com.kylinsec.kiran.shell.systemtray"
 #define SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS "foldingApps"

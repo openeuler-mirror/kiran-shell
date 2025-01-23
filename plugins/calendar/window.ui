@@ -54,7 +54,7 @@
        <number>8</number>
       </property>
       <item>
-       <widget class="StyledButton" name="m_todayBtn">
+       <widget class="StyledButton" name="todayBtn">
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -73,14 +73,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="m_lunarYear">
+       <widget class="QLabel" name="lunarYear">
         <property name="text">
          <string>y</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="m_lunarDay">
+       <widget class="QLabel" name="lunarDay">
         <property name="text">
          <string>m</string>
         </property>
@@ -100,7 +100,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="StyledButton" name="m_settingBtn">
+       <widget class="StyledButton" name="settingBtn">
         <property name="minimumSize">
          <size>
           <width>30</width>
@@ -146,7 +146,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="StyledButton" name="m_subYearBtn">
+         <widget class="StyledButton" name="subYearBtn">
           <property name="minimumSize">
            <size>
             <width>22</width>
@@ -169,7 +169,7 @@
          </widget>
         </item>
         <item>
-         <widget class="StyledButton" name="m_subMonthBtn">
+         <widget class="StyledButton" name="subMonthBtn">
           <property name="minimumSize">
            <size>
             <width>22</width>
@@ -209,7 +209,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QSpinBox" name="m_yearSpinBox">
+         <widget class="QSpinBox" name="yearSpinBox">
           <property name="maximumSize">
            <size>
             <width>60</width>
@@ -228,14 +228,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="m_yearLabel">
+         <widget class="QLabel" name="yearLabel">
           <property name="text">
            <string>y</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="m_monthSpinBox">
+         <widget class="QSpinBox" name="monthSpinBox">
           <property name="maximumSize">
            <size>
             <width>45</width>
@@ -257,7 +257,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="m_monthLabel">
+         <widget class="QLabel" name="monthLabel">
           <property name="text">
            <string>m</string>
           </property>
@@ -281,7 +281,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="StyledButton" name="m_addMonthBtn">
+         <widget class="StyledButton" name="addMonthBtn">
           <property name="minimumSize">
            <size>
             <width>22</width>
@@ -304,7 +304,7 @@
          </widget>
         </item>
         <item>
-         <widget class="StyledButton" name="m_addYearBtn">
+         <widget class="StyledButton" name="addYearBtn">
           <property name="minimumSize">
            <size>
             <width>22</width>
@@ -332,7 +332,7 @@
     </widget>
    </item>
    <item>
-    <widget class="CalendarWidget" name="m_calendarWidget"/>
+    <widget class="CalendarWidget" name="calendarWidget"/>
    </item>
   </layout>
  </widget>

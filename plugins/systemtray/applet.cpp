@@ -12,10 +12,9 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <plugin-i.h>
-
 #include "applet.h"
-#include "window.h"
+#include "plugin-i.h"
+#include "tray.h"
 
 namespace Kiran
 {
@@ -24,12 +23,12 @@ namespace Systemtray
 Applet::Applet(IAppletImport *import)
     : m_import(import)
 {
-    QGridLayout *layout = new QGridLayout(this);
+    m_tray = new Tray(import, this);
+
+    auto *layout = new QGridLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-
-    m_window = new Window(import, this);
-    layout->addWidget(m_window);
+    layout->addWidget(m_tray);
 }
 
 Applet::~Applet()

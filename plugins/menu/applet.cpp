@@ -13,15 +13,14 @@
  */
 
 #include <qt5-log-i.h>
+#include <QCoreApplication>
 #include <QGridLayout>
-#include <QPainter>
-#include <QPixmap>
-#include <QRect>
 #include <QTranslator>
 
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "window.h"
 
@@ -32,45 +31,63 @@ namespace Kiran
 namespace Menu
 {
 Applet::Applet(IAppletImport *import)
-    : m_import(import)
+    : m_import(import),
+      m_window(nullptr),
+      m_appletButton(nullptr)
 {
-    static QTranslator translator;
-    if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
-    {
-        KLOG_WARNING() << "Load translator failed!";
-    }
-    else
-    {
-        QCoreApplication::installTranslator(&translator);
-    }
-
-    m_window = new Window(this);
-    connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
-
-    setRadius(0);
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(size, size);
-
-    m_appletButton = new StyledButton(this);
-    m_appletButton->setIconSize(QSize(24, 24));
-
-    connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
-    m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
-    m_appletButton->setToolTip(tr("Start Menu"));
-
-    QGridLayout *layout = new QGridLayout(this);
-    layout->setMargin(4);
-    layout->setSpacing(0);
-    layout->addWidget(m_appletButton);
+    initializeTranslator();
+    setupWindow();
+    setupAppletButton();
+    setupLayout();
 }
 
 Applet::~Applet()
 {
 }
 
+void Applet::initializeTranslator()
+{
+    static QTranslator translator;
+    if (!translator.load(QLocale(), "menu", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
+    {
+        KLOG_WARNING(LCMenu) << "Load translator failed!";
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+    }
+}
+
+void Applet::setupWindow()
+{
+    m_window = new Window(this);
+    connect(m_window, &Window::windowDeactivated, this, &Applet::hideMenu);
+}
+
+void Applet::setupAppletButton()
+{
+    m_appletButton = new StyledButton(this);
+    m_appletButton->setIconSize(QSize(24, 24));
+    m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
+    m_appletButton->setToolTip(tr("Start Menu"));
+
+    connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
+}
+
+void Applet::setupLayout()
+{
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setMargin(4);
+    layout->setSpacing(0);
+    layout->addWidget(m_appletButton);
+
+    setRadius(0);
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
+}
+
 void Applet::clickButton(bool checked)
 {
-    // KLOG_INFO() << "Applet::clickButton" << checked;
     if (checked)
     {
         m_window->show();
@@ -80,7 +97,6 @@ void Applet::clickButton(bool checked)
         Utility::updatePopWidgetPos(oriention, this, m_window);
     }
 }
-
 void Applet::hideMenu()
 {
     m_window->hide();

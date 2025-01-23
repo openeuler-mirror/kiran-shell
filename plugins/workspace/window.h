@@ -46,15 +46,15 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
-    //事件过滤器
+    // 事件过滤器
     bool eventFilter(QObject *object, QEvent *event) override;
 
 private slots:
-    void on_m_btnAddWorkspace_clicked();
+    void on_btnAddWorkspace_clicked();
 
-    void on_m_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item);
 
-    void on_m_listWidgetThumbnail_currentRowChanged(int currentRow);
+    void on_listWidgetThumbnail_currentRowChanged(int currentRow);
 
 private:
     void init();

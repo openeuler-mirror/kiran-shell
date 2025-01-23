@@ -12,10 +12,9 @@
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include <plugin-i.h>
-
 #include "applet-button.h"
 #include "ks-i.h"
+#include "plugin-i.h"
 
 namespace Kiran
 {

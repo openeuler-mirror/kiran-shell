@@ -1,0 +1,8 @@
+{
+    "plugin_id": "settingbar",
+    "applets": [
+        {
+            "applet_id": "settingbar"
+        }
+    ]
+}

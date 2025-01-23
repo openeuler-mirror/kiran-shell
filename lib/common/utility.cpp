@@ -22,11 +22,12 @@
 #include <QWidget>
 
 #include "ks-i.h"
+#include "lib/common/logging-category.h"
 #include "utility.h"
 
 QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
 {
-    // KLOG_INFO() << "runCmd" << cmd << cmdArg;
+    KLOG_INFO(LCLib) << "run cmd" << cmd << cmdArg;
     QProcess p(0);
     p.start(cmd, cmdArg);
     p.waitForStarted();
@@ -122,7 +123,7 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
         }
         break;
     default:
-        KLOG_WARNING() << "Unknown oriention " << panelOriention;
+        KLOG_WARNING(LCLib) << "Unknown oriention " << panelOriention;
         break;
     }
 
@@ -150,12 +151,12 @@ bool Utility::isDbusServiceRegistered(QString serviceName, QDBusConnection::BusT
 
     if (connectionInterface && connectionInterface->isServiceRegistered(serviceName))
     {
-        KLOG_INFO() << "Service is available:" << serviceName;
+        KLOG_INFO(LCLib) << "Service is available:" << serviceName;
         return true;
     }
     else
     {
-        KLOG_INFO() << "Service is not available:" << serviceName;
+        KLOG_WARNING(LCLib) << "Service is not available:" << serviceName;
         return false;
     }
 }

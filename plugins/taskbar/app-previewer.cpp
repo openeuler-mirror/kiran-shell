@@ -51,11 +51,8 @@ AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
     // 横竖摆放
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
-    setLayout(m_layout);
     m_layout->setMargin(0);
     m_layout->setSpacing(PREVIEWER_SPACING);
-
-    setLayout(m_layout);
 }
 
 QBoxLayout::Direction AppPreviewer::getLayoutDirection()
@@ -114,7 +111,6 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 
 void AppPreviewer::addWindow(QByteArray wmClass, WId wid)
 {
-    //    KLOG_INFO() << "AppPreviewer::addWindow" << wmClass << wid;
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, [this](WId wid)
             {
@@ -145,7 +141,6 @@ void AppPreviewer::showPreviewer(QList<WId> wids, QWidget *triggerWidget)
 {
     m_hideTimer->stop();
 
-    //    KLOG_INFO() << "AppPreviewer::showPreviewer" << wids;
     QList<WindowPreviewer *> windowPreviewerShow;
 
     for (auto wid : wids)

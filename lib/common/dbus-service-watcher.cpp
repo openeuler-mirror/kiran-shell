@@ -12,9 +12,11 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
 #include <QDBusServiceWatcher>
 
 #include "dbus-service-watcher.h"
+#include "lib/common/logging-category.h"
 
 DBusServiceWatcher &DBusServiceWatcher::getInstance()
 {
@@ -24,6 +26,8 @@ DBusServiceWatcher &DBusServiceWatcher::getInstance()
 
 void DBusServiceWatcher::AddService(const QString &newService, QDBusConnection::BusType type)
 {
+    KLOG_INFO(LCLib) << "add dbus watcher:" << newService << type;
+
     switch (type)
     {
     case QDBusConnection::SessionBus:
@@ -43,6 +47,8 @@ void DBusServiceWatcher::AddService(const QString &newService, QDBusConnection::
 
 void DBusServiceWatcher::removeService(const QString &service)
 {
+    KLOG_INFO(LCLib) << "remove dbus watcher:" << service;
+
     if (m_systemServiceWatcher->watchedServices().contains(service))
     {
         m_systemServiceWatcher->removeWatchedService(service);

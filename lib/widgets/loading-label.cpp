@@ -1,7 +1,6 @@
 
 #include <QIcon>
 #include <QPainter>
-#include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
 
 #include "ks-i.h"

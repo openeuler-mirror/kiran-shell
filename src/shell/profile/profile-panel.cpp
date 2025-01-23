@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -33,10 +33,6 @@ ProfilePanel::ProfilePanel(const QString &uid)
 {
     auto schemaPath = QString("%1/%2/").arg(PANEL_SCHEMA_PATH).arg(this->m_uid);
     this->m_settings = new QGSettings(PANEL_SCHEMA_ID, schemaPath.toUtf8(), this);
-
-    // auto ori = this->m_settings->get(KS_PANEL_SCHEMA_KEY_ORIENTATION).toString();
-    // KLOG_DEBUG() << "orientationxx: " << ori;
-    // this->m_settings->set(KS_PANEL_SCHEMA_KEY_ORIENTATION, "bottom");
 
     this->init();
 

@@ -1,21 +1,22 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
-#include "applet.h"
-#include <plugin-i.h>
 #include <qt5-log-i.h>
 #include <QHBoxLayout>
+
+#include "applet.h"
+#include "lib/common/logging-category.h"
 #include "plugin.h"
 #include "profile/profile-applet.h"
 #include "shell.h"
@@ -70,15 +71,15 @@ void Applet::init()
 
     if (!plugin)
     {
-        KLOG_WARNING() << "Not found plugin for applet id: " << appletID;
+        KLOG_WARNING(LCShell) << "Not found plugin for applet id: " << appletID;
         return;
     }
 
-    KLOG_DEBUG() << "Found plugin for appletID " << appletID;
+    KLOG_DEBUG(LCShell) << "Found plugin for appletID " << appletID;
     this->m_pluginApplet = plugin->createApplet(appletID, this->m_appletImport);
     if (!this->m_pluginApplet)
     {
-        KLOG_WARNING() << "Create applet " << appletID << " failed.";
+        KLOG_WARNING(LCShell) << "Create applet " << appletID << " failed.";
         return;
     }
 

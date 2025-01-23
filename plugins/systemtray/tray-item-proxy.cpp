@@ -14,6 +14,7 @@
 
 #include <qt5-log-i.h>
 
+#include "lib/common/logging-category.h"
 #include "tray-item-proxy.h"
 
 TrayItemProxy::TrayItemProxy(const QString &service, const QString &path, QObject *parent)
@@ -55,7 +56,7 @@ QStringList TrayItemProxy::getAllPropertyKey()
     const auto arguments = call.reply().arguments();
     if (arguments.isEmpty())
     {
-        KLOG_WARNING() << "No arguments in the message!";
+        KLOG_WARNING(LCSystemtray) << "No arguments in the message!" << msg.interface() << msg.path();
         return QStringList();
     }
     QDBusArgument arg = arguments.first().value<QDBusArgument>();

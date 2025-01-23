@@ -19,6 +19,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include "lib/common/logging-category.h"
 #include "tray-data-types.h"
 #include "tray-item.h"
 
@@ -31,12 +32,13 @@ TrayItem::TrayItem(QString service, QString objectPath, QWidget *parent)
       m_dBusMenuImporter(nullptr),
       m_isInit(false)
 {
-    KLOG_INFO() << "TrayItem::TrayItem" << service << objectPath;
+    KLOG_INFO(LCSystemtray) << "trat item create" << service << objectPath;
     m_service = service;
     m_objectPath = objectPath;
 
     m_trayItemProxy = new TrayItemProxy(m_service, m_objectPath, this);
 
+    // 延后执行刷新
     m_refreshTimer = new QTimer(this);
     m_refreshTimer->setSingleShot(true);
     connect(m_refreshTimer, &QTimer::timeout, this, &TrayItem::refresh);
@@ -148,7 +150,7 @@ void TrayItem::mousePressEvent(QMouseEvent *event)
 
 void TrayItem::mouseReleaseEvent(QMouseEvent *event)
 {
-    //    KLOG_INFO() << "TrayItem::mouseReleaseEvent" << QCursor::pos().x() << QCursor::pos().y();
+    //    KLOG_INFO(LCSystemtray) << "TrayItem::mouseReleaseEvent" << QCursor::pos().x() << QCursor::pos().y();
     if (event->button() == Qt::LeftButton)
     {
         m_trayItemProxy->activate(QCursor::pos().x(), QCursor::pos().y());

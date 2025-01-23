@@ -14,9 +14,10 @@
 
 #pragma once
 
-#include <plugin-i.h>
 #include <QBoxLayout>
 #include <QWidget>
+
+#include "plugin-i.h"
 
 class QFrame;
 class QMenu;

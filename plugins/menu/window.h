@@ -14,15 +14,10 @@
 
 #pragma once
 
+#include <KActivities/KActivities/Consumer>
+#include <KActivities/Stats/ResultWatcher>
 #include <QDBusMessage>
 #include <QDialog>
-
-#include <KActivities/KActivities/Consumer>
-#include <KActivities/KActivities/ResourceInstance>
-#include <KActivities/Stats/ResultModel>
-#include <KActivities/Stats/ResultSet>
-#include <KActivities/Stats/ResultWatcher>
-#include <KService/KService>
 
 namespace Ui
 {

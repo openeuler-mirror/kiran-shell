@@ -14,8 +14,12 @@
 
 #include <qt5-log-i.h>
 #include <unistd.h>
+#include <KActivities/KActivities/ResourceInstance>
+#include <KActivities/Stats/ResultSet>
+#include <KActivities/Stats/ResultWatcher>
 #include <KIO/ApplicationLauncherJob>
 #include <KIO/OpenUrlJob>
+#include <KService/KService>
 #include <KWindowSystem>
 #include <QApplication>
 #include <QButtonGroup>
@@ -37,6 +41,7 @@
 #include "ks-i.h"
 #include "ks_accounts_interface.h"
 #include "ks_accounts_user_interface.h"
+#include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "power.h"
 #include "recent-files-overview.h"
@@ -77,11 +82,8 @@ Window::~Window()
 void Window::init()
 {
     initUI();
-
     initActivitiesStats();
-
     initUserInfo();
-
     initQuickStart();
 
     // 事件过滤器
@@ -90,26 +92,26 @@ void Window::init()
 
 void Window::initUI()
 {
-    m_ui->m_btnUserPhoto->setFlat(true);
+    m_ui->btnUserPhoto->setFlat(true);
 
-    m_ui->m_btnAppsOverview->setIcon(QIcon::fromTheme(KS_ICON_MENU_APPS_LIST_SYMBOLIC));
+    m_ui->btnAppsOverview->setIcon(QIcon::fromTheme(KS_ICON_MENU_APPS_LIST_SYMBOLIC));
 
-    m_ui->m_gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    m_ui->m_gridLayoutFavoriteApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    m_ui->gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    m_ui->gridLayoutFavoriteApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     // 收藏夹图标
-    m_ui->m_btnFavoriteAppIcon->setFlat(true);
-    m_ui->m_btnFavoriteAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
+    m_ui->btnFavoriteAppIcon->setFlat(true);
+    m_ui->btnFavoriteAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
     // 常用应用图标
-    m_ui->m_btnPopularAppIcon->setFlat(true);
-    m_ui->m_btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
+    m_ui->btnPopularAppIcon->setFlat(true);
+    m_ui->btnPopularAppIcon->setIcon(QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
 
     // 应用列表和文件列表切换
     QButtonGroup *overviewSelections = new QButtonGroup(this);
-    overviewSelections->addButton(m_ui->m_btnAppsOverview, 0);
-    overviewSelections->addButton(m_ui->m_btnRecentFilesOverview, 1);
+    overviewSelections->addButton(m_ui->btnAppsOverview, 0);
+    overviewSelections->addButton(m_ui->btnRecentFilesOverview, 1);
     // 移除qt designer默认创建的widget
-    clear(m_ui->m_widgetOverviewStack);
+    clear(m_ui->widgetOverviewStack);
 
     AppsOverview *appsOverview = new AppsOverview(this);
     connect(appsOverview, &AppsOverview::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
@@ -120,16 +122,16 @@ void Window::initUI()
     connect(appsOverview, &AppsOverview::removeFromTasklist, this, &Window::removeFromTasklist);
     connect(appsOverview, &AppsOverview::addToDesktop, this, &Window::addToDesktop);
     connect(appsOverview, &AppsOverview::runApp, this, &Window::runApp);
-    m_ui->m_widgetOverviewStack->addWidget(appsOverview);
+    m_ui->widgetOverviewStack->addWidget(appsOverview);
 
     RecentFilesOverview *recentFilesOverview = new RecentFilesOverview(this);
     connect(recentFilesOverview, &RecentFilesOverview::fileItemClicked, this, &Window::openFile);
-    m_ui->m_widgetOverviewStack->addWidget(recentFilesOverview);
+    m_ui->widgetOverviewStack->addWidget(recentFilesOverview);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-    connect(overviewSelections, SIGNAL(idClicked(int)), m_ui->m_widgetOverviewStack, SLOT(setCurrentIndex(int)));
+    connect(overviewSelections, SIGNAL(idClicked(int)), m_ui->widgetOverviewStack, SLOT(setCurrentIndex(int)));
 #else
-    connect(overviewSelections, SIGNAL(buttonClicked(int)), m_ui->m_overviewStack, SLOT(setCurrentIndex(int)));
+    connect(overviewSelections, SIGNAL(buttonClicked(int)), m_ui->overviewStack, SLOT(setCurrentIndex(int)));
 #endif
 }
 
@@ -143,10 +145,10 @@ void Window::initActivitiesStats()
         QCoreApplication::processEvents();
     }
 
-    //    KLOG_INFO() << activities->activities();
-    //    KLOG_INFO() << activities->serviceStatus();
-    //    KLOG_INFO() << activities->runningActivities();
-    //    KLOG_INFO() << activities->currentActivity();
+    //    KLOG_INFO(LCMenu)() << activities->activities();
+    //    KLOG_INFO(LCMenu)() << activities->serviceStatus();
+    //    KLOG_INFO(LCMenu)() << activities->runningActivities();
+    //    KLOG_INFO(LCMenu)() << activities->currentActivity();
 
     // 收藏夹监视
     m_actStatsWatcher = new ResultWatcher(AllResources | Agent::global() | Type::any() | Activity::any(), this);
@@ -183,7 +185,7 @@ void Window::initUserInfo()
     updateUserInfo();
 
     // 点击头像
-    connect(m_ui->m_btnUserPhoto, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnUserPhoto, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("kiran-control-panel", {"-c", "account-management"});
             });
@@ -194,30 +196,30 @@ void Window::initQuickStart()
     // 快速启动
     // TODO: mate相关的需要更改成自研
 
-    connect(m_ui->m_btnRunCommand, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnRunCommand, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-panel", {"--run-dialog"});
             });
-    connect(m_ui->m_btnSearchFiles, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnSearchFiles, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-search-tool", {});
             });
-    connect(m_ui->m_btnHomeDir, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnHomeDir, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("caja", {});
             });
-    connect(m_ui->m_btnSettings, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnSettings, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("kiran-control-panel", {});
             });
-    connect(m_ui->m_btnSystemMonitor, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnSystemMonitor, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-system-monitor", {});
             });
 
     // 电源选项
     auto power = Power::getDefault();
-    connect(m_ui->m_btnPower, &QPushButton::clicked, this, [=]()
+    connect(m_ui->btnPower, &QPushButton::clicked, this, [=]()
             {
                 QMenu power_menu;
 
@@ -285,8 +287,8 @@ void Window::initQuickStart()
                                          });
                 }
 
-                int x = m_ui->m_widgetNavigations->x() + m_ui->m_widgetNavigations->width();
-                int y = m_ui->m_widgetNavigations->y() + m_ui->m_widgetNavigations->height();
+                int x = m_ui->widgetNavigations->x() + m_ui->widgetNavigations->width();
+                int y = m_ui->widgetNavigations->y() + m_ui->widgetNavigations->height();
                 power_menu.exec(mapToGlobal(QPoint(x, y)));
             });
 }
@@ -320,25 +322,27 @@ AppItem *Window::newAppItem(QString appId)
 void Window::runApp(QString appId)
 {
     KService::Ptr service = KService::serviceByStorageId(appId);
-
-    if (service)
+    if (!service)
     {
-        KLOG_INFO() << appId << service->exec();
-        // 启动应用
-        //  QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
-        auto *job = new KIO::ApplicationLauncherJob(service);
-        job->start();
+        KLOG_WARNING(LCMenu) << "Service not found for appId: " << appId;
+        return;
+    }
 
-        // 通知kactivitymanagerd
-        KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+    KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
+    // 启动应用
+    //  QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
+    auto *job = new KIO::ApplicationLauncherJob(service);
+    job->start();
 
-        auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
-        QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
-        if (newApps.contains(newApps))
-        {
-            newApps.removeAll(appId);
-            gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, newApps);
-        }
+    // 通知kactivitymanagerd
+    KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
+    QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
+    if (newApps.contains(newApps))
+    {
+        newApps.removeAll(appId);
+        gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, newApps);
     }
 }
 
@@ -358,7 +362,7 @@ void Window::isInFavorite(const QString &appId, bool &isFavorite)
 void Window::addToFavorite(const QString &appId)
 {
     QString appIdTemp = QLatin1String("applications:") + appId;
-    KLOG_WARNING() << "addToFavorite" << appIdTemp;
+    KLOG_WARNING(LCMenu) << "addToFavorite" << appIdTemp;
     m_actStatsWatcher->linkToActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
@@ -404,7 +408,7 @@ void Window::addToDesktop(const QString &appId)
 
     if (desktopPaths.isEmpty())
     {
-        KLOG_WARNING() << "Desktop path not found.";
+        KLOG_WARNING(LCMenu) << "Desktop path not found.";
         return;
     }
     QString desktopPath = desktopPaths.first();
@@ -417,7 +421,7 @@ void Window::addToDesktop(const QString &appId)
         QFile::copy(s->entryPath(), destPath);
         if (!QFile(destPath).exists())
         {
-            KLOG_WARNING() << "Desktop file copy failed, from" << s->entryPath() << "to" << destPath;
+            KLOG_WARNING(LCMenu) << "Desktop file copy failed, from" << s->entryPath() << "to" << destPath;
             return;
         }
         QFile::Permissions permissions = QFileInfo(destPath).permissions();
@@ -428,33 +432,33 @@ void Window::addToDesktop(const QString &appId)
 
 void Window::updateUserInfo()
 {
-    //    KLOG_INFO() << "Window::updateUserInfo";
+    //    KLOG_INFO(LCMenu)() << "Window::updateUserInfo";
 
-    m_ui->m_labelUserName->setText(tr("Hello,") + qgetenv("USER"));
+    m_ui->labelUserName->setText(tr("Hello,") + qgetenv("USER"));
 
     QString iconFile = m_ksAccountsUser->icon_file();
     if (!iconFile.isEmpty() && QFile(iconFile).exists())
     {
-        m_ui->m_btnUserPhoto->setIcon(QIcon(iconFile));
+        m_ui->btnUserPhoto->setIcon(QIcon(iconFile));
     }
     else
     {
-        m_ui->m_btnUserPhoto->setIcon(QIcon(":/images/images/avatar_default.png"));
+        m_ui->btnUserPhoto->setIcon(QIcon(":/images/images/avatar_default.png"));
     }
 }
 
 void Window::updatePopular()
 {
-    Utility::clearLayout(m_ui->m_gridLayoutPopularApp, true);
+    Utility::clearLayout(m_ui->gridLayoutPopularApp, true);
 
     const auto query = UsedResources | HighScoredFirst | Agent::any() | Type::any() | Activity::any() | Url::startsWith(QStringLiteral("applications:")) | Limit(4);
 
-    //    KLOG_INFO() << "Query: " << query;
+    //    KLOG_INFO(LCMenu)() << "Query: " << query;
 
     int col = 0;
     for (const ResultSet::Result &result : ResultSet(query))
     {
-        //        KLOG_INFO() << result.title();
+        //        KLOG_INFO(LCMenu)() << result.title();
         QString serviceId = QUrl(result.resource()).path();
         KService::Ptr service = KService::serviceByStorageId(serviceId);
         if (!service || !service->isValid())
@@ -464,13 +468,13 @@ void Window::updatePopular()
 
         AppItem *appItem = newAppItem(serviceId);
 
-        m_ui->m_gridLayoutPopularApp->addWidget(appItem, 0, col++);
+        m_ui->gridLayoutPopularApp->addWidget(appItem, 0, col++);
     }
 }
 
 void Window::updateFavorite()
 {
-    Utility::clearLayout(m_ui->m_gridLayoutFavoriteApp, true);
+    Utility::clearLayout(m_ui->gridLayoutFavoriteApp, true);
     m_favoriteAppId.clear();
 
     int colMax = 4;
@@ -490,7 +494,7 @@ void Window::updateFavorite()
         }
         AppItem *appItem = newAppItem(serviceId);
 
-        m_ui->m_gridLayoutFavoriteApp->addWidget(appItem, rowIndex, colIndex++);
+        m_ui->gridLayoutFavoriteApp->addWidget(appItem, rowIndex, colIndex++);
 
         if (colIndex >= colMax)
         {

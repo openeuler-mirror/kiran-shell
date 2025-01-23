@@ -17,7 +17,6 @@
 #include <KWindowSystem>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QTimer>
 
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
@@ -40,15 +39,15 @@ WindowThumbnail::WindowThumbnail(WId wid, QWidget *parent)
 
     // 标题栏图标
     QPixmap icon = KWindowSystem::icon(m_wid, 25, 25, true);
-    m_ui->m_labelAppIcon->setPixmap(icon);
+    m_ui->labelAppIcon->setPixmap(icon);
     updateVisualName();
 
     // FIXME:待主题开发好之后去掉
     QString style = "QPushButton{background:transparent; border:none; image:url(:/images/images/close_normal.png);} \
                     QPushButton:hover{image:url(:/images/images/close_hover.png);} \
                     QPushButton:pressed{image:url(:/images/images/close_pressed.png);}";
-    m_ui->m_btnClose->setStyleSheet(style);
-    m_ui->m_btnClose->hide();
+    m_ui->btnClose->setStyleSheet(style);
+    m_ui->btnClose->hide();
 
     connect(&WindowManagerInstance, &Common::WindowManager::previewrUpdated, this, [this](WId wid)
             {
@@ -96,7 +95,7 @@ void WindowThumbnail::mouseReleaseEvent(QMouseEvent *event)
 void WindowThumbnail::enterEvent(QEvent *event)
 {
     m_isHover = true;
-    m_ui->m_btnClose->show();
+    m_ui->btnClose->show();
 
     update();  // 触发重绘
     QWidget::enterEvent(event);
@@ -105,7 +104,7 @@ void WindowThumbnail::enterEvent(QEvent *event)
 void WindowThumbnail::leaveEvent(QEvent *event)
 {
     m_isHover = false;
-    m_ui->m_btnClose->hide();
+    m_ui->btnClose->hide();
 
     update();  // 触发重绘
     QWidget::leaveEvent(event);
@@ -139,22 +138,22 @@ void WindowThumbnail::refresh()
     //    new Common::WindowManager();
     if (pix.isNull())
     {
-        m_ui->m_labelGrabWindow->setPixmap(KWindowSystem::icon(m_wid, 60, 60, true));
+        m_ui->labelGrabWindow->setPixmap(KWindowSystem::icon(m_wid, 60, 60, true));
     }
-    else if (pix.size() != m_ui->m_labelGrabWindow->size())
+    else if (pix.size() != m_ui->labelGrabWindow->size())
     {
-        pix = pix.scaled(m_ui->m_labelGrabWindow->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        m_ui->m_labelGrabWindow->setPixmap(pix);
+        pix = pix.scaled(m_ui->labelGrabWindow->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        m_ui->labelGrabWindow->setPixmap(pix);
     }
 }
 
 void WindowThumbnail::updateVisualName()
 {
     QString visibleName = WindowInfoHelper::getAppNameByWId(m_wid);
-    QFontMetrics fontMetrics = m_ui->m_labelAppName->fontMetrics();
-    int elidedTextLen = m_ui->m_labelAppName->width();
+    QFontMetrics fontMetrics = m_ui->labelAppName->fontMetrics();
+    int elidedTextLen = m_ui->labelAppName->width();
     QString elideText = Utility::getElidedText(fontMetrics, visibleName, elidedTextLen);
-    m_ui->m_labelAppName->setText(elideText);
+    m_ui->labelAppName->setText(elideText);
 
     setToolTip(visibleName);
 }
@@ -166,7 +165,7 @@ void WindowThumbnail::getOriginalSize(int &scaleWidth, int &scaleHeight, int &ex
     scaleHeight = originalSize.height();
 
     // 标题高度 控件间距 上下margin
-    int addHeight = m_ui->m_labelAppName->height();
+    int addHeight = m_ui->labelAppName->height();
     addHeight += layout()->spacing();
     addHeight += layout()->contentsMargins().top() + layout()->contentsMargins().bottom();
     extraHeight = addHeight;
@@ -175,7 +174,7 @@ void WindowThumbnail::getOriginalSize(int &scaleWidth, int &scaleHeight, int &ex
     extraWidth = addWidth;
 }
 
-void WindowThumbnail::on_m_btnClose_clicked()
+void WindowThumbnail::on_btnClose_clicked()
 {
     WindowInfoHelper::closeWindow(m_wid);
 }

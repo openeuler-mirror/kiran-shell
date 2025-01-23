@@ -13,12 +13,10 @@
  */
 
 #include <qt5-log-i.h>
-#include <QCoreApplication>
 #include <QDBusConnection>
-#include <QDBusConnectionInterface>
-#include <QDBusMessage>
 
 #include "lib/common/dbus-service-watcher.h"
+#include "lib/common/logging-category.h"
 #include "status-notifier-watcher.h"
 #include "statusnotifierwatcherinterface.h"
 
@@ -65,12 +63,12 @@ void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QS
     // If it was registered, oldOwner will contain an empty string,
     // whereas if it was unregistered, newOwner will contain an empty string
 
-    KLOG_INFO() << "Service" << service << "status change, old owner:" << oldOwner << "new:" << newOwner;
+    KLOG_INFO(LCSystemtray) << "Service" << service << "status change, old owner:" << oldOwner << "new:" << newOwner;
 
     // 能接收到这个信号，说明有其他面板程序注册了服务，如：kiran-applet
     if (newOwner.isEmpty())
     {
-        KLOG_INFO() << "other program is unregistered, start to register" << SERVICE_NAME;
+        KLOG_INFO(LCSystemtray) << "other program is unregistered, start to register" << SERVICE_NAME;
 
         registerServer();
     }
@@ -109,11 +107,11 @@ void StatusNotifierWatcher::registerServer()
     if (!dbus.registerService(SERVICE_NAME) ||
         !dbus.registerObject(WATCHER_PATH, this, QDBusConnection::ExportAllContents))
     {
-        KLOG_WARNING() << "service register failed:" << SERVICE_NAME << ", because other program is registered earlier";
+        KLOG_WARNING(LCSystemtray) << "service register failed:" << SERVICE_NAME << ", because other program is registered earlier";
     }
     else
     {
-        KLOG_INFO() << "service register ok:" << SERVICE_NAME;
+        KLOG_INFO(LCSystemtray) << "service register ok:" << SERVICE_NAME;
         // 启动　x转sni　服务
         startXembedSniProxy();
     }
@@ -130,11 +128,11 @@ void StatusNotifierWatcher::startXembedSniProxy()
     m_xembedSniProxy->start("xembedsniproxy", QStringList());
     if (m_xembedSniProxy->waitForStarted())
     {
-        KLOG_INFO() << "xembedsniproxy 启动成功";
+        KLOG_INFO(LCSystemtray) << "xembedsniproxy start ok";
     }
     else
     {
-        KLOG_INFO() << "xembedsniproxy 启动失败，失败信息：" << m_xembedSniProxy->readAll();
+        KLOG_INFO(LCSystemtray) << "xembedsniproxy start failed:" << m_xembedSniProxy->readAll();
         m_xembedSniProxy->deleteLater();
         m_xembedSniProxy = nullptr;
     }
@@ -150,11 +148,11 @@ void StatusNotifierWatcher::killXembedSniProxy()
             if (!m_xembedSniProxy->waitForFinished(3000))
             {
                 m_xembedSniProxy->kill();  // SIGKILL
-                KLOG_INFO() << "xembedsniproxy 进程被强制终止。";
+                KLOG_INFO(LCSystemtray) << "xembedsniproxy has been killed(SIGKILL).";
             }
             else
             {
-                KLOG_INFO() << "xembedsniproxy 进程已成功终止。";
+                KLOG_INFO(LCSystemtray) << "xembedsniproxy has been terminated.";
             }
         }
 
@@ -168,18 +166,18 @@ void StatusNotifierWatcher::killXembedSniProxy()
         process.start("pkill", {"xembedsniproxy"});
         if (process.waitForFinished())
         {
-            KLOG_INFO() << "xembedsniproxy 进程已被终止";
+            KLOG_INFO(LCSystemtray) << "xembedsniproxy has been killed";
         }
         else
         {
-            KLOG_INFO() << "xembedsniproxy 无法终止";
+            KLOG_INFO(LCSystemtray) << "xembedsniproxy can not be kill";
         }
     }
 }
 
 void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &service)
 {
-    KLOG_INFO() << "StatusNotifierWatcher::RegisterStatusNotifierItem" << service;
+    KLOG_INFO(LCSystemtray) << "StatusNotifierWatcher::RegisterStatusNotifierItem" << service;
 
     QString itemId = service + "/StatusNotifierItem";
     if (m_registeredServices.contains(itemId))
@@ -197,7 +195,7 @@ void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &service)
 void StatusNotifierWatcher::RegisterStatusNotifierHost(const QString &service)
 {
     // 不需要管理
-    KLOG_INFO() << "StatusNotifierWatcher::RegisterStatusNotifierHost" << service;
+    KLOG_INFO(LCSystemtray) << "StatusNotifierWatcher::RegisterStatusNotifierHost" << service;
 }
 
 QStringList StatusNotifierWatcher::RegisteredStatusNotifierItems() const
