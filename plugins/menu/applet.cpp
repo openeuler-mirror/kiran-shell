@@ -67,7 +67,7 @@ void Applet::setupWindow()
 void Applet::setupAppletButton()
 {
     m_appletButton = new StyledButton(this);
-    m_appletButton->setIconSize(QSize(24, 24));
+    m_appletButton->setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
     m_appletButton->setToolTip(tr("Start Menu"));
 

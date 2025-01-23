@@ -96,7 +96,10 @@ namespace Kiran
 #define PANEL_SCHEMA_KEY_ORIENTATION "orientation"
 #define PANEL_SCHEMA_KEY_MONITOR "monitor"
 
+// 标准按钮图标的四周空白像素
 #define BUTTON_BLANK_SPACE 6
+// 面板上的应用图标的像素大小
+#define PANEL_APP_ICON_SIZE 24
 
 enum PanelOrientation
 {

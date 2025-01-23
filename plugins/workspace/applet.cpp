@@ -47,7 +47,7 @@ Applet::Applet(IAppletImport *import)
     setToolTip(tr("Workspace switcher"));
 
     m_appletButton = new StyledButton(this);
-    m_appletButton->setIconSize(QSize(24, 24));
+    m_appletButton->setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
 

@@ -94,7 +94,7 @@ private:
     void init();
 
     // 关联KWindowSystem，增加或关闭窗口
-    void addWindow(QByteArray wmClass, WId wid);
+    void addWindow(const QByteArray &wmClass, WId wid);
     void removeWindow(WId wid);
     void changedActiveWindow(WId wid);
 
@@ -107,7 +107,6 @@ private:
     void changePreviewerShow(WId wid);
     void windowCloseAll();
 
-private:
     // 新建app按钮
     AppButton *newAppBtn();
 
@@ -115,9 +114,6 @@ private:
     QBoxLayout::Direction getLayoutDirection();
 
 signals:
-    //  打开或关闭窗口软件
-    void windowAdded(QByteArray wmClass, WId wid);
-    void windowRemoved(WId wid);
     // 窗口属性变化
     void windowChanged(WId, NET::Properties, NET::Properties2);
     void activeWindowChanged(WId);

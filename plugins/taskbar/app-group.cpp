@@ -77,7 +77,7 @@ void AppGroup::setDragData(const QUrl &url)
 
 void AppGroup::getRelationAppSize(int &size)
 {
-    if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool() && m_mapWidButton.size() > 0)
+    if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool() && !m_mapWidButton.empty())
     {
         size = 1;
     }
@@ -133,7 +133,7 @@ void AppGroup::init()
     m_layout->setSpacing(8);
     m_layout->setContentsMargins(0, 0, 0, 0);
 
-    Window *window = (Window *)parent();
+    auto *window = (Window *)parent();
     connect(window, &Window::windowAdded, this, &AppGroup::addWindow);
     connect(window, &Window::windowRemoved, this, &AppGroup::removeWindow);
     connect(window, &Window::windowChanged, this, &AppGroup::windowChanged);
@@ -200,20 +200,16 @@ void AppGroup::mouseReleaseEvent(QMouseEvent *event)
     emit moveGroupEnded(this);
 }
 
-void AppGroup::addWindow(QByteArray wmClass, WId wid)
+void AppGroup::addWindow(const QByteArray &wmClass, WId wid)
 {
     if (m_mapWidButton.contains(wid))
     {
         return;
     }
-
-    if (wmClass != m_appBaseInfo.m_wmClass)
-    {
-        return;
-    }
-
     QUrl url = WindowInfoHelper::getUrlByWId(wid);
-    if (url != m_appBaseInfo.m_url)
+
+    // 一些软件拉起的另一个窗口 wmClass 不一致，但desktopfile一致，如uniface
+    if (wmClass != m_appBaseInfo.m_wmClass && url != m_appBaseInfo.m_url)
     {
         return;
     }
@@ -226,8 +222,6 @@ void AppGroup::addWindow(QByteArray wmClass, WId wid)
     m_mapWidButton[wid] = appButton;
 
     updateLayout();
-
-    emit windowAdded(wmClass, wid);
 }
 
 void AppGroup::removeWindow(WId wid)
@@ -261,16 +255,12 @@ void AppGroup::removeWindow(WId wid)
     {
         emit emptyGroup(this);
     }
-    else
-    {
-        emit windowRemoved(wid);
-    }
 }
 
 void AppGroup::changedActiveWindow(WId wid)
 {
     // 激活按钮
-    for (auto iter : m_mapWidButton)
+    for (auto *iter : m_mapWidButton)
     {
         iter->setChecked(false);
     }
@@ -329,7 +319,7 @@ void AppGroup::updateLayout()
         // 根据当前模式，显示不一样的结果
         if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
         {
-            for (auto iter : m_mapWidButton)
+            for (auto *iter : m_mapWidButton)
             {
                 appButtons.append(iter);
                 iter->setShowVisualName(true);
@@ -345,7 +335,7 @@ void AppGroup::updateLayout()
         }
     }
 
-    for (auto btn : appButtons)
+    for (auto *btn : appButtons)
     {
         btn->show();
         m_layout->addWidget(btn);
@@ -354,8 +344,8 @@ void AppGroup::updateLayout()
 
 AppButton *AppGroup::newAppBtn()
 {
-    Window *appButtonContainer = (Window *)parent();
-    AppButton *appButton = new AppButton(m_import, this);
+    auto *appButtonContainer = (Window *)parent();
+    auto *appButton = new AppButton(m_import, this);
     connect(appButton, &AppButton::previewerShow, this, &AppGroup::showPreviewer);
     connect(appButton, &AppButton::previewerHide, this, &AppGroup::previewerHide);
     connect(appButton, &AppButton::previewerShowChange, this, &AppGroup::changePreviewerShow);
@@ -365,7 +355,7 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::isInTasklist, this, &AppGroup::isInTasklist, Qt::DirectConnection);
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
-    connect(appButton, &AppButton::addToTasklist, this, [this](const QUrl url)
+    connect(appButton, &AppButton::addToTasklist, this, [this](const QUrl &url)
             {
                 emit addToTasklist(url, this);
             });

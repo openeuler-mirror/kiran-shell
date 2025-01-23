@@ -76,11 +76,9 @@ QString WindowInfoHelper::getAppNameByWId(WId wid)
     {
         return info.visibleName();
     }
-    else
-    {
-        KLOG_WARNING(LCLib) << "can't find app name by wid:" << wid;
-        return "";
-    }
+
+    KLOG_WARNING(LCLib) << "can't find app name by wid:" << wid;
+    return "";
 }
 
 QString WindowInfoHelper::getAppIconByWId(WId wid)
@@ -90,11 +88,9 @@ QString WindowInfoHelper::getAppIconByWId(WId wid)
     {
         return info.iconName();
     }
-    else
-    {
-        KLOG_WARNING(LCLib) << "can't find app icon by wid:" << wid;
-        return "";
-    }
+
+    KLOG_WARNING(LCLib) << "can't find app icon by wid:" << wid;
+    return "";
 }
 
 bool WindowInfoHelper::hasState(WId wid, NET::States s)
@@ -164,7 +160,7 @@ void WindowInfoHelper::closeWindow(WId wid)
     case KWindowSystem::Platform::Wayland:
     {
         // TODO:wayland关闭软件
-        QWindow *window = QWindow::fromWinId(wid);
+        QWindow* window = QWindow::fromWinId(wid);
         if (window)
         {
             window->close();
@@ -239,7 +235,7 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return desktopFile;
     }
 
-    KLOG_WARNING(LCLib) << "can't find url by Wid:" << wid;
+    KLOG_WARNING(LCLib) << "can't find url by Wid:" << wid << getAppNameByWId(wid);
 
     return desktopFile;
 }
@@ -251,7 +247,7 @@ QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
 
     QByteArray environ = Utility::runCmd("cat", {QString("/proc/%1/environ").arg(pid)});
     QByteArrayList envsList = environ.split('\0');
-    for (auto env : envsList)
+    for (const auto& env : envsList)
     {
         if (env.startsWith(desktopFileEnv))
         {

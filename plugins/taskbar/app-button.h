@@ -104,7 +104,7 @@ private:
     QString m_visualName;                     // 显示的文本
     bool m_isShowName;
 
-    bool m_dragFlag;  //当触发组拖动时，不响应按钮的点击事件
+    bool m_dragFlag;  // 当触发组拖动时，不响应按钮的点击事件
 };
 
 }  // namespace Taskbar

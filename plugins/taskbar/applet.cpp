@@ -43,7 +43,7 @@ Applet::Applet(IAppletImport *import)
     }
 
     m_window = new Window(m_import, this);
-    QGridLayout *gridLayout = new QGridLayout(this);
+    auto *gridLayout = new QGridLayout(this);
     gridLayout->setMargin(0);
     gridLayout->setSpacing(0);
     gridLayout->addWidget(m_window);
