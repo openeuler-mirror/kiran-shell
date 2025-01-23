@@ -35,9 +35,8 @@ class WirelessManager : public QObject
 public:
     static WirelessManager& getInstance();
 
-    // 无线管理
-    void AddToManager(const QString& deviceUni);
-    void RemoveFromManager(const QString& deviceUni);
+    // 获取当前管理的设备
+    QStringList getDevices();
 
     // 无线信息获取
     WirelessNetworkInfoList getNetworkInfoList(const QString& deviceUni);
@@ -57,7 +56,16 @@ private:
 
     void changeActiveConnection();
 
+    // 更新设备管理列表
+    void updateNetworkStatus();
+
+    // 无线管理
+    void AddToManager(const QString& deviceUni);
+    void RemoveFromManager(const QString& deviceUni);
+
 signals:
+    void netStatusChanged();
+
     // 无线连接点变化
     void networkAppeared(QString deviceUni, QString ssid);
     void networkDisappeared(QString deviceUni, QString ssid);
@@ -72,7 +80,7 @@ signals:
 private:
     QMap<QString, WirelessNetworkManager*> m_deviceManagerMap;
     QMap<QString, NetworkManager::ActiveConnection::Ptr> m_deviceActiveConnectMap;
-    NMSecretAgent* m_secretAgent = NULL;
+    NMSecretAgent* m_secretAgent = nullptr;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

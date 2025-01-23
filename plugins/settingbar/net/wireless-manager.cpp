@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "lib/common/logging-category.h"
+#include "net-common.h"
 #include "wireless-manager.h"
 
 namespace Kiran
@@ -34,11 +35,14 @@ WirelessManager::WirelessManager(QObject *parent)
     // 尝试连接时，SecretAgent请求密码，弹出密码框
     m_secretAgent = new NMSecretAgent(this);
     connect(m_secretAgent, &NMSecretAgent::requestPassword, this, &WirelessManager::requestPassword);
+
+    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WirelessManager::updateNetworkStatus);
+    updateNetworkStatus();
 }
 
 void WirelessManager::changeActiveConnection()
 {
-    auto device = qobject_cast<NetworkManager::Device *>(sender());
+    auto *device = qobject_cast<NetworkManager::Device *>(sender());
     auto deviceUni = device->uni();
 
     auto activeConnection = device->activeConnection();
@@ -62,10 +66,45 @@ void WirelessManager::changeActiveConnection()
     }
 }
 
+void WirelessManager::updateNetworkStatus()
+{
+    QStringList currentDeviceUnis;
+    NetworkManager::Device::List devices = NetCommonInstance.getWifiDevices();
+    for (const auto &device : devices)
+    {
+        currentDeviceUnis.append(device->uni());
+    }
+
+    for (const auto &uni : currentDeviceUnis)
+    {
+        if (m_deviceManagerMap.contains(uni))
+        {
+            continue;
+        }
+        AddToManager(uni);
+    }
+
+    for (const auto &uni : m_deviceManagerMap.keys())
+    {
+        if (currentDeviceUnis.contains(uni))
+        {
+            continue;
+        }
+        RemoveFromManager(uni);
+    }
+
+    emit netStatusChanged();
+}
+
 WirelessManager &WirelessManager::getInstance()
 {
     static WirelessManager instance;
     return instance;
+}
+
+QStringList WirelessManager::getDevices()
+{
+    return m_deviceManagerMap.keys();
 }
 
 void WirelessManager::AddToManager(const QString &deviceUni)
@@ -93,7 +132,7 @@ void WirelessManager::AddToManager(const QString &deviceUni)
                     emit stateChanged(deviceUni, newstate);
                 });
 
-        for (auto networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())
+        for (const auto &networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())
         {
             emit networkAppeared(deviceUni, networkInfo.ssid);
         }
@@ -104,7 +143,7 @@ void WirelessManager::RemoveFromManager(const QString &deviceUni)
 {
     if (m_deviceManagerMap.contains(deviceUni))
     {
-        auto deviceManager = m_deviceManagerMap[deviceUni];
+        auto *deviceManager = m_deviceManagerMap[deviceUni];
         delete deviceManager;
         m_deviceManagerMap.remove(deviceUni);
     }

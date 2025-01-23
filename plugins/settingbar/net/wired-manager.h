@@ -31,14 +31,22 @@ class WiredManager : public QObject
 public:
     static WiredManager& getInstance();
 
-    // 有线管理
-    void AddToManager(const QString& deviceUni);
-    void RemoveFromManager(const QString& deviceUni);
+    // 获取当前管理的设备
+    QStringList getDevices();
 
 private:
     explicit WiredManager(QObject* parent = nullptr);
 
+    // 更新设备管理列表
+    void updateNetworkStatus();
+
+    // 有线管理
+    void AddToManager(const QString& deviceUni);
+    void RemoveFromManager(const QString& deviceUni);
+
 signals:
+    void netStatusChanged();
+
     // 有线连接点变化
     void availableConnectionAppeared(QString deviceUni, QString connectionUuid);
     void availableConnectionDisappeared(QString deviceUni, QString connectionUuid);
