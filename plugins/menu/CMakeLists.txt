@@ -49,8 +49,13 @@ qt_add_dbus_interface(
   DBUS_INTERFACES ${PROJECT_SOURCE_DIR}/dbus/org.gnome.SessionManager.xml
   gnome_session_manager_interface)
 
+qt5_add_dbus_adaptor(
+  DBUS_ADAPTOR_SRC ${PROJECT_SOURCE_DIR}/dbus/com.kylinsec.Kiran.Shell.Menu.xml
+  ${CMAKE_SOURCE_DIR}/plugins/menu/applet.h Kiran::Menu::Applet
+  shell_menu_adaptor ShellMenuAdaptor)
+
 add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES}
-                                  ${QM_FILES} ${DBUS_INTERFACES})
+                                  ${QM_FILES} ${DBUS_INTERFACES} ${DBUS_ADAPTOR_SRC})
 
 target_include_directories(
   ${TARGET_NAME}
