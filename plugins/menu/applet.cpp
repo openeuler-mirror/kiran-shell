@@ -23,8 +23,11 @@
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "window.h"
+#include "shell_menu_adaptor.h"
 
 #define LAYOUT_MARGIN 4
+#define SHELL_BUS "com.kylinsec.Kiran.Shell"
+#define SHELL_BUS_MENU_PATH "/com/kylinsec/Kiran/Shell/Menu"
 
 namespace Kiran
 {
@@ -39,10 +42,25 @@ Applet::Applet(IAppletImport *import)
     setupWindow();
     setupAppletButton();
     setupLayout();
+    setupDbus();
 }
 
 Applet::~Applet()
 {
+}
+
+void Applet::activateStartMenu()
+{
+    if (!m_window->isVisible())
+    {
+        KLOG_INFO(LCMenu) << "show menu by dbus";
+        showMenu();
+    }
+    else
+    {
+        KLOG_INFO(LCMenu) << "hide menu by dbus";
+        hideMenu();
+    }
 }
 
 void Applet::initializeTranslator()
@@ -86,17 +104,44 @@ void Applet::setupLayout()
     setFixedSize(size, size);
 }
 
+void Applet::setupDbus()
+{
+    new ShellMenuAdaptor(this);
+
+    auto sessionConnection = QDBusConnection::sessionBus();
+    if (!sessionConnection.registerService(SHELL_BUS))
+    {
+        KLOG_WARNING() << "Failed to register dbus name: " << SHELL_BUS << sessionConnection.lastError();
+    }
+
+    if (!sessionConnection.registerObject(SHELL_BUS_MENU_PATH, this))
+    {
+        KLOG_WARNING() << "Can't register object:" << SHELL_BUS_MENU_PATH << sessionConnection.lastError();
+    }
+}
+
 void Applet::clickButton(bool checked)
 {
     if (checked)
     {
-        m_window->show();
-        m_appletButton->setEnabled(false);
-
-        auto oriention = m_import->getPanel()->getOrientation();
-        Utility::updatePopWidgetPos(oriention, this, m_window);
+        showMenu();
     }
 }
+
+void Applet::showMenu()
+{
+    m_window->show();
+    m_appletButton->setEnabled(false);
+    m_appletButton->setChecked(true);
+
+    auto oriention = m_import->getPanel()->getOrientation();
+    Utility::updatePopWidgetPos(oriention, this, m_window);
+
+    // 激活开始菜单
+    m_window->raise();
+    m_window->activateWindow();
+}
+
 void Applet::hideMenu()
 {
     m_window->hide();

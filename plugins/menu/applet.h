@@ -36,13 +36,18 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
+public slots:
+    void activateStartMenu();
+
 private:
     void initializeTranslator();
     void setupWindow();
     void setupAppletButton();
     void setupLayout();
+    void setupDbus();
 
     void clickButton(bool checked);
+    void showMenu();
     void hideMenu();
 
 private:
