@@ -31,10 +31,6 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
-private slots:
-    // panel布局信息发生变化
-    void updateLayout();
-
 private:
     IAppletImport *m_import;
 
