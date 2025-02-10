@@ -18,14 +18,20 @@
 #include "lib/common/dbus-service-watcher.h"
 #include "lib/common/logging-category.h"
 #include "status-notifier-watcher.h"
-#include "statusnotifierwatcherinterface.h"
+#include "status_notifier_watcher_adaptor.h"
 
 #define SERVICE_NAME QLatin1String("org.kde.StatusNotifierWatcher")
 #define WATCHER_PATH QLatin1String("/StatusNotifierWatcher")
 
+namespace Kiran
+{
+namespace Systemtray
+{
 StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     : QObject{parent}, m_xembedSniProxy(nullptr)
 {
+    new StatusNotifierWatcherAdaptor(this);
+
     registerServer();
 
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
@@ -112,8 +118,19 @@ void StatusNotifierWatcher::registerServer()
     else
     {
         KLOG_INFO(LCSystemtray) << "service register ok:" << SERVICE_NAME;
-        // 启动　x转sni　服务
-        startXembedSniProxy();
+
+        // 启动XEmbed转StatusNotifierItem服务
+        // 这里需要等StatusNotifierWatcher构造完成，才能启动
+        // XembedSniProxy会在StatusNotifierWatcher构造过程中
+        // 检测到XCB_CLIENT_MESSAGE，尝试RegisterStatusNotifierItem，
+        // 由于XembedSniProxy进行RegisterStatusNotifierItem的条件是XCB_CLIENT_MESSAGE，所以这里会进行多次，收到几次就注册几次
+        // 如果StatusNotifierWatcher未准备好，会卡顿，同时会造成构造空的item项
+        // （XembedSniProxy RegisterStatusNotifierItem失败后，下次RegisterStatusNotifierItem时，标识是新的）
+
+        QTimer::singleShot(3000, [this]()
+                           {
+                               startXembedSniProxy();
+                           });
     }
 }
 
@@ -202,3 +219,5 @@ QStringList StatusNotifierWatcher::RegisteredStatusNotifierItems() const
 {
     return m_registeredServices;
 }
+}  // namespace Systemtray
+}  // namespace Kiran
