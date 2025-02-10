@@ -17,26 +17,40 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} ${UI_FILES} -ts
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
 # dbus相关接口生成 org.kde.StatusNotifierWatcher.xml
-set(statusnotifierwatcherxml org.kde.StatusNotifierWatcher.xml)
-qt5_generate_dbus_interface(status-notifier-watcher.h
-                            ${statusnotifierwatcherxml} OPTIONS -A)
-# statusnotifierwatcherinterface
-qt5_add_dbus_interface(
-  CPP_FILES ${CMAKE_CURRENT_BINARY_DIR}/${statusnotifierwatcherxml}
-  statusnotifierwatcherinterface)
+set(statusnotifierwatcherxml
+    ${PROJECT_SOURCE_DIR}/dbus/org.kde.StatusNotifierWatcher.xml)
+qt_add_dbus_adaptor(
+  DBUS_ADAPTOR_SRC
+  ${statusnotifierwatcherxml}
+  ${CMAKE_SOURCE_DIR}/plugins/systemtray/status-notifier-watcher.h
+  Kiran::Systemtray::StatusNotifierWatcher
+  status_notifier_watcher_adaptor
+  StatusNotifierWatcherAdaptor)
+set_source_files_properties(
+  ${statusnotifierwatcherxml}
+  PROPERTIES NO_NAMESPACE TRUE CLASSNAME StatusNotifierWatcherInterface)
+qt_add_dbus_interface(DBUS_INTERFACES_SRC ${statusnotifierwatcherxml}
+                      status_notifier_watcher_interface)
 
-set(statusnotifieritemxml org.kde.StatusNotifierItem.xml)
+set(statusnotifieritemxml
+    ${PROJECT_SOURCE_DIR}/dbus/org.kde.StatusNotifierItem.xml)
 set_source_files_properties(
   ${statusnotifieritemxml}
   PROPERTIES NO_NAMESPACE TRUE
              INCLUDE "tray-data-types.h"
-             CLASSNAME OrgKdeStatusNotifierItem)
-# statusnotifieriteminterface
-qt5_add_dbus_interface(CPP_FILES ${statusnotifieritemxml}
-                       statusnotifieriteminterface)
+             CLASSNAME StatusNotifierItemInterface)
+qt_add_dbus_interface(DBUS_INTERFACES_SRC ${statusnotifieritemxml}
+                      status_notifier_item_interface)
 
-add_library(${TARGET_NAME} SHARED ${H_FILES} ${CPP_FILES} ${UI_FILES}
-                                  ${DBUS_SOURCES} ${QM_FILES})
+add_library(
+  ${TARGET_NAME} SHARED
+  ${H_FILES}
+  ${CPP_FILES}
+  ${UI_FILES}
+  ${DBUS_SOURCES}
+  ${QM_FILES}
+  ${DBUS_ADAPTOR_SRC}
+  ${DBUS_INTERFACES_SRC})
 
 target_include_directories(
   ${TARGET_NAME}

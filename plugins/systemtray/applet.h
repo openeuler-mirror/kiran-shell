@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <kiran-color-block.h>
+#include <QWidget>
 
 #include "plugin-i.h"
 

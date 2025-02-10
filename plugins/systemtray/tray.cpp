@@ -98,13 +98,13 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
     QDBusConnection::sessionBus().registerService(m_statusNotifierHostName);
 
     // 托盘服务监控
-    m_statusNotifierWatcherInterface = new org::kde::StatusNotifierWatcher(
+    m_statusNotifierWatcherInterface = new StatusNotifierWatcherInterface(
         SERVICE_NAME, WATCHER_PATH, QDBusConnection::sessionBus(), this);
     connect(m_statusNotifierWatcherInterface,
-            &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemRegistered,
+            &StatusNotifierWatcherInterface::StatusNotifierItemRegistered,
             this, &Tray::statusNotifierItemRegister);
     connect(m_statusNotifierWatcherInterface,
-            &OrgKdeStatusNotifierWatcherInterface::StatusNotifierItemUnregistered,
+            &StatusNotifierWatcherInterface::StatusNotifierItemUnregistered,
             this, &Tray::statusNotifierItemUnregister);
 
     // 此步骤需要，虽然本程序不管理host，但为了确保当StatusNotifierWatcher服务由其他进程控制时，若需要管理host能识别到本程序

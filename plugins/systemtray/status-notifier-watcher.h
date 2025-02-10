@@ -14,20 +14,18 @@
 
 #pragma once
 
-#include <QDBusContext>
 #include <QObject>
 #include <QStringList>
 
-#include "statusnotifierwatcherinterface.h"
-
 class QProcess;
-class StatusNotifierWatcher : public QObject, protected QDBusContext
+
+namespace Kiran
+{
+namespace Systemtray
+{
+class StatusNotifierWatcher : public QObject
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.kde.StatusNotifierWatcher")
-    Q_PROPERTY(QStringList RegisteredStatusNotifierItems READ RegisteredStatusNotifierItems)
-    Q_PROPERTY(bool IsStatusNotifierHostRegistered READ IsStatusNotifierHostRegistered)
-    Q_PROPERTY(int ProtocolVersion READ ProtocolVersion)
 
 public:
     StatusNotifierWatcher(QObject *parent = 0);
@@ -70,3 +68,5 @@ private:
 
     QProcess *m_xembedSniProxy;
 };
+}  // namespace Systemtray
+}  // namespace Kiran
