@@ -18,7 +18,8 @@
 #include "lib/common/dbus-service-watcher.h"
 #include "lib/common/logging-category.h"
 #include "status-notifier-watcher.h"
-#include "status_notifier_watcher_adaptor.h"
+#include "status_notifier_item_interface.h"
+#include "statusnotifierwatcheradaptor.h"
 
 #define SERVICE_NAME QLatin1String("org.kde.StatusNotifierWatcher")
 #define WATCHER_PATH QLatin1String("/StatusNotifierWatcher")
@@ -28,14 +29,19 @@ namespace Kiran
 namespace Systemtray
 {
 StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
-    : QObject{parent}, m_xembedSniProxy(nullptr)
+    : QObject{parent}
 {
     new StatusNotifierWatcherAdaptor(this);
 
-    registerServer();
+    m_serviceWatcher = new QDBusServiceWatcher(this);
+    m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
+    m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &StatusNotifierWatcher::serviceUnregistered);
 
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
     DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
+
+    registerServer();
 }
 
 StatusNotifierWatcher::~StatusNotifierWatcher()
@@ -82,6 +88,9 @@ void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QS
 
 void StatusNotifierWatcher::serviceUnregistered(const QString &service)
 {
+    KLOG_INFO(LCSystemtray) << "Service" << service << "unregistered";
+    m_serviceWatcher->removeWatchedService(service);
+
     QString path = service + QLatin1Char('/');
     QStringList::Iterator it = m_registeredServices.begin();
     while (it != m_registeredServices.end())
@@ -192,20 +201,48 @@ void StatusNotifierWatcher::killXembedSniProxy()
     }
 }
 
-void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &service)
+void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &serviceOrPath)
 {
-    KLOG_INFO(LCSystemtray) << "StatusNotifierWatcher::RegisterStatusNotifierItem" << service;
+    KLOG_INFO(LCSystemtray) << "StatusNotifierWatcher::RegisterStatusNotifierItem" << serviceOrPath;
 
-    QString itemId = service + "/StatusNotifierItem";
+    // 兼容path不是全路径的dbus
+    QString service;
+    QString path;
+    if (serviceOrPath.startsWith(QLatin1Char('/')))
+    {
+        service = message().service();
+        path = serviceOrPath;
+    }
+    else
+    {
+        service = serviceOrPath;
+        path = QStringLiteral("/StatusNotifierItem");
+    }
+
+    QString itemId = service + path;
     if (m_registeredServices.contains(itemId))
     {
         return;
     }
 
+    m_serviceWatcher->addWatchedService(service);
     if (QDBusConnection::sessionBus().interface()->isServiceRegistered(service).value())
     {
-        m_registeredServices.append(itemId);
-        emit StatusNotifierItemRegistered(itemId);
+        StatusNotifierItemInterface trayclient(service, path, QDBusConnection::sessionBus());
+        if (trayclient.isValid())
+        {
+            KLOG_INFO(LCSystemtray) << "Registering" << itemId << "to system tray";
+            m_registeredServices.append(itemId);
+            emit StatusNotifierItemRegistered(itemId);
+        }
+        else
+        {
+            m_serviceWatcher->removeWatchedService(service);
+        }
+    }
+    else
+    {
+        m_serviceWatcher->removeWatchedService(service);
     }
 }
 

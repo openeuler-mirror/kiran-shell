@@ -22,10 +22,8 @@ set(statusnotifierwatcherxml
 qt_add_dbus_adaptor(
   DBUS_ADAPTOR_SRC
   ${statusnotifierwatcherxml}
-  ${CMAKE_SOURCE_DIR}/plugins/systemtray/status-notifier-watcher.h
-  Kiran::Systemtray::StatusNotifierWatcher
-  status_notifier_watcher_adaptor
-  StatusNotifierWatcherAdaptor)
+  status-notifier-watcher.h
+  Kiran::Systemtray::StatusNotifierWatcher)
 set_source_files_properties(
   ${statusnotifierwatcherxml}
   PROPERTIES NO_NAMESPACE TRUE CLASSNAME StatusNotifierWatcherInterface)
