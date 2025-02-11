@@ -16,7 +16,7 @@
 
 #include <QObject>
 
-#include "statusnotifieriteminterface.h"
+#include "status_notifier_item_interface.h"
 
 class TrayItemProxy : public QObject
 {
@@ -43,5 +43,5 @@ signals:
     void updateToolTip();
 
 private:
-    OrgKdeStatusNotifierItem m_statusNotifierItem;
+    StatusNotifierItemInterface m_statusNotifierItemInterface;
 };

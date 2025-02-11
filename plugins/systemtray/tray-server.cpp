@@ -14,6 +14,10 @@
 
 #include "tray-server.h"
 
+namespace Kiran
+{
+namespace Systemtray
+{
 TrayServer::TrayServer()
 {
     m_statusNotifierWatcher = new StatusNotifierWatcher(this);
@@ -22,3 +26,5 @@ TrayServer::TrayServer()
 TrayServer::~TrayServer()
 {
 }
+}  // namespace Systemtray
+}  // namespace Kiran
