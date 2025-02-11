@@ -20,7 +20,7 @@
 
 #include "lib/widgets/styled-button.h"
 #include "plugin-i.h"
-#include "statusnotifierwatcherinterface.h"
+#include "status_notifier_watcher_interface.h"
 #include "tray-extended.h"
 
 namespace Kiran
@@ -97,7 +97,7 @@ private:
     QList<QWidget *> m_items;
 
     // 托盘服务监控
-    org::kde::StatusNotifierWatcher *m_statusNotifierWatcherInterface;
+    StatusNotifierWatcherInterface *m_statusNotifierWatcherInterface;
 
     // 本显示服务名称
     QString m_statusNotifierHostName;

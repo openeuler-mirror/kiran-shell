@@ -18,21 +18,21 @@
 #include "tray-item-proxy.h"
 
 TrayItemProxy::TrayItemProxy(const QString &service, const QString &path, QObject *parent)
-    : QObject(parent), m_statusNotifierItem{service, path, QDBusConnection::sessionBus()}
+    : QObject(parent), m_statusNotifierItemInterface{service, path, QDBusConnection::sessionBus()}
 {
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewIcon, this, &TrayItemProxy::updateIcon);
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewAttentionIcon, this, &TrayItemProxy::updateAttentionIcon);
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewOverlayIcon, this, &TrayItemProxy::updateOverlayIcon);
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewStatus, this, &TrayItemProxy::updateStatus);
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewTitle, this, &TrayItemProxy::updateTitle);
-    connect(&m_statusNotifierItem, &OrgKdeStatusNotifierItem::NewToolTip, this, &TrayItemProxy::updateToolTip);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewIcon, this, &TrayItemProxy::updateIcon);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewAttentionIcon, this, &TrayItemProxy::updateAttentionIcon);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewOverlayIcon, this, &TrayItemProxy::updateOverlayIcon);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewStatus, this, &TrayItemProxy::updateStatus);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewTitle, this, &TrayItemProxy::updateTitle);
+    connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewToolTip, this, &TrayItemProxy::updateToolTip);
 }
 
 QDBusVariant TrayItemProxy::getProperty(const QString &name)
 {
-    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierItem.service(), m_statusNotifierItem.path(), QLatin1String("org.freedesktop.DBus.Properties"), QLatin1String("Get"));
-    msg << m_statusNotifierItem.interface() << name;
-    QDBusPendingCall call = m_statusNotifierItem.connection().asyncCall(msg);
+    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierItemInterface.service(), m_statusNotifierItemInterface.path(), QLatin1String("org.freedesktop.DBus.Properties"), QLatin1String("Get"));
+    msg << m_statusNotifierItemInterface.interface() << name;
+    QDBusPendingCall call = m_statusNotifierItemInterface.connection().asyncCall(msg);
     call.waitForFinished();
     if (call.isValid())
     {
@@ -48,10 +48,10 @@ QDBusVariant TrayItemProxy::getProperty(const QString &name)
 
 QStringList TrayItemProxy::getAllPropertyKey()
 {
-    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierItem.service(), m_statusNotifierItem.path(), QLatin1String("org.freedesktop.DBus.Properties"), QLatin1String("GetAll"));
-    msg << m_statusNotifierItem.interface();
+    QDBusMessage msg = QDBusMessage::createMethodCall(m_statusNotifierItemInterface.service(), m_statusNotifierItemInterface.path(), QLatin1String("org.freedesktop.DBus.Properties"), QLatin1String("GetAll"));
+    msg << m_statusNotifierItemInterface.interface();
 
-    QDBusPendingCall call = m_statusNotifierItem.connection().asyncCall(msg);
+    QDBusPendingCall call = m_statusNotifierItemInterface.connection().asyncCall(msg);
     call.waitForFinished();
     const auto arguments = call.reply().arguments();
     if (arguments.isEmpty())
@@ -67,25 +67,25 @@ QStringList TrayItemProxy::getAllPropertyKey()
 
 QString TrayItemProxy::service() const
 {
-    return m_statusNotifierItem.service();
+    return m_statusNotifierItemInterface.service();
 }
 
 QDBusPendingReply<> TrayItemProxy::activate(int x, int y)
 {
-    return m_statusNotifierItem.Activate(x, y);
+    return m_statusNotifierItemInterface.Activate(x, y);
 }
 
 QDBusPendingReply<> TrayItemProxy::contextMenu(int x, int y)
 {
-    return m_statusNotifierItem.ContextMenu(x, y);
+    return m_statusNotifierItemInterface.ContextMenu(x, y);
 }
 
 QDBusPendingReply<> TrayItemProxy::scroll(int delta, const QString &orientation)
 {
-    return m_statusNotifierItem.Scroll(delta, orientation);
+    return m_statusNotifierItemInterface.Scroll(delta, orientation);
 }
 
 QDBusPendingReply<> TrayItemProxy::secondaryActivate(int x, int y)
 {
-    return m_statusNotifierItem.SecondaryActivate(x, y);
+    return m_statusNotifierItemInterface.SecondaryActivate(x, y);
 }

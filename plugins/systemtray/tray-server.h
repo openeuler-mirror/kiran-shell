@@ -17,6 +17,12 @@
 
 #include "status-notifier-watcher.h"
 
+#define TrayServerInstance Kiran::Systemtray::TrayServer::Instance()
+
+namespace Kiran
+{
+namespace Systemtray
+{
 class TrayServer : public QObject
 {
     Q_OBJECT
@@ -40,5 +46,5 @@ private:
     // 注册用
     StatusNotifierWatcher* m_statusNotifierWatcher;
 };
-
-#define TrayServerInstance TrayServer::Instance()
+}  // namespace Systemtray
+}  // namespace Kiran

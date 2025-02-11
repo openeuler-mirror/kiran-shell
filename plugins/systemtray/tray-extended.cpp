@@ -18,7 +18,7 @@
 
 #include "ks-i.h"
 #include "lib/common/utility.h"
-#include "statusnotifieriteminterface.h"
+#include "status_notifier_item_interface.h"
 #include "tray-extended.h"
 
 namespace Kiran
@@ -343,10 +343,10 @@ QString TrayExtended::getStatusNotifierItemId(const QString &serviceAndPath)
     int index = serviceAndPath.indexOf('/');
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
-    OrgKdeStatusNotifierItem statusNotifierItem(service, path, QDBusConnection::sessionBus());
-    if (statusNotifierItem.isValid())
+    StatusNotifierItemInterface statusNotifierItemInterface(service, path, QDBusConnection::sessionBus());
+    if (statusNotifierItemInterface.isValid())
     {
-        return statusNotifierItem.id();
+        return statusNotifierItemInterface.id();
     }
     return "";
 }

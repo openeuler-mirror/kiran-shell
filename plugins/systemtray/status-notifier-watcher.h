@@ -18,9 +18,13 @@
 #include <QObject>
 #include <QStringList>
 
-#include "statusnotifierwatcherinterface.h"
-
 class QProcess;
+class QDBusServiceWatcher;
+
+namespace Kiran
+{
+namespace Systemtray
+{
 class StatusNotifierWatcher : public QObject, protected QDBusContext
 {
     Q_OBJECT
@@ -33,7 +37,6 @@ public:
     StatusNotifierWatcher(QObject *parent = 0);
     ~StatusNotifierWatcher() override;
 
-public:
     // Properties
     // StatusNotifierItem 的所有已注册实例的列表
     QStringList RegisteredStatusNotifierItems() const;
@@ -42,18 +45,17 @@ public:
     // StatusNotifierWatcher 实例实现的协议版本
     int ProtocolVersion() const;
 
-public Q_SLOTS:
-    // Methods
-    // 将 StatusNotifierItem 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierItem-4077-1
-    void RegisterStatusNotifierItem(const QString &service);
+public slots:  // Methods
     // 将 StatusNotifierHost 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierHost-4005
     void RegisterStatusNotifierHost(const QString &service);
+    // 将 StatusNotifierItem 以其在会话总线上的全名形式注册到 StatusNotifierWatcher 中，例如 org.freedesktop.StatusNotifierItem-4077-1
+    void RegisterStatusNotifierItem(const QString &service);
 
-Q_SIGNALS:
-    // SIGNALS
+signals:  // SIGNALS
+    void StatusNotifierHostRegistered();
+    void StatusNotifierHostUnregistered();
     void StatusNotifierItemRegistered(const QString &service);
     void StatusNotifierItemUnregistered(const QString &service);
-    void StatusNotifierHostRegistered();
 
 private:
     void serviceOwnerChanged(const QString &serviceName, const QString &oldOwner, const QString &newOwner);
@@ -66,7 +68,9 @@ private:
     void killXembedSniProxy();
 
 private:
+    QDBusServiceWatcher *m_serviceWatcher = nullptr;
     QStringList m_registeredServices;
-
-    QProcess *m_xembedSniProxy;
+    QProcess *m_xembedSniProxy = nullptr;
 };
+}  // namespace Systemtray
+}  // namespace Kiran
