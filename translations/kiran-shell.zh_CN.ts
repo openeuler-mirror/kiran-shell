@@ -41,4 +41,12 @@
         <translation>右</translation>
     </message>
 </context>
+<context>
+    <name>QObject</name>
+    <message>
+        <location filename="../src/shell/main.cpp" line="63"/>
+        <source>Reset the panel .</source>
+        <translation>重置面板。</translation>
+    </message>
+</context>
 </TS>

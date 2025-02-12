@@ -38,8 +38,6 @@ public:
 private:
     void serviceOwnerChanged(const QString& serviceName, const QString& oldOwner, const QString& newOwner);
 
-    void settingChanged(const QString& key);  // 电池配置变化
-
     void updateIcon();           // 更新显示图标
     QString getIconName();       // 获取显示图标
     void updateDisplayDevice();  // 电池显示设备更新

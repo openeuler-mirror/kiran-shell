@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16) # XCB require at least CMake 3.16.0
 
-project(kiran-shell VERSION 2.6)
+project(kiran-shell VERSION 2.7)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
