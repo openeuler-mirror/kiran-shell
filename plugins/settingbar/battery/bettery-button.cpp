@@ -48,9 +48,6 @@ BatteryButton::BatteryButton(QWidget *parent)
 
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &BatteryButton::serviceOwnerChanged);
     DBusWatcher.AddService(UPOWER_DBUS_SERVICE, QDBusConnection::SystemBus);
-
-    m_gsettings = new QGSettings(POWER_SCHEMA_ID, "", this);
-    connect(m_gsettings, &QGSettings::changed, this, &BatteryButton::settingChanged);
 }
 
 void BatteryButton::init()
@@ -92,32 +89,9 @@ void BatteryButton::serviceOwnerChanged(const QString &serviceName, const QStrin
     }
 }
 
-void BatteryButton::settingChanged(const QString &key)
-{
-    if (POWER_SCHEMA_TRAY_ICON_POLICY == key)
-    {
-        KLOG_INFO(LCSettingbar) << "power tray icon policy changed:" << key;
-        updateIcon();
-    }
-}
-
 void BatteryButton::updateIcon()
 {
     QString iconName = getIconName();
-    auto iconPolicy = m_gsettings->get(POWER_SCHEMA_TRAY_ICON_POLICY).toString();
-    if ("always" == iconPolicy)  // 永久显示
-    {
-        // 没有获取到图标，则使用默认图标
-        if (iconName.isEmpty())
-        {
-            iconName = DEFAULT_ICON_NAME;
-        }
-    }
-    else if ("never" == iconPolicy)  // 永不显示
-    {
-        iconName.clear();
-    }
-
     if (iconName.isEmpty())
     {
         disableBattery();
