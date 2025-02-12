@@ -19,6 +19,8 @@
 class KDirWatch;
 class QTimer;
 
+namespace Kiran
+{
 class Shelld : public QObject
 {
     Q_OBJECT
@@ -35,3 +37,4 @@ private:
     KDirWatch *m_dirWatch = nullptr;
     QTimer *m_timer;
 };
+}

@@ -19,11 +19,6 @@ qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 # dbus相关接口生成 org.kde.StatusNotifierWatcher.xml
 set(statusnotifierwatcherxml
     ${PROJECT_SOURCE_DIR}/dbus/org.kde.StatusNotifierWatcher.xml)
-qt_add_dbus_adaptor(
-  DBUS_ADAPTOR_SRC
-  ${statusnotifierwatcherxml}
-  status-notifier-watcher.h
-  Kiran::Systemtray::StatusNotifierWatcher)
 set_source_files_properties(
   ${statusnotifierwatcherxml}
   PROPERTIES NO_NAMESPACE TRUE CLASSNAME StatusNotifierWatcherInterface)
@@ -35,7 +30,7 @@ set(statusnotifieritemxml
 set_source_files_properties(
   ${statusnotifieritemxml}
   PROPERTIES NO_NAMESPACE TRUE
-             INCLUDE "tray-data-types.h"
+             INCLUDE ${PROJECT_SOURCE_DIR}/lib/common/tray-data-types.h
              CLASSNAME StatusNotifierItemInterface)
 qt_add_dbus_interface(DBUS_INTERFACES_SRC ${statusnotifieritemxml}
                       status_notifier_item_interface)

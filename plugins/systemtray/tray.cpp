@@ -19,7 +19,6 @@
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "tray-item.h"
-#include "tray-server.h"
 #include "tray.h"
 
 #define SERVICE_NAME QLatin1String("org.kde.StatusNotifierWatcher")
@@ -86,9 +85,6 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
     // 布局更新
     QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
     connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
-
-    // 托盘服务注册
-    TrayServerInstance;
 
     // 托盘显示服务注册
     static int statusNotifierHostIndex = 1;

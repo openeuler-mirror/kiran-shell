@@ -15,7 +15,31 @@ execute_process(COMMAND lupdate-qt5 ${H_FILES} ${CPP_FILES} -ts
 # make时生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 
-add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES}
+# dbus相关接口生成 org.kde.StatusNotifierWatcher.xml
+set(statusnotifierwatcherxml
+    ${PROJECT_SOURCE_DIR}/dbus/org.kde.StatusNotifierWatcher.xml)
+qt_add_dbus_adaptor(
+  DBUS_ADAPTOR_SRC
+  ${statusnotifierwatcherxml}
+  status-notifier-watcher.h
+  Kiran::StatusNotifierWatcher)
+set_source_files_properties(
+  ${statusnotifierwatcherxml}
+  PROPERTIES NO_NAMESPACE TRUE CLASSNAME StatusNotifierWatcherInterface)
+qt_add_dbus_interface(DBUS_INTERFACES_SRC ${statusnotifierwatcherxml}
+                      status_notifier_watcher_interface)
+
+set(statusnotifieritemxml
+    ${PROJECT_SOURCE_DIR}/dbus/org.kde.StatusNotifierItem.xml)
+set_source_files_properties(
+  ${statusnotifieritemxml}
+  PROPERTIES NO_NAMESPACE TRUE
+             INCLUDE ${PROJECT_SOURCE_DIR}/lib/common/tray-data-types.h
+             CLASSNAME StatusNotifierItemInterface)
+qt_add_dbus_interface(DBUS_INTERFACES_SRC ${statusnotifieritemxml}
+                      status_notifier_item_interface)
+
+add_executable(${TARGET_NAME} ${H_FILES} ${CPP_FILES} ${QM_FILES} ${DBUS_ADAPTOR_SRC} ${DBUS_INTERFACES_SRC}
                               "${PROJECT_SOURCE_DIR}/resources/resources.qrc")
 
 target_include_directories(
