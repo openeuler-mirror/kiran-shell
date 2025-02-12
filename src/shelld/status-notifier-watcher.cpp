@@ -26,8 +26,6 @@
 
 namespace Kiran
 {
-namespace Systemtray
-{
 StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     : QObject{parent}
 {
@@ -129,17 +127,7 @@ void StatusNotifierWatcher::registerServer()
         KLOG_INFO(LCSystemtray) << "service register ok:" << SERVICE_NAME;
 
         // 启动XEmbed转StatusNotifierItem服务
-        // 这里需要等StatusNotifierWatcher构造完成，才能启动
-        // XembedSniProxy会在StatusNotifierWatcher构造过程中
-        // 检测到XCB_CLIENT_MESSAGE，尝试RegisterStatusNotifierItem，
-        // 由于XembedSniProxy进行RegisterStatusNotifierItem的条件是XCB_CLIENT_MESSAGE，所以这里会进行多次，收到几次就注册几次
-        // 如果StatusNotifierWatcher未准备好，会卡顿，同时会造成构造空的item项
-        // （XembedSniProxy RegisterStatusNotifierItem失败后，下次RegisterStatusNotifierItem时，标识是新的）
-
-        QTimer::singleShot(3000, [this]()
-                           {
-                               startXembedSniProxy();
-                           });
+        startXembedSniProxy();
     }
 }
 
@@ -256,5 +244,4 @@ QStringList StatusNotifierWatcher::RegisteredStatusNotifierItems() const
 {
     return m_registeredServices;
 }
-}  // namespace Systemtray
 }  // namespace Kiran

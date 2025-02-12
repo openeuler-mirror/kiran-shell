@@ -19,7 +19,10 @@
 #include <QTimer>
 
 #include "shelld.h"
+#include "status-notifier-watcher.h"
 
+namespace Kiran
+{
 Shelld::Shelld()
     : m_dirWatch(new KDirWatch(this)), m_timer(new QTimer(this))
 {
@@ -41,6 +44,9 @@ Shelld::Shelld()
             m_dirWatch->addDir(dir, KDirWatch::WatchDirOnly);
         }
     }
+
+    // 托盘服务
+    new StatusNotifierWatcher(this);
 }
 
 Shelld::~Shelld()
@@ -50,4 +56,5 @@ Shelld::~Shelld()
 void Shelld::update(const QString &path)
 {
     m_timer->start(2000);
+}
 }
