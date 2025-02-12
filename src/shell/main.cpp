@@ -16,6 +16,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFileInfo>
+#include <QProcess>
 #include <QTranslator>
 
 #include "ks-config.h"
@@ -58,7 +59,17 @@ int main(int argc, char *argv[])
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
+
+    QCommandLineOption resetOption(QStringList() << "reset", QObject::tr("Reset the panel ."));
+    parser.addOption(resetOption);
+
     parser.process(app);
+
+    if (parser.isSet(resetOption))
+    {
+        QProcess::startDetached("gsettings", {"reset-recursively", "com.kylinsec.kiran.shell"});
+        return 0;
+    }
 
     Kiran::Profile::globalInit();
     Kiran::Shell::globalInit();

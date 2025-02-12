@@ -67,9 +67,6 @@ namespace Kiran
 #define SHELL_SCHEMA_KEY_PANEL_UIDS "panelUids"
 #define SHELL_SCHEMA_KEY_APPLET_UIDS "appletUids"
 
-#define POWER_SCHEMA_ID "com.kylinsec.kiran.power"
-#define POWER_SCHEMA_TRAY_ICON_POLICY "trayIconPolicy"
-
 #define TASKBAR_SCHEMA_ID "com.kylinsec.kiran.shell.taskbar"
 #define TASKBAR_SCHEMA_KEY_SHOW_APP_NAME "showAppName"
 #define TASKBAR_SCHEMA_KEY_FIXED_APPS "fixedApps"

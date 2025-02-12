@@ -1,6 +1,6 @@
-[Panel top]
+[Panel bottom]
 expand=true
-orientation=top
+orientation=bottom
 size=40
 monitor=-1
 applets=menu,workspace,taskbar,systemtray,clock,showdesktop,spacer,settingbar
@@ -8,59 +8,59 @@ applets=menu,workspace,taskbar,systemtray,clock,showdesktop,spacer,settingbar
 [Applet menu]
 type=plugin
 id=menu
-panel=top
+panel=bottom
 position=0
 
 [Applet workspace]
 type=plugin
 id=workspace
-panel=top
+panel=bottom
 position=1
 
 [Applet taskbar]
 type=plugin
 id=taskbar
-panel=top
+panel=bottom
 position=2
 
 [Applet spacer]
 type=plugin
 id=spacer
-panel=top
+panel=bottom
 position=3
 
 [Applet systemtray]
 type=plugin
 id=systemtray
-panel=top
+panel=bottom
 panel-right-stick=true
 position=5
 
 [Applet settingbar]
 type=plugin
 id=settingbar
-panel=top
+panel=bottom
 panel-right-stick=true
 position=4
 
 [Applet spacer1]
 type=plugin
 id=spacer
-panel=top
+panel=bottom
 panel-right-stick=true
 position=2
 
 [Applet clock]
 type=plugin
 id=clock
-panel=top
+panel=bottom
 panel-right-stick=true
 position=1
 
 [Applet showdesktop]
 type=plugin
 id=showdesktop
-panel=top
+panel=bottom
 panel-right-stick=true
 position=0
 
