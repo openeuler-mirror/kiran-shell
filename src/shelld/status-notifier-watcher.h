@@ -23,8 +23,6 @@ class QDBusServiceWatcher;
 
 namespace Kiran
 {
-namespace Systemtray
-{
 class StatusNotifierWatcher : public QObject, protected QDBusContext
 {
     Q_OBJECT
@@ -72,5 +70,4 @@ private:
     QStringList m_registeredServices;
     QProcess *m_xembedSniProxy = nullptr;
 };
-}  // namespace Systemtray
 }  // namespace Kiran

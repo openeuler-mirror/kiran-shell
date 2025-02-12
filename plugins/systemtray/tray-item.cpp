@@ -20,7 +20,7 @@
 #include <QPainter>
 
 #include "lib/common/logging-category.h"
-#include "tray-data-types.h"
+#include "lib/common/tray-data-types.h"
 #include "tray-item.h"
 
 namespace Kiran

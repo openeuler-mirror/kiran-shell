@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    Shelld shelld;
+    Kiran::Shelld shelld;
 
     return app.exec();  // keep running
 }
