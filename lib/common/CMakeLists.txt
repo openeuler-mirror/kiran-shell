@@ -11,12 +11,26 @@ add_library(${TARGET_NAME} STATIC ${ALL_FILES})
 
 find_package(Qt5 REQUIRED COMPONENTS X11Extras)
 
+# 获取 libpinyin pkgdatadir
+execute_process(
+  COMMAND pkg-config --variable=pkgdatadir libpinyin
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  OUTPUT_VARIABLE LIBPINYIN_PKGDATADIR)
+# 添加libpinyin pkgdatadir到编译选项
+add_definitions(-DLIBPINYIN_PKGDATADIR="${LIBPINYIN_PKGDATADIR}/data")
+
 target_include_directories(
   ${TARGET_NAME}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
           ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS})
+          ${KLOG_QT5_INCLUDE_DIRS} ${LIBPINYIN_INCLUDE_DIRS})
 
 target_link_libraries(
-  ${TARGET_NAME} PRIVATE Qt5::Core KF5::WindowSystem KF5::Service
-                         Qt5::X11Extras Qt5::DBus ${KLOG_QT5_LIBRARIES})
+  ${TARGET_NAME}
+  PRIVATE Qt5::Core
+          Qt5::X11Extras
+          Qt5::DBus
+          KF5::WindowSystem
+          KF5::Service
+          ${KLOG_QT5_LIBRARIES}
+          ${LIBPINYIN_LIBRARIES})
