@@ -28,6 +28,7 @@
 #include "apps-overview.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/utility.h"
 #include "ui_apps-overview.h"
 
 namespace Kiran
@@ -146,8 +147,28 @@ void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidge
 
     if (!filter.isEmpty())
     {
-        // TODO: 支持拼音搜索
-        if (!entry->name().contains(filter, Qt::CaseInsensitive))
+        bool filterOK = false;
+        do
+        {
+            if (entry->name().contains(filter, Qt::CaseInsensitive))
+            {
+                filterOK = true;
+                break;
+            }
+
+            // 拼音搜索
+            auto guessResults = Utility::pinyinGuess(filter);
+            for (auto result : guessResults)
+            {
+                if (entry->name().contains(result, Qt::CaseInsensitive))
+                {
+                    filterOK = true;
+                    break;
+                }
+            }
+        } while (0);
+
+        if (!filterOK)
         {
             return;
         }

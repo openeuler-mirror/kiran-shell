@@ -50,12 +50,12 @@
 <context>
     <name>Kiran::SettingBar::NetConfItem</name>
     <message>
-        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="84"/>
+        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="81"/>
         <source>Wired network</source>
         <translation>有线网络</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="88"/>
+        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="85"/>
         <source>Wireless network</source>
         <translation>无线网络</translation>
     </message>
