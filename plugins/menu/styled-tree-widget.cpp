@@ -111,6 +111,9 @@ void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
 {
     auto palette = Kiran::Theme::Palette::getDefault();
 
+    // 文字颜色
+    painter->setPen(palette->getColor(Kiran::Theme::Palette::NORMAL, Kiran::Theme::Palette::TEXT));
+
     // 选中底色
     if (option.state & QStyle::State_Selected)
     {

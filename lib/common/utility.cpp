@@ -12,6 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <pinyin.h>
 #include <qt5-log-i.h>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -21,9 +22,13 @@
 #include <QScreen>
 #include <QWidget>
 
+#include "ks-config.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 #include "utility.h"
+
+static pinyin_context_t *pinyinContext = pinyin_init(LIBPINYIN_PKGDATADIR, KS_INSTALL_DATADIR);
+static pinyin_instance_t *pinyininstance = pinyinContext ? pinyin_alloc_instance(pinyinContext) : nullptr;
 
 QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
 {
@@ -158,5 +163,79 @@ bool Utility::isDbusServiceRegistered(QString serviceName, QDBusConnection::BusT
     {
         KLOG_WARNING(LCLib) << "Service is not available:" << serviceName;
         return false;
+    }
+}
+
+QStringList Utility::pinyinGuess(const QString &pinyinInput)
+{
+    QStringList resultList;
+
+    // 拼音上下文
+    if (!pinyinContext)
+    {
+        KLOG_ERROR(LCLib) << "Failed to init pinyin context.";
+        return resultList;
+    }
+
+    // 拼音实例
+    if (!pinyininstance)
+    {
+        KLOG_ERROR(LCLib) << "Failed to alloc pinyin instance.";
+        return resultList;
+    }
+
+    // 设置输入模式
+    pinyin_option_t options = PINYIN_INCOMPLETE | PINYIN_CORRECT_ALL | USE_DIVIDED_TABLE | USE_RESPLIT_TABLE | DYNAMIC_ADJUST;
+    pinyin_set_options(pinyinContext, options);
+
+    // 添加拼音输入
+    size_t len = pinyin_parse_more_full_pinyins(pinyininstance, pinyinInput.toUtf8().constData());
+    if (len == 0)
+    {
+        KLOG_WARNING(LCLib) << "Failed to parse pinyin input.";
+        // pinyin_free_instance(pinyininstance);
+        // pinyin_fini(pinyinContext);
+        return resultList;
+    }
+
+    // 猜测候选
+    pinyin_guess_candidates(pinyininstance, 0, SORT_BY_PHRASE_LENGTH | SORT_BY_FREQUENCY);
+
+    // 获取候选
+    unsigned int num = 0;
+    pinyin_get_n_candidate(pinyininstance, &num);
+    for (unsigned int i = 0; i < num; ++i)
+    {
+        lookup_candidate_t *candidate = NULL;
+        pinyin_get_candidate(pinyininstance, i, &candidate);
+
+        const char *word = NULL;
+        pinyin_get_candidate_string(pinyininstance, candidate, &word);
+
+        resultList.append(QString::fromUtf8(word));
+    }
+
+    pinyin_reset(pinyininstance);
+
+    // 清理资源
+    // pinyin_free_instance(pinyininstance);
+    // pinyin_fini(pinyinContext);
+
+    return resultList.mid(0, 20);
+}
+
+Utility::Utility()
+{
+}
+
+Utility::~Utility()
+{
+    if (pinyininstance)
+    {
+        pinyin_free_instance(pinyininstance);
+    }
+    if (pinyinContext)
+    {
+        pinyin_fini(pinyinContext);
     }
 }

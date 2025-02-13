@@ -4,32 +4,32 @@
 <context>
     <name>Kiran::Taskbar::AppButton</name>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="196"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="191"/>
         <source>Run app</source>
         <translation>运行</translation>
     </message>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="203"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="198"/>
         <source>Close all windows</source>
         <translation>关闭所有窗口</translation>
     </message>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="213"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="208"/>
         <source>Add to favorite</source>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="220"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="215"/>
         <source>Remove from favorite</source>
         <translation>从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="229"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="224"/>
         <source>Add to tasklist</source>
         <translation>固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/taskbar/app-button.cpp" line="237"/>
+        <location filename="../plugins/taskbar/app-button.cpp" line="232"/>
         <source>Remove from tasklist</source>
         <translation>取消固定到任务栏</translation>
     </message>
