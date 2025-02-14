@@ -12,8 +12,11 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <kiran-color-block.h>
+#include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPainterPath>
 
 #include "applet.h"
 #include "battery/bettery-button.h"
@@ -31,13 +34,17 @@ namespace SettingBar
 Window::Window(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
       m_import(import),
-      m_hwConfWindow(new SettingWindow(this))
+      m_hwConfWindow(new SettingWindow(this)),
+      m_hovered(false),
+      m_pressed(false)
 {
     setRadius(0);
+    setAttribute(Qt::WA_Hover);
 
     auto direction = getLayoutDirection();
     m_layout = new QBoxLayout(direction, this);
     m_layout->setMargin(4);
+    m_layout->setSpacing(0);
 
     auto volumButton = new VolumeButton(this);
     auto networkButton = new NetButton(this);
@@ -70,6 +77,75 @@ Window::Window(IAppletImport *import, Applet *parent)
 
 Window::~Window()
 {
+}
+
+void Window::enterEvent(QEvent *event)
+{
+    m_hovered = true;
+}
+
+void Window::leaveEvent(QEvent *event)
+{
+    m_hovered = false;
+}
+
+void Window::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_pressed = true;
+        update();
+    }
+
+    KiranColorBlock::mousePressEvent(event);
+}
+
+void Window::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_pressed = false;
+        update();
+    }
+
+    KiranColorBlock::mouseReleaseEvent(event);
+}
+
+void Window::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(Qt::NoPen);
+
+    auto palette = Kiran::Theme::Palette::getDefault();
+
+    QColor bgColor = palette->getBaseColors().containerBackground;
+    painter.setBrush(bgColor);
+    painter.drawRect(rect());
+
+    if (m_pressed)
+    {
+        // 点击
+        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
+    }
+    else if (m_hovered)
+    {
+        // 悬停
+        bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
+    }
+    else
+    {
+        // 正常
+        bgColor = palette->getBaseColors().containerBackground;
+    }
+    painter.setBrush(bgColor);
+
+    QPainterPath path;
+    auto re = rect();
+    re.adjust(4, 4, -4, -4);
+    path.addRoundedRect(re, 4, 4);
+
+    painter.drawPath(path);
 }
 
 void Window::updateLayout()

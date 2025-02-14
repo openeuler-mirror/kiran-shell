@@ -21,6 +21,7 @@ namespace SettingBar
 SettingButton::SettingButton(QWidget *parent)
     : StyledButton(parent)
 {
+    setBackGroundColorEnabled(false);
 }
 
 SettingButton::~SettingButton()
