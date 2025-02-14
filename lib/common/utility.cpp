@@ -172,8 +172,6 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
         }
     }
 
-    KLOG_INFO() << "----------------" << windowSize;
-
     popWidget->move(windowPosition);
 }
 
