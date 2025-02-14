@@ -348,7 +348,7 @@ void Panel::updateGeometry(int size)
                      showingScreen->geometry().width(), panelSize);
         break;
     case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        rect = QRect(showingScreen->geometry().right() - panelSize,
+        rect = QRect(showingScreen->geometry().x() + showingScreen->geometry().width() - panelSize,
                      showingScreen->geometry().y(), panelSize,
                      showingScreen->geometry().height());
         break;
@@ -359,7 +359,7 @@ void Panel::updateGeometry(int size)
     default:
         // 默认放入底部
         rect = QRect(showingScreen->geometry().x(),
-                     showingScreen->geometry().bottom() - panelSize,
+                     showingScreen->geometry().y() + showingScreen->geometry().height() - panelSize,
                      showingScreen->geometry().width(), panelSize);
     }
 
