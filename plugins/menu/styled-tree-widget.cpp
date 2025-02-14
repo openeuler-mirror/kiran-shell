@@ -114,18 +114,20 @@ void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
     // 文字颜色
     painter->setPen(palette->getColor(Kiran::Theme::Palette::NORMAL, Kiran::Theme::Palette::TEXT));
 
+    QRect bgRect = option.rect;
+    bgRect.adjust(0, 0, -8, 0);
     // 选中底色
     if (option.state & QStyle::State_Selected)
     {
         QColor bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
 
-        painter->fillRect(option.rect, bgColor);
+        painter->fillRect(bgRect, bgColor);
     }
     // 鼠标移入底色
     if (option.state & QStyle::State_MouseOver)
     {
         QColor bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
-        painter->fillRect(option.rect, bgColor);
+        painter->fillRect(bgRect, bgColor);
     }
 
     QString text = index.data(Qt::DisplayRole).toString();
