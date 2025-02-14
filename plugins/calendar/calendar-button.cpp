@@ -61,9 +61,9 @@ void CalendarButton::enterEvent(QEvent *event)
 {
     Q_UNUSED(event);
 
-    QToolTip::showText(mapToGlobal(geometry().bottomLeft()), toolTip(), this);
-
     m_hovered = true;
+
+    QToolTip::showText(QCursor::pos(), toolTip(), this, QRect(), 1500);
 }
 
 void CalendarButton::leaveEvent(QEvent *event)

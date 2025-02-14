@@ -23,6 +23,7 @@ public:
     StyledButton(QWidget *parent = nullptr);
 
     void setTextColor(QColor color);
+    void setBackGroundColorEnabled(bool enabled);
 
 protected:
     void enterEvent(QEvent *event) override;
@@ -36,4 +37,5 @@ protected:
     bool m_pressed;
 
     QColor m_textColor;
+    bool m_isBackGroundColorEnabled;
 };
