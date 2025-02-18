@@ -72,6 +72,20 @@ void Utility::clearLayout(QLayout *layout, bool deleteWidget, bool hideWidget)
     }
 }
 
+void Utility::clearLayout(QWidget *widget)
+{
+    if (!widget) return;
+
+    // 获取当前 QWidget 的布局
+    QLayout *layout = widget->layout();
+    if (layout)
+    {
+        clearLayout(layout, true);
+        // 删除当前布局
+        delete layout;
+    }
+}
+
 QString Utility::getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen)
 {
     return fontMetrics.elidedText(text, Qt::ElideRight, elidedTextLen);
@@ -153,7 +167,6 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
     bool isPersonalityMode = gsettings && gsettings->get(SHELL_SCHEMA_KEY_PERSONALITY_MODE).toBool();
     if (isPersonalityMode)
     {
-        KLOG_INFO() << windowPosition << windowSize << screenGeometry;
         if (windowPosition.x() == screenGeometry.x())
         {
             windowPosition.setX(windowPosition.x() + 4);

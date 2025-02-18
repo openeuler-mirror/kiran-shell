@@ -22,8 +22,9 @@ namespace Kiran
 {
 class Panel;
 
-class Shell
+class Shell : public QObject
 {
+    Q_OBJECT
 public:
     static Shell* getInstance()
     {
@@ -39,6 +40,7 @@ public:
 private:
     Shell();
     void init();
+    void initChildren();
 
 private:
     static Shell* m_instance;
