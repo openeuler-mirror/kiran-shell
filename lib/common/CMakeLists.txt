@@ -21,9 +21,13 @@ add_definitions(-DLIBPINYIN_PKGDATADIR="${LIBPINYIN_PKGDATADIR}/data")
 
 target_include_directories(
   ${TARGET_NAME}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
-          ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS} ${LIBPINYIN_INCLUDE_DIRS})
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+          ${PROJECT_BINARY_DIR}
+          ${PROJECT_SOURCE_DIR}
+          ${PROJECT_SOURCE_DIR}/include
+          ${KLOG_QT5_INCLUDE_DIRS}
+          ${LIBPINYIN_INCLUDE_DIRS}
+          ${GSETTINGS_QT_INCLUDE_DIRS})
 
 target_link_libraries(
   ${TARGET_NAME}
@@ -33,4 +37,5 @@ target_link_libraries(
           KF5::WindowSystem
           KF5::Service
           ${KLOG_QT5_LIBRARIES}
-          ${LIBPINYIN_LIBRARIES})
+          ${LIBPINYIN_LIBRARIES}
+          ${GSETTINGS_QT_LIBRARIES})

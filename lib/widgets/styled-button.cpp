@@ -17,6 +17,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QToolTip>
 
 #include "lib/common/utility.h"
 #include "styled-button.h"
@@ -24,7 +25,8 @@
 StyledButton::StyledButton(QWidget *parent)
     : QToolButton(parent),
       m_hovered(false),
-      m_pressed(false)
+      m_pressed(false),
+      m_isBackGroundColorEnabled(true)
 {
     setCheckable(true);
     // 启用悬浮事件
@@ -36,9 +38,16 @@ void StyledButton::setTextColor(QColor color)
     m_textColor = color;
 }
 
+void StyledButton::setBackGroundColorEnabled(bool enabled)
+{
+    m_isBackGroundColorEnabled = enabled;
+}
+
 void StyledButton::enterEvent(QEvent *event)
 {
     m_hovered = true;
+
+    QToolTip::showText(QCursor::pos(), toolTip(), this, QRect(), 1500);
 }
 
 void StyledButton::leaveEvent(QEvent *event)
@@ -77,26 +86,33 @@ void StyledButton::paintEvent(QPaintEvent *event)
 
     // 背景绘制
     QColor bgColor;
-    if (isChecked())
+    if (!m_isBackGroundColorEnabled)
     {
-        // 选中
-        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
-    }
-
-    if (m_pressed)
-    {
-        // 点击
-        bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
-    }
-    else if (m_hovered)
-    {
-        // 悬停
-        bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
+        bgColor = Qt::transparent;
     }
     else
     {
-        // 正常
-        bgColor = Qt::transparent;
+        if (isChecked())
+        {
+            // 选中
+            bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
+        }
+
+        if (m_pressed)
+        {
+            // 点击
+            bgColor = palette->getColor(Kiran::Theme::Palette::SUNKEN, Kiran::Theme::Palette::WIDGET);
+        }
+        else if (m_hovered)
+        {
+            // 悬停
+            bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
+        }
+        else
+        {
+            // 正常
+            bgColor = Qt::transparent;
+        }
     }
 
     if (!isEnabled())

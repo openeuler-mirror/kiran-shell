@@ -53,6 +53,7 @@ protected:
 private:
     void init();
     void initChildren();
+
     int orientationStr2Enum(const QString& orientation);
     QString orientationEnum2Str(const int& orientation);
 
@@ -75,7 +76,8 @@ private:
     QBoxLayout* m_appletsLayout;
     QGSettings* m_gsettings;
 
-    QList<Applet*> m_applets;
+    QStringList m_appletsUID;  // list顺序为插件顺序，用户定义的插件名称，具有唯一性
+    QMap<QString, Applet*> m_applets;
 
     QList<LineFrame*> m_lineFrames;
 

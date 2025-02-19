@@ -46,6 +46,7 @@ namespace Kiran
 Panel::Panel(ProfilePanel *profilePanel)
     : QWidget(nullptr, Qt::FramelessWindowHint),
       m_profilePanel(profilePanel),
+      m_appletsLayout(nullptr),
       m_gsettings(nullptr),
       m_isPersonalityMode(false),
       m_layoutMargin(0),
@@ -207,14 +208,16 @@ void Panel::init()
             &Panel::updateLayout);
     connect(m_profilePanel, &ProfilePanel::orientationChanged, this,
             &Panel::updateLayout);
+    connect(Profile::getInstance(), &Profile::appletUIDsChanged, [this]()
+            {
+                initChildren();
+                updateLayout();
+            });
 
     m_gsettings = new QGSettings(SHELL_SCHEMA_ID, "", this);
     connect(m_gsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
 
     initChildren();
-
-    updatePersonalityMode();
-
     updateLayout();
 
     m_menu = new QMenu(this);
@@ -236,26 +239,58 @@ void Panel::init()
                 }
             });
 
-    updateAutoHide();
-
     show();
 }
 
 void Panel::initChildren()
 {
-    m_appletsLayout = new QBoxLayout(getLayoutDirection(), this);
-    m_appletsLayout->setSpacing(0);
+    if (m_appletsLayout)
+    {
+        Utility::clearLayout(m_appletsLayout);
+        while (m_lineFrames.size())
+        {
+            auto line = m_lineFrames.takeFirst();
+            line->setParent(nullptr);
+            line->hide();
+            delete line;
+        }
+    }
+    else
+    {
+        m_appletsLayout = new QBoxLayout(getLayoutDirection(), this);
+        m_appletsLayout->setSpacing(0);
+    }
 
+    m_appletsUID.clear();
+
+    // 新插件
     auto profileApplets =
         Profile::getInstance()->getAppletsOnPanel(m_profilePanel->getUID());
+    QMap<QString, ProfileApplet *> profileAppletsWithID;
+    for (auto profileApplet : profileApplets)
+    {
+        profileAppletsWithID.insert(profileApplet->getUID(), profileApplet);
+    }
 
+    // 构建插件
+    QList<Applet *> appletsNew;
     for (int i = 0; i < profileApplets.size(); i++)
     {
+        Applet *applet;
         auto profileApplet = profileApplets.at(i);
-        auto applet = new Applet(profileApplet, this);
+        QString profileAppletUID = profileApplet->getUID();
+        if (!m_applets.contains(profileAppletUID))
+        {
+            applet = new Applet(profileApplet, this);
+            m_applets.insert(profileAppletUID, applet);
+        }
+        else
+        {
+            applet = m_applets[profileAppletUID];
+        }
 
         m_appletsLayout->addWidget(applet);
-        m_applets.append(applet);
+        m_appletsUID.append(profileAppletUID);
 
         if (i != profileApplets.size() - 1)
         {
@@ -266,7 +301,14 @@ void Panel::initChildren()
         }
     }
 
-    KLOG_DEBUG(LCShell) << m_appletsLayout->geometry();
+    // 清理已删除的插件
+    for (auto uid : m_applets.keys())
+    {
+        if (!profileAppletsWithID.contains(uid))
+        {
+            delete m_applets.take(uid);
+        }
+    }
 }
 
 int Panel::orientationStr2Enum(const QString &orientation)
@@ -348,7 +390,7 @@ void Panel::updateGeometry(int size)
                      showingScreen->geometry().width(), panelSize);
         break;
     case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        rect = QRect(showingScreen->geometry().right() - panelSize,
+        rect = QRect(showingScreen->geometry().x() + showingScreen->geometry().width() - panelSize,
                      showingScreen->geometry().y(), panelSize,
                      showingScreen->geometry().height());
         break;
@@ -359,7 +401,7 @@ void Panel::updateGeometry(int size)
     default:
         // 默认放入底部
         rect = QRect(showingScreen->geometry().x(),
-                     showingScreen->geometry().bottom() - panelSize,
+                     showingScreen->geometry().y() + showingScreen->geometry().height() - panelSize,
                      showingScreen->geometry().width(), panelSize);
     }
 
@@ -398,8 +440,10 @@ void Panel::updateGeometry(int size)
 
 void Panel::updateLayout()
 {
-    updateGeometry(m_isAutoHide);  // 配置更新，初始状态：开启自动隐藏->显示一个像素（int)true  未开启自动隐藏->按配置的大小显示（int)false = 0
+    updatePersonalityMode();
+    updateAutoHide();
 
+    int panelSize = getSize();
     m_appletsLayout->setDirection(getLayoutDirection());
     int orientation = getOrientation();
     if (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
@@ -411,7 +455,7 @@ void Panel::updateLayout()
         for (auto line : m_lineFrames)
         {
             line->setFrameShape(QFrame::VLine);
-            line->setFixedHeight(height() - 2 * m_radius);
+            line->setFixedHeight(panelSize);
             line->setFixedWidth(10);
         }
     }
@@ -423,7 +467,7 @@ void Panel::updateLayout()
         {
             line->setFrameShape(QFrame::HLine);
             line->setFixedHeight(10);
-            line->setFixedWidth(width() - 2 * m_radius);
+            line->setFixedWidth(panelSize);
         }
     }
 
@@ -447,14 +491,13 @@ void Panel::shellSettingChanged(const QString &key)
 {
     if (SHELL_SCHEMA_KEY_PERSONALITY_MODE == key)
     {
-        updatePersonalityMode();
         updateLayout();
         return;
     }
 
     if (SHELL_SCHEMA_KEY_AUTO_HIDE == key)
     {
-        updateAutoHide();
+        updateLayout();
         return;
     }
 }
@@ -474,9 +517,9 @@ void Panel::updatePersonalityMode()
         m_layoutMargin = 0;
     }
 
-    for (int i = 0; i < m_applets.size(); i++)
+    for (int i = 0; i < m_appletsUID.size(); i++)
     {
-        auto applet = m_applets.at(i);
+        auto applet = m_applets[m_appletsUID.at(i)];
         bool isSpacer = "spacer" == applet->getID();
 
         if (isSpacer)
@@ -492,9 +535,9 @@ void Panel::updatePersonalityMode()
         }
         if (m_isPersonalityMode)
         {
-            bool showLine = i + 1 < m_applets.size() &&
+            bool showLine = i + 1 < m_appletsUID.size() &&
                             !isSpacer &&
-                            "spacer" != m_applets.at(i + 1)->getID();
+                            "spacer" != m_applets[m_appletsUID.at(i + 1)]->getID();
             m_lineFrames.at(i)->setVisible(showLine);
         }
         else

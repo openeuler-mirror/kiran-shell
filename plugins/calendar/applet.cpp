@@ -86,10 +86,6 @@ void Applet::initUI()
     m_window->hide();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
 
-    QFont font = this->font();
-    font.setPixelSize(10);
-    setFont(font);
-
     setRadius(0);
 
     m_calendarButton = new CalendarButton(m_import, this);

@@ -1014,6 +1014,15 @@ void Window::settingChanged(const QString &key)
         updateLockApp();
         updateLayout();
     }
+
+    if (TASKBAR_SCHEMA_KEY_SHOW_APP_NAME == key)
+    {
+        for (auto *appGroup : m_listAppGroupShow)
+        {
+            appGroup->updateLayout();
+        }
+        updateLayout();
+    }
 }
 
 Qt::AlignmentFlag Window::getLayoutAlignment()

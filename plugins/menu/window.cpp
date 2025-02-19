@@ -330,9 +330,11 @@ void Window::runApp(QString appId)
 
     KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
     // 启动应用
-    //  QProcess::startDetached(service->exec()) service->exec()部分应用带有参数，如%U，导致无法启动
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    job->start();
+    if (!QProcess::startDetached(service->exec(), QStringList()))  //service->exec()部分应用带有参数，如%U，导致无法启动
+    {
+        auto *job = new KIO::ApplicationLauncherJob(service);
+        job->start();
+    }
 
     // 通知kactivitymanagerd
     KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
