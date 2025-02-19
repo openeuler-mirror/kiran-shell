@@ -34,14 +34,14 @@ type=plugin
 id=systemtray
 panel=bottom
 panel-right-stick=true
-position=5
+position=4
 
 [Applet settingbar]
 type=plugin
 id=settingbar
 panel=bottom
 panel-right-stick=true
-position=4
+position=3
 
 [Applet spacer1]
 type=plugin

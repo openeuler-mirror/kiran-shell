@@ -134,17 +134,45 @@ void Profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
 void Profile::loadFromSettings()
 {
     auto panelUIDs = this->getPanelUIDs();
+    KLOG_INFO(LCShell) << "load panel:" << panelUIDs;
+
     for (auto& panelUID : panelUIDs)
     {
-        auto panel = new ProfilePanel(panelUID);
-        this->m_panels.insert(panel->getUID(), panel);
+        if (!m_panels.contains(panelUID))
+        {
+            auto panel = new ProfilePanel(panelUID);
+            this->m_panels.insert(panel->getUID(), panel);
+        }
     }
 
     auto appletUIDs = this->getAppletUIDs();
+    KLOG_INFO(LCShell) << "load applets:" << appletUIDs;
+
     for (auto& appletUID : appletUIDs)
     {
-        auto applet = new ProfileApplet(appletUID);
-        this->m_applets.insert(applet->getUID(), applet);
+        if (!m_applets.contains(appletUID))
+        {
+            auto applet = new ProfileApplet(appletUID);
+            this->m_applets.insert(applet->getUID(), applet);
+        }
+    }
+    // 清理不存在的插件
+    for (auto appletUID : m_applets.keys())
+    {
+        if (!appletUIDs.contains(appletUID))
+        {
+            delete m_applets[appletUID];
+            m_applets.remove(appletUID);
+        }
+    }
+    // 清理不存在的面板
+    for (auto panelUID : m_panels.keys())
+    {
+        if (!panelUIDs.contains(panelUID))
+        {
+            delete m_panels[panelUID];
+            m_panels.remove(panelUID);
+        }
     }
 }
 
@@ -160,6 +188,8 @@ QList<ProfileApplet*> Profile::getApplets()
 
 QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
 {
+    loadFromSettings();
+
     QList<ProfileApplet*> applets;
     QList<ProfileApplet*> applets_right;
 

@@ -34,6 +34,13 @@ public:
     explicit Window(IAppletImport *import, Applet *parent);
     ~Window();
 
+protected:
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
 private slots:
     void updateLayout();
 
@@ -54,6 +61,9 @@ private:
 
     QList<SettingButton *> hwConfButtons;
     SettingWindow *m_hwConfWindow;
+
+    bool m_hovered;
+    bool m_pressed;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

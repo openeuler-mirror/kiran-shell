@@ -45,13 +45,36 @@ void Shell::init()
     // 窗口管理单例初始化,工作区 任务栏需要
     WindowManagerInit;
 
-    auto profilePanels = Profile::getInstance()->getPanels();
+    initChildren();
+    connect(Profile::getInstance(), &Profile::panelUIDsChanged, this, &Shell::initChildren);
+}
 
+void Shell::initChildren()
+{
+    QMap<QString, Panel*> panelsNew;
+
+    auto profilePanels = Profile::getInstance()->getPanels();
     for (const auto& profilePanel : profilePanels)
     {
-        auto panel = new Panel(profilePanel);
-        this->m_panels.insert(panel->getUID(), panel);
+        auto panelUID = profilePanel->getUID();
+        if (!m_panels.contains(panelUID))
+        {
+            auto panel = new Panel(profilePanel);
+            panelsNew.insert(panelUID, panel);
+        }
+        else
+        {
+            panelsNew.insert(panelUID, m_panels.take(panelUID));
+        }
     }
+    // 清理不存在的面板
+    while (m_panels.size())
+    {
+        auto panel = m_panels.take(m_panels.firstKey());
+        delete panel;
+    }
+
+    m_panels = panelsNew;
 }
 
 }  // namespace Kiran
