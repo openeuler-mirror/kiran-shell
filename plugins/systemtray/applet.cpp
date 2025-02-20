@@ -31,9 +31,7 @@ Applet::Applet(IAppletImport *import)
     layout->addWidget(m_tray);
 }
 
-Applet::~Applet()
-{
-}
+Applet::~Applet() = default;
 
 }  // namespace Systemtray
 

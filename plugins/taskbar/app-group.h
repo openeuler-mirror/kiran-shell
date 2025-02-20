@@ -33,35 +33,22 @@ class AppBaseInfo
 public:
     QByteArray m_wmClass;
     QUrl m_url;
-    bool m_isLocked;
+    bool m_isLocked = false;
 
-    AppBaseInfo()
-    {
-        m_isLocked = false;
-    }
-    AppBaseInfo(const QByteArray &wmClass, const QUrl &url = QUrl(), const bool &isLocked = false)
-    {
-        m_wmClass = wmClass;
-        m_url = url;
-        m_isLocked = isLocked;
-    }
-    AppBaseInfo &operator=(const AppBaseInfo &t)
-    {
-        m_wmClass = t.m_wmClass;
-        m_url = t.m_url;
-        m_isLocked = t.m_isLocked;
-        return *this;
-    }
-    AppBaseInfo(const AppBaseInfo &t)
-    {
-        *this = t;
-    }
+    AppBaseInfo() = default;
 
-    friend QDebug operator<<(QDebug dbg, const AppBaseInfo &t)
+    AppBaseInfo(QByteArray wmClass, QUrl url = QUrl(), bool isLocked = false)
+        : m_wmClass(std::move(wmClass)), m_url(std::move(url)), m_isLocked(isLocked) {}
+
+    AppBaseInfo &operator=(const AppBaseInfo &other) = default;
+
+    AppBaseInfo(const AppBaseInfo &other) = default;
+
+    friend QDebug operator<<(QDebug dbg, const AppBaseInfo &other)
     {
         QDebugStateSaver saver(dbg);
 
-        dbg.nospace() << "AppBaseInfo(" << t.m_wmClass << "," << t.m_url.toString() << "," << t.m_isLocked << ")";
+        dbg.nospace() << "AppBaseInfo(" << other.m_wmClass << "," << other.m_url.toString() << "," << other.m_isLocked << ")";
         return dbg.space();
     }
 };
@@ -76,8 +63,8 @@ public:
     // 什么都没有，用于拖拽
     explicit AppGroup(IAppletImport *import, QWidget *parent = nullptr);
 
-    QUrl getUrl();
-    bool isLocked();
+    QUrl getUrl() const;
+    bool isLocked() const;
     void setLocked(bool lockFlag);
 
     void setDragData(const QUrl &url);
@@ -141,21 +128,21 @@ signals:
     void groupMoved(AppGroup *);
 
 private:
-    IAppletImport *m_import;
+    IAppletImport *m_import = nullptr;
 
-    QBoxLayout *m_layout;
+    QBoxLayout *m_layout = nullptr;
 
     AppBaseInfo m_appBaseInfo;
 
     QMap<WId, AppButton *> m_mapWidButton;
 
-    AppButton *m_buttonFixed;  // 固定按钮，用于锁定显示、拖拽显示
+    AppButton *m_buttonFixed = nullptr;  // 固定按钮，用于锁定显示、拖拽显示
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint dragStartPosition;    // 鼠标按下时的全局坐标
     QPoint buttonStartPosition;  // 按钮在父窗口中的位置
 
-    QGSettings *m_gsettings;  // gsettings
+    QGSettings *m_gsettings = nullptr;  // gsettings
 };
 }  // namespace Taskbar
 }  // namespace Kiran

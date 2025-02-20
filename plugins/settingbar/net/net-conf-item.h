@@ -32,7 +32,7 @@ class NetConfItem : public SettingItem
     Q_OBJECT
 public:
     NetConfItem(NetworkManager::Device::Type type, QWidget* parent = nullptr);
-    ~NetConfItem();
+    ~NetConfItem() override;
 
     void init();
 
@@ -47,13 +47,13 @@ signals:
     void enableNetwork(bool enabled);
 
 private:
-    // 二级设置页面
-    QWidget* m_settingWidget;
-    QToolButton* m_backBtn;
-    netTreeWidget* m_connectTreeWidget;
-
     // 网络类型
     NetworkManager::Device::Type m_netType;
+
+    // 二级设置页面
+    QWidget* m_settingWidget = nullptr;
+    QToolButton* m_backBtn = nullptr;
+    netTreeWidget* m_connectTreeWidget = nullptr;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

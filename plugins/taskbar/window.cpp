@@ -25,6 +25,7 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QTimer>
+#include <algorithm>
 
 #include "app-button.h"
 #include "app-group.h"
@@ -51,10 +52,7 @@ namespace Taskbar
 {
 Window::Window(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
-      m_import(import),
-      m_indicatorWidget(nullptr),
-      m_curPageIndex(-1),
-      m_currentDropIndex(-1)
+      m_import(import)
 {
     initUI();
     initWindowManager();
@@ -65,9 +63,7 @@ Window::Window(IAppletImport *import, Applet *parent)
     updateLayout();
 }
 
-Window::~Window()
-{
-}
+Window::~Window() = default;
 
 void Window::initUI()
 {
@@ -88,10 +84,7 @@ void Window::initUI()
     connect(m_upPageBtn, &QAbstractButton::clicked, [this]()
             {
                 int showPageIndex = m_curPageIndex - 1;
-                if (showPageIndex < 0)
-                {
-                    showPageIndex = 0;
-                }
+                showPageIndex = std::max(showPageIndex, 0);
                 updateLayout(showPageIndex);
             });
     connect(m_downPageBtn, &QAbstractButton::clicked, [this]()
@@ -135,7 +128,8 @@ void Window::initConfig()
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
 
-    connect(dynamic_cast<QObject *>(m_import->getPanel()), SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
 }
 
 void Window::dragEnterEvent(QDragEnterEvent *event)
@@ -397,10 +391,6 @@ void Window::addWindow(WId wid)
             appGroup = genAppGroup(appBaseInfo);
             m_mapAppGroupOpened[wmClass] = appGroup;
             m_listAppGroupShow.append(appGroup);
-        }
-        else
-        {
-            appGroup = m_mapAppGroupOpened[wmClass];
         }
     }
 
@@ -883,9 +873,8 @@ int Window::getMovedIndex(AppGroup *appGroup)
     // 在按钮区域
     Qt::AlignmentFlag alignment = getLayoutAlignment();
 
-    for (int i = 0; i < m_appPage[m_curPageIndex].size(); i++)
+    for (auto *appGroup : m_appPage[m_curPageIndex])
     {
-        auto appGroup = m_appPage[m_curPageIndex].at(i);
         // 先计算其他的，如果找不到，再在循环外计算空白占位项
         if (appGroup == m_indicatorWidget)
         {

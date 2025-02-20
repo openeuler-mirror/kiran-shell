@@ -16,6 +16,7 @@
 
 #include <QString>
 #include <functional>
+#include <utility>
 
 namespace Kiran
 {
@@ -26,8 +27,8 @@ class KSDefer
 {
 public:
     KSDefer(std::function<void(QString)> func, QString funName)
-        : m_func(func),
-          m_funName(funName) {}
+        : m_func(std::move(func)),
+          m_funName(std::move(funName)) {}
     ~KSDefer()
     {
         m_func(m_funName);

@@ -33,8 +33,8 @@ namespace Taskbar
 AppGroup::AppGroup(IAppletImport *import, const AppBaseInfo &appBaseInfo, QWidget *parent)
     : QWidget(parent),
       m_import(import),
-      m_buttonFixed(newAppBtn()),
-      m_appBaseInfo(appBaseInfo)
+      m_appBaseInfo(appBaseInfo),
+      m_buttonFixed(newAppBtn())
 {
     init();
 }
@@ -51,12 +51,12 @@ AppGroup::AppGroup(IAppletImport *import, QWidget *parent)
     m_buttonFixed->show();
 }
 
-QUrl AppGroup::getUrl()
+QUrl AppGroup::getUrl() const
 {
     return m_appBaseInfo.m_url;
 }
 
-bool AppGroup::isLocked()
+bool AppGroup::isLocked() const
 {
     return m_appBaseInfo.m_isLocked;
 }
@@ -344,7 +344,6 @@ void AppGroup::updateLayout()
 
 AppButton *AppGroup::newAppBtn()
 {
-    auto *appButtonContainer = (Window *)parent();
     auto *appButton = new AppButton(m_import, this);
     connect(appButton, &AppButton::previewerShow, this, &AppGroup::showPreviewer);
     connect(appButton, &AppButton::previewerHide, this, &AppGroup::previewerHide);

@@ -182,13 +182,11 @@ bool NetCommon::disconnectDevice(const NetworkManager::Device::Type &type)
                                      << "error:" << reply.error().message();
             return false;
         }
-        else
-        {
-            KLOG_INFO(LCSettingbar) << "断连设备成功:"
-                                    << "name:" << device->interfaceName()
-                                    << "uuid:" << device->uni();
-            return true;
-        }
+
+        KLOG_INFO(LCSettingbar) << "断连设备成功:"
+                                << "name:" << device->interfaceName()
+                                << "uuid:" << device->uni();
+        return true;
     }
     return true;
 }
@@ -208,13 +206,11 @@ bool NetCommon::disconnectDevice(const QString &deviceUni)
                                          << "error:" << reply.error().message();
                 return false;
             }
-            else
-            {
-                KLOG_INFO(LCSettingbar) << "断连设备成功:"
-                                        << "name:" << device->interfaceName()
-                                        << "uuid:" << device->uni();
-                return true;
-            }
+
+            KLOG_INFO(LCSettingbar) << "断连设备成功:"
+                                    << "name:" << device->interfaceName()
+                                    << "uuid:" << device->uni();
+            return true;
         }
     }
 
@@ -240,13 +236,11 @@ bool NetCommon::activateConnection(const QString &deviceUni, const QString &conn
                                              << "error:" << reply.error().message();
                     return false;
                 }
-                else
-                {
-                    KLOG_INFO(LCSettingbar) << "activate connection success:"
-                                            << "device uni:" << deviceUni
-                                            << "connection uuid:" << connectionUuid;
-                    return true;
-                }
+
+                KLOG_INFO(LCSettingbar) << "activate connection success:"
+                                        << "device uni:" << deviceUni
+                                        << "connection uuid:" << connectionUuid;
+                return true;
             }
         }
     }
@@ -272,13 +266,11 @@ bool NetCommon::deactivateConnection(const QString &connectionUuid)
                                          << "error:" << reply.error().message();
                 return false;
             }
-            else
-            {
-                KLOG_INFO(LCSettingbar) << "deactivate connection success:"
-                                        << "connection uuid:" << connectionUuid;
 
-                return true;
-            }
+            KLOG_INFO(LCSettingbar) << "deactivate connection success:"
+                                    << "connection uuid:" << connectionUuid;
+
+            return true;
 
             break;
         }
@@ -309,7 +301,7 @@ NetworkManager::Connection::Ptr NetCommon::getAvailableConnectionBySsid(const QS
                              << "device uni:" << deviceUni
                              << "ssid:" << ssid;
 
-    return NetworkManager::Connection::Ptr();
+    return {};
 }
 
 QPair<QString, QString> NetCommon::getNetworkIcon()
@@ -392,10 +384,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon()
     {
         return getNetworkIcon(topLevelConnection);
     }
-    else
-    {
-        return getNetworkIcon(DISCONNECTED);
-    }
+
+    return getNetworkIcon(DISCONNECTED);
 }
 
 QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
@@ -423,10 +413,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveCo
         {
             return getNetworkIcon(WIRED_CONNECTED);
         }
-        else
-        {
-            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
-        }
+
+        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
     }
     case NetworkManager::ConnectionSettings::Wireless:
     {
@@ -434,10 +422,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveCo
         {
             return getNetworkIcon(WIRELESS_CONNECTED);
         }
-        else
-        {
-            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
-        }
+
+        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
     }
     default:
     {

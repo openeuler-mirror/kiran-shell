@@ -35,13 +35,11 @@ AppItem::AppItem(QWidget *parent)
     setCheckable(false);
 }
 
-AppItem::~AppItem()
-{
-}
+AppItem::~AppItem() = default;
 
-void AppItem::setAppId(QString id)
+void AppItem::setAppId(const QString &appId)
 {
-    m_appId = id;
+    m_appId = appId;
     KService::Ptr s = KService::serviceByMenuId(m_appId);
     if (s)
     {
@@ -184,8 +182,8 @@ void AppItem::mouseMoveEvent(QMouseEvent *event)
 
         // The QDrag must be constructed on the heap with a parent QObject to ensure that Qt can clean up after the drag and drop operation has been completed.
         // The QMimeData and QDrag objects created by the source widget should not be deleted - they will be destroyed by Qt
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData;
+        auto *drag = new QDrag(this);
+        auto *mimeData = new QMimeData;
         QByteArray data = QUrl::fromLocalFile(s->entryPath()).toString().toLocal8Bit();
         mimeData->setData("text/uri-list", data);
         drag->setMimeData(mimeData);

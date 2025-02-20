@@ -23,7 +23,7 @@ struct IconPixmap
     QByteArray bytes;
 };
 
-typedef QVector<IconPixmap> IconPixmapVector;
+using IconPixmapVector = QVector<IconPixmap>;
 
 struct ToolTip
 {

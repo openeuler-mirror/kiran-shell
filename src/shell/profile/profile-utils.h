@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd. 
+ * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2 
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
- * See the Mulan PSL v2 for more details.  
- * 
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
  * Author:     tangjie02 <tangjie02@kylinos.com.cn>
  */
 
@@ -68,19 +68,19 @@ private:                                                          \
                                                                           \
     int className::get##humpName()                                        \
     {                                                                     \
-        return this->m_##name;                                            \
+        return m_##name;                                                  \
     }                                                                     \
     void className::set##humpName(int value)                              \
     {                                                                     \
-        if (value != this->m_##name)                                      \
+        if (value != m_##name)                                            \
         {                                                                 \
-            this->m_##name = value;                                       \
-            Q_EMIT this->name##Changed(value);                            \
+            m_##name = value;                                             \
+            Q_EMIT name##Changed(value);                                  \
         }                                                                 \
                                                                           \
-        if (value != this->m_settings->get(key).toInt())                  \
+        if (value != m_settings->get(key).toInt())                        \
         {                                                                 \
-            this->m_settings->set(key, QVariant::fromValue(value));       \
+            m_settings->set(key, QVariant::fromValue(value));             \
         }                                                                 \
     }
 
@@ -88,19 +88,19 @@ private:                                                          \
                                                                               \
     bool className::get##humpName()                                           \
     {                                                                         \
-        return this->m_##name;                                                \
+        return m_##name;                                                      \
     }                                                                         \
     void className::set##humpName(bool value)                                 \
     {                                                                         \
-        if (value != this->m_##name)                                          \
+        if (value != m_##name)                                                \
         {                                                                     \
-            this->m_##name = value;                                           \
-            Q_EMIT this->name##Changed(value);                                \
+            m_##name = value;                                                 \
+            Q_EMIT name##Changed(value);                                      \
         }                                                                     \
                                                                               \
-        if (value != this->m_settings->get(key).toBool())                     \
+        if (value != m_settings->get(key).toBool())                           \
         {                                                                     \
-            this->m_settings->set(key, QVariant::fromValue(value));           \
+            m_settings->set(key, QVariant::fromValue(value));                 \
         }                                                                     \
     }
 
@@ -108,19 +108,19 @@ private:                                                          \
                                                                              \
     QString className::get##humpName()                                       \
     {                                                                        \
-        return this->m_##name;                                               \
+        return m_##name;                                                     \
     }                                                                        \
     void className::set##humpName(const QString& value)                      \
     {                                                                        \
-        if (value != this->m_##name)                                         \
+        if (value != m_##name)                                               \
         {                                                                    \
-            this->m_##name = value;                                          \
-            Q_EMIT this->name##Changed(value);                               \
+            m_##name = value;                                                \
+            Q_EMIT name##Changed(value);                                     \
         }                                                                    \
                                                                              \
-        if (value != this->m_settings->get(key).toString())                  \
+        if (value != m_settings->get(key).toString())                        \
         {                                                                    \
-            this->m_settings->set(key, QVariant::fromValue(value));          \
+            m_settings->set(key, QVariant::fromValue(value));                \
         }                                                                    \
     }
 
@@ -128,41 +128,41 @@ private:                                                          \
                                                                                  \
     QStringList className::get##humpName()                                       \
     {                                                                            \
-        return this->m_##name;                                                   \
+        return m_##name;                                                         \
     }                                                                            \
     void className::set##humpName(const QStringList& value)                      \
     {                                                                            \
-        if (value != this->m_##name)                                             \
+        if (value != m_##name)                                                   \
         {                                                                        \
-            this->m_##name = value;                                              \
-            Q_EMIT this->name##Changed(value);                                   \
+            m_##name = value;                                                    \
+            Q_EMIT name##Changed(value);                                         \
         }                                                                        \
                                                                                  \
-        if (value != this->m_settings->get(key).toStringList())                  \
+        if (value != m_settings->get(key).toStringList())                        \
         {                                                                        \
-            this->m_settings->set(key, QVariant::fromValue(value));              \
+            m_settings->set(key, QVariant::fromValue(value));                    \
         }                                                                        \
     }
 
 // gsettings属性变化case处理
-#define GSETTINGS_CASE_INT_CHANGE(caseName, humpName)            \
-    case CONNECTION(caseName, _hash):                            \
-        this->set##humpName(this->m_settings->get(key).toInt()); \
+#define GSETTINGS_CASE_INT_CHANGE(caseName, humpName) \
+    case CONNECTION(caseName, _hash):                 \
+        set##humpName(m_settings->get(key).toInt());  \
         break;
 
-#define GSETTINGS_CASE_BOOLEAN_CHANGE(caseName, humpName)         \
-    case CONNECTION(caseName, _hash):                             \
-        this->set##humpName(this->m_settings->get(key).toBool()); \
+#define GSETTINGS_CASE_BOOLEAN_CHANGE(caseName, humpName) \
+    case CONNECTION(caseName, _hash):                     \
+        set##humpName(m_settings->get(key).toBool());     \
         break;
 
-#define GSETTINGS_CASE_STRING_CHANGE(caseName, humpName)            \
-    case CONNECTION(caseName, _hash):                               \
-        this->set##humpName(this->m_settings->get(key).toString()); \
+#define GSETTINGS_CASE_STRING_CHANGE(caseName, humpName) \
+    case CONNECTION(caseName, _hash):                    \
+        set##humpName(m_settings->get(key).toString());  \
         break;
 
-#define GSETTINGS_CASE_STRINGLIST_CHANGE(caseName, humpName)            \
-    case CONNECTION(caseName, _hash):                                   \
-        this->set##humpName(this->m_settings->get(key).toStringList()); \
+#define GSETTINGS_CASE_STRINGLIST_CHANGE(caseName, humpName) \
+    case CONNECTION(caseName, _hash):                        \
+        set##humpName(m_settings->get(key).toStringList());  \
         break;
 
 #define GSETTINGS_CASE_DEFAULT \

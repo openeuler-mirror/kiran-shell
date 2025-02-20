@@ -31,7 +31,7 @@ class WorkspaceOverview : public QWidget
     Q_OBJECT
 public:
     explicit WorkspaceOverview(int desktop, QWidget *parent = nullptr);
-    ~WorkspaceOverview();
+    ~WorkspaceOverview() override;
 
 protected:
     void showEvent(QShowEvent *event) override;

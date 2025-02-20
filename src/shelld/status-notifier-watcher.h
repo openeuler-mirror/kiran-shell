@@ -32,7 +32,7 @@ class StatusNotifierWatcher : public QObject, protected QDBusContext
     Q_PROPERTY(int ProtocolVersion READ ProtocolVersion)
 
 public:
-    StatusNotifierWatcher(QObject *parent = 0);
+    StatusNotifierWatcher(QObject *parent = nullptr);
     ~StatusNotifierWatcher() override;
 
     // Properties

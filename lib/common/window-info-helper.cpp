@@ -93,12 +93,12 @@ QString WindowInfoHelper::getAppIconByWId(WId wid)
     return "";
 }
 
-bool WindowInfoHelper::hasState(WId wid, NET::States s)
+bool WindowInfoHelper::hasState(WId wid, NET::States states)
 {
     KWindowInfo info(wid, windowInfoFlags, windowInfoFlags2);
     if (info.valid())
     {
-        return info.hasState(s);
+        return info.hasState(states);
     }
 
     return false;
@@ -153,8 +153,8 @@ void WindowInfoHelper::closeWindow(WId wid)
     {
     case KWindowSystem::Platform::X11:
     {
-        NETRootInfo ri(QX11Info::connection(), NET::CloseWindow);
-        ri.closeWindowRequest(wid);
+        NETRootInfo netRootInfo(QX11Info::connection(), NET::CloseWindow);
+        netRootInfo.closeWindowRequest(wid);
         break;
     }
     case KWindowSystem::Platform::Wayland:

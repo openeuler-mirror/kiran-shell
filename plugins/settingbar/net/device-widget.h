@@ -35,7 +35,7 @@ class DeviceWidget : public QWidget
 
 public:
     explicit DeviceWidget(NetworkManager::Device::Type type, QString deviceUni, QWidget *parent = nullptr);
-    ~DeviceWidget();
+    ~DeviceWidget() override;
 
     void Init();
 

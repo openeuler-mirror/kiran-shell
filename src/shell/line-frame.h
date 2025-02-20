@@ -30,7 +30,7 @@ class LineFrame : public KiranColorBlock
 
 public:
     explicit LineFrame(QWidget *parent = nullptr);
-    ~LineFrame();
+    ~LineFrame() override;
 
     void setFrameShape(QFrame::Shape type);
 

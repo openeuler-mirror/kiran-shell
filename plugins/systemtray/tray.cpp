@@ -83,8 +83,8 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
     updateLayout();
 
     // 布局更新
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     // 托盘显示服务注册
     static int statusNotifierHostIndex = 1;

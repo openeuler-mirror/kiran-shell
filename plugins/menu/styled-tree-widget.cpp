@@ -23,16 +23,19 @@
 
 #include "styled-tree-widget.h"
 
-#define ROW_HEIGHT 40
-#define ICON_SIZE 24
-#define ICON_TEXT_MARGIN 12
-#define INDENTATION 10
+enum
+{
+    ROW_HEIGHT = 40,
+    ICON_SIZE = 24,
+    ICON_TEXT_MARGIN = 12,
+    INDENTATION = 10
+};
 
 StyledTreeWidget::StyledTreeWidget(QWidget *parent)
     : QTreeWidget(parent)
 {
     // 样式代理
-    ItemDelegate *itemDelegate = new ItemDelegate(this);
+    auto *itemDelegate = new ItemDelegate(this);
     setItemDelegate(itemDelegate);
 
     // 为了绘制底色时，区域为完整一行，设置缩进为0，在绘制中加入缩进
@@ -41,9 +44,9 @@ StyledTreeWidget::StyledTreeWidget(QWidget *parent)
     setMouseTracking(true);
 
     //    setAttribute(Qt::WA_TranslucentBackground);
-    QPalette p = this->palette();
-    p.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
-    setPalette(p);
+    QPalette palette = this->palette();
+    palette.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
+    setPalette(palette);
 }
 
 void StyledTreeWidget::keyPressEvent(QKeyEvent *event)
@@ -86,8 +89,8 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
         QTreeWidgetItem *item = itemAt(event->pos());
         if (item)
         {
-            QDrag *drag = new QDrag(this);
-            QMimeData *mimeData = new QMimeData;
+            auto *drag = new QDrag(this);
+            auto *mimeData = new QMimeData;
             KService::Ptr s = KService::serviceByMenuId(item->data(0, Qt::UserRole).toString());
             QByteArray data = QUrl::fromLocalFile(s->entryPath()).toString().toLocal8Bit();
             mimeData->setData("text/uri-list", data);
@@ -109,7 +112,7 @@ QSize ItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelInd
 
 void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
 
     // 文字颜色
     painter->setPen(palette->getColor(Kiran::Theme::Palette::NORMAL, Kiran::Theme::Palette::TEXT));

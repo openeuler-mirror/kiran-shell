@@ -30,7 +30,7 @@ class WindowThumbnail : public QWidget
 
 public:
     explicit WindowThumbnail(WId wid, QWidget *parent = nullptr);
-    virtual ~WindowThumbnail();
+    ~WindowThumbnail() override;
 
     // 获取实际应该的大小,包含可以缩放的部分和额外不能缩放的部分
     void getOriginalSize(int &scaleWidth, int &scaleHeight, int &extraWidth, int &extraHeight);

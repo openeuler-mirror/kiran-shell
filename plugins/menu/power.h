@@ -27,7 +27,7 @@ class Power : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~Power();
+    ~Power() override;
 
     static std::shared_ptr<Power> getDefault();
 

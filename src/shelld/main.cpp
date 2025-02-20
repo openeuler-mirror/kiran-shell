@@ -24,5 +24,5 @@ int main(int argc, char *argv[])
 
     Kiran::Shelld shelld;
 
-    return app.exec();  // keep running
+    return QCoreApplication::exec();  // keep running
 }

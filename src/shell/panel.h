@@ -39,16 +39,14 @@ public:
     Panel(ProfilePanel* profilePanel);
 
     QString getUID();
-
-public:
-    virtual int getSize() Q_DECL_OVERRIDE;
-    virtual int getOrientation() Q_DECL_OVERRIDE;
+    int getSize() override;
+    int getOrientation() override;
 
 protected:
-    void contextMenuEvent(QContextMenuEvent* event) Q_DECL_OVERRIDE;
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
-    void enterEvent(QEvent* event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent* event) Q_DECL_OVERRIDE;
+    void contextMenuEvent(QContextMenuEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     void init();
@@ -69,27 +67,27 @@ private:
     bool isMouseInsideWidgetTree(QWidget* parentWidget);
 
 signals:
-    void panelProfileChanged() Q_DECL_OVERRIDE;
+    void panelProfileChanged() override;
 
 private:
     ProfilePanel* m_profilePanel;  // 面板配置
-    QBoxLayout* m_appletsLayout;
-    QGSettings* m_gsettings;
+    QBoxLayout* m_appletsLayout = nullptr;
+    QGSettings* m_gsettings = nullptr;
 
     QStringList m_appletsUID;  // list顺序为插件顺序，用户定义的插件名称，具有唯一性
     QMap<QString, Applet*> m_applets;
 
     QList<LineFrame*> m_lineFrames;
 
-    QMenu* m_menu;
+    QMenu* m_menu = nullptr;
 
     // 显示模式相关
-    bool m_isPersonalityMode;
-    int m_layoutMargin;
-    int m_radius;
+    bool m_isPersonalityMode = false;
+    int m_layoutMargin = 0;
+    int m_radius = 0;
 
-    bool m_isAutoHide;
-    bool m_isFullShow;
+    bool m_isAutoHide = false;
+    bool m_isFullShow = false;
     QTimer* m_leaveDetectTimer;
 };
 }  // namespace Kiran

@@ -31,11 +31,9 @@ Window::Window(WId wid, QObject* parent)
 {
 }
 
-Window::~Window()
-{
-}
+Window::~Window() = default;
 
-QRect Window::getWindowGeometry()
+QRect Window::getWindowGeometry() const
 {
     KWindowInfo info(m_wid, NET::WMGeometry);
     if (info.valid())
@@ -43,7 +41,7 @@ QRect Window::getWindowGeometry()
         return info.geometry();
     }
 
-    return QRect();
+    return {};
 }
 
 QPixmap Window::getPixPreviewr()
@@ -128,9 +126,7 @@ WindowManager::WindowManager()
             &WindowManager::changedWindow);
 }
 
-WindowManager::~WindowManager()
-{
-}
+WindowManager::~WindowManager() = default;
 
 WindowManager& WindowManager::getInstance()
 {
@@ -168,7 +164,7 @@ QRect WindowManager::getWindowGeometry(WId wid)
         return m_windows[wid]->getWindowGeometry();
     }
 
-    return QRect();
+    return {};
 }
 
 QPixmap WindowManager::getPixPreviewr(WId wid)
@@ -178,13 +174,13 @@ QPixmap WindowManager::getPixPreviewr(WId wid)
         return m_windows[wid]->getPixPreviewr();
     }
 
-    return QPixmap();
+    return {};
 }
 void WindowManager::addWindow(WId wid)
 {
     if (!WindowInfoHelper::isSkipTaskbar(wid))
     {
-        auto window = new Window(wid, this);
+        auto* window = new Window(wid, this);
         m_windows[wid] = window;
         emit windowAdded(wid);
 
@@ -198,7 +194,7 @@ void WindowManager::removeWindow(WId wid)
     {
         if (m_windows.contains(wid))
         {
-            auto window = m_windows.take(wid);
+            auto* window = m_windows.take(wid);
             if (window)
             {
                 delete window;

@@ -35,7 +35,7 @@ public:
     Applet(IAppletImport *import);
     ~Applet();
 
-private Q_SLOTS:
+private slots:
     void clickButton(bool checked);
     void hideWindow();
 

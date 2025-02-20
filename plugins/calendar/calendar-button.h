@@ -38,8 +38,8 @@ protected:
 private:
     IAppletImport *m_import;
 
-    bool m_hovered;
-    bool m_pressed;
+    bool m_hovered = false;
+    bool m_pressed = false;
 };
 }  // namespace Calendar
 }  // namespace Kiran

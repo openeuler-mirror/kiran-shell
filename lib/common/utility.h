@@ -40,5 +40,5 @@ public:
 
 private:
     Utility();
-    ~Utility();
+    ~Utility() override;
 };

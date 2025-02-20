@@ -76,7 +76,7 @@ void AppsOverview::loadApps()
     // 剔除列表下为空的顶级项
     for (int i = 0; i < m_ui->treeWidgetApps->topLevelItemCount(); i++)
     {
-        auto item = m_ui->treeWidgetApps->topLevelItem(i);
+        auto *item = m_ui->treeWidgetApps->topLevelItem(i);
         if (0 == item->childCount())
         {
             delete m_ui->treeWidgetApps->takeTopLevelItem(i);
@@ -86,7 +86,7 @@ void AppsOverview::loadApps()
     updateNewApp();
 }
 
-void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
+void AppsOverview::addGroup(KSycocaEntry *entry, QString filter, QTreeWidgetItem *parent)
 {
     // 动态翻译
     static const QMap<QString, const char *> TR_NOOP_STRING = {
@@ -129,7 +129,7 @@ void AppsOverview::addGroup(KSycocaEntry *entry, const QString filter, QTreeWidg
     }
 }
 
-void AppsOverview::addItem(KSycocaEntry *entry, const QString filter, QTreeWidgetItem *parent)
+void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem *parent)
 {
     KService *s = static_cast<KService *>(entry);
 

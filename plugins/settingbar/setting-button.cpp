@@ -24,8 +24,6 @@ SettingButton::SettingButton(QWidget *parent)
     setBackGroundColorEnabled(false);
 }
 
-SettingButton::~SettingButton()
-{
-}
+SettingButton::~SettingButton() = default;
 }  // namespace SettingBar
 }  // namespace Kiran

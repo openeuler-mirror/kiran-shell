@@ -32,7 +32,7 @@ class SettingItem : public KiranColorBlock
 
 public:
     explicit SettingItem(QWidget *parent = nullptr, bool settingButtonVisible = true);
-    virtual ~SettingItem();
+    ~SettingItem() override;
 
     void setIcon(const QIcon &icon);
     void setTooltip(const QString &tooltip);

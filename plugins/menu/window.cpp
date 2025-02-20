@@ -63,11 +63,7 @@ namespace Menu
 {
 Window::Window(QWidget *parent)
     : QDialog(parent, Qt::FramelessWindowHint),
-      m_ui(new Ui::Window),
-      m_activitiesConsumer(new KActivities::Consumer()),
-      m_ksAccounts(nullptr),
-      m_ksAccountsUser(nullptr),
-      m_actStatsWatcher(nullptr)
+      m_ui(new Ui::Window)
 {
     m_ui->setupUi(this);
 
@@ -137,6 +133,7 @@ void Window::initUI()
 
 void Window::initActivitiesStats()
 {
+    m_activitiesConsumer = std::unique_ptr<KActivities::Consumer>(new KActivities::Consumer());
     // 收藏夹及常用应用服务
     while (m_activitiesConsumer->serviceStatus() == KActivities::Consumer::Unknown)
     {
@@ -330,7 +327,7 @@ void Window::runApp(QString appId)
 
     KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
     // 启动应用
-    if (!QProcess::startDetached(service->exec(), QStringList()))  //service->exec()部分应用带有参数，如%U，导致无法启动
+    if (!QProcess::startDetached(service->exec(), QStringList()))  // service->exec()部分应用带有参数，如%U，导致无法启动
     {
         auto *job = new KIO::ApplicationLauncherJob(service);
         job->start();

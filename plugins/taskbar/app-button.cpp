@@ -40,7 +40,8 @@ namespace Kiran
 namespace Taskbar
 {
 AppButton::AppButton(IAppletImport *import, QWidget *parent)
-    : StyledButton(parent), m_import(import), m_wid(0), m_isShowName(false), m_dragFlag(false)
+    : StyledButton(parent),
+      m_import(import)
 {
     auto *appGroup = (AppGroup *)parent;
     connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
@@ -237,11 +238,11 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
     }
 
     // 自带菜单
-    KService::Ptr s = KService::serviceByMenuId(m_appBaseInfo.m_url.fileName());
-    if (s.data())
+    KService::Ptr service = KService::serviceByMenuId(m_appBaseInfo.m_url.fileName());
+    if (service.data())
     {
         bool firstAdd = true;
-        for (const KServiceAction &serviceAction : s->actions())
+        for (const KServiceAction &serviceAction : service->actions())
         {
             if (serviceAction.noDisplay())
             {
@@ -262,7 +263,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
 
                     // 通知kactivitymanagerd
                     KActivities::ResourceInstance::notifyAccessed(
-                        QUrl(QStringLiteral("applications:") + s->storageId()));
+                        QUrl(QStringLiteral("applications:") + service->storageId()));
                 });
             if (serviceAction.isSeparator())
             {
@@ -357,10 +358,10 @@ void AppButton::paintEvent(QPaintEvent *event)
     if (text().isEmpty())
     {
         // 仅图标
-        int x = (width() - iconSize().width()) / 2;
-        int y = (height() - iconSize().height()) / 2;
+        int iconX = (width() - iconSize().width()) / 2;
+        int iconY = (height() - iconSize().height()) / 2;
         QPixmap pixmap = icon().pixmap(iconSize());
-        painter.drawPixmap(x, y, iconSize().width(), iconSize().height(), pixmap);
+        painter.drawPixmap(iconX, iconY, iconSize().width(), iconSize().height(), pixmap);
     }
     else
     {
@@ -371,23 +372,22 @@ void AppButton::paintEvent(QPaintEvent *event)
         // 图标+文字=136
         // 图标文字间隔=8
 
-        const int designPanelSize = 40;
         const int designWidth = 160;
         const int designHeight = 32;
         const int designIconTextWidth = 136;
         const int designIconTextMargin = 8;
 
-        int x = (width() - width() * designIconTextWidth / designWidth) / 2;
-        int y = (height() - iconSize().height()) / 2;
+        int iconX = (width() - width() * designIconTextWidth / designWidth) / 2;
+        int iconY = (height() - iconSize().height()) / 2;
         QPixmap pixmap = icon().pixmap(iconSize());
-        painter.drawPixmap(x, y, iconSize().width(), iconSize().height(), pixmap);
+        painter.drawPixmap(iconX, iconY, iconSize().width(), iconSize().height(), pixmap);
 
         int realMargin = height() * designIconTextMargin / designHeight;
-        int textX = x + iconSize().width() + realMargin;
+        int textX = iconX + iconSize().width() + realMargin;
         int realIconTextWidth = width() * designIconTextWidth / designWidth;
         int textWidth = realIconTextWidth - realMargin - iconSize().width();
 
-        painter.drawText(textX, y, textWidth, iconSize().height(),
+        painter.drawText(textX, iconY, textWidth, iconSize().height(),
                          Qt::AlignLeft | Qt::AlignVCenter, text());
     }
 
@@ -514,7 +514,7 @@ void AppButton::changedWindow(WId wid, NET::Properties properties,
 void AppButton::updateShowName()
 {
     auto panelSize = m_import->getPanel()->getSize();
-    int height = panelSize / 40.f * 32;
+    int height = panelSize / 40.F * 32;
 
     if (0 != m_wid)
     {

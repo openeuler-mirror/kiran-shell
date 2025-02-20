@@ -31,11 +31,12 @@ int main(int argc, char *argv[])
     auto argv0 = QFileInfo(argv[0]);
     auto programName = argv0.baseName();
 
+    QApplication app(argc, argv);
+
     qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication app(argc, argv);
-    app.setApplicationName(programName);
-    app.setApplicationVersion(PROJECT_VERSION);
+    QApplication::setApplicationName(programName);
+    QApplication::setApplicationVersion(PROJECT_VERSION);
 
 #ifndef QT_DEBUG
     if (klog_qt5_init("", "kylinsec-session", "kiran-shell", "kiran-shell") != 0)
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        app.installTranslator(&translator);
+        QApplication::installTranslator(&translator);
     }
 
     QCommandLineParser parser;
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
     Kiran::Profile::globalInit();
     Kiran::Shell::globalInit();
 
-    auto ret = app.exec();
+    auto ret = QApplication::exec();
 
     Kiran::Shell::globalDeinit();
     Kiran::Profile::globalDeinit();

@@ -32,7 +32,7 @@ class Applet : public QWidget
 
 public:
     Applet(IAppletImport *import);
-    ~Applet();
+    ~Applet() override;
 
 private:
     IAppletImport *m_import;
@@ -48,7 +48,7 @@ class Plugin : public QObject, public IPlugin
     Q_INTERFACES(Kiran::IPlugin)
 
 public:
-    virtual QWidget *createApplet(const QString &appletID, IAppletImport *import)
+    QWidget *createApplet(const QString &appletID, IAppletImport *import) override
     {
         return new Applet(import);
     }

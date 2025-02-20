@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <QGSettings>
 #include <QVariant>
+#include <utility>
 
 #include "ks-definition.h"
 #include "ks-i.h"
@@ -26,32 +27,32 @@ GSETTINGS_PROPERTY_INT_DEFINITION(ProfilePanel, size, Size, PANEL_SCHEMA_KEY_SIZ
 GSETTINGS_PROPERTY_STRING_DEFINITION(ProfilePanel, orientation, Orientation, PANEL_SCHEMA_KEY_ORIENTATION)
 GSETTINGS_PROPERTY_INT_DEFINITION(ProfilePanel, monitor, Monitor, PANEL_SCHEMA_KEY_MONITOR)
 
-ProfilePanel::ProfilePanel(const QString &uid)
-    : m_uid(uid),
-      m_size(100),
-      m_monitor(-1)
+ProfilePanel::ProfilePanel(QString uid)
+    : m_size(40),
+      m_monitor(-1),
+      m_uid(std::move(uid))
 {
-    auto schemaPath = QString("%1/%2/").arg(PANEL_SCHEMA_PATH).arg(this->m_uid);
-    this->m_settings = new QGSettings(PANEL_SCHEMA_ID, schemaPath.toUtf8(), this);
+    auto schemaPath = QString("%1/%2/").arg(PANEL_SCHEMA_PATH).arg(m_uid);
+    m_settings = new QGSettings(PANEL_SCHEMA_ID, schemaPath.toUtf8(), this);
 
-    this->init();
+    init();
 
-    connect(this->m_settings, SIGNAL(changed(const QString &)), this, SLOT(updateSettings(const QString &)));
+    connect(m_settings, SIGNAL(changed(const QString &)), this, SLOT(updateSettings(const QString &)));
 }
 
 void ProfilePanel::init()
 {
-    this->initSettings();
+    initSettings();
 }
 
 void ProfilePanel::initSettings()
 {
     // 初始化阶段不发送信号，避免其他模块重复处理
-    this->blockSignals(true);
-    this->updateSettings(PANEL_SCHEMA_KEY_SIZE);
-    this->updateSettings(PANEL_SCHEMA_KEY_ORIENTATION);
-    this->updateSettings(PANEL_SCHEMA_KEY_MONITOR);
-    this->blockSignals(false);
+    blockSignals(true);
+    updateSettings(PANEL_SCHEMA_KEY_SIZE);
+    updateSettings(PANEL_SCHEMA_KEY_ORIENTATION);
+    updateSettings(PANEL_SCHEMA_KEY_MONITOR);
+    blockSignals(false);
 }
 
 void ProfilePanel::updateSettings(const QString &key)
