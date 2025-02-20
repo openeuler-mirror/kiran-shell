@@ -242,7 +242,7 @@ void Window::initQuickStart()
                                          {
                                              if (power->getGraphicalNtvs() >= power->getNtvsTotal())
                                              {
-                                                 KLOG_DEBUG("Total ntvs: %d, graphical ntvs: %d.", power->getNtvsTotal(), power->getGraphicalNtvs());
+                                                 KLOG_DEBUG(LCMenu) << QString("Total ntvs: %1, graphical ntvs: %2.").arg(power->getNtvsTotal()).arg(power->getGraphicalNtvs());
                                                  // TODO: 弹窗提示，已达最大用户数
                                              }
                                              else

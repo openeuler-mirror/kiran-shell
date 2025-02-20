@@ -266,7 +266,7 @@ void AppsOverview::updateApp()
     auto newAppIds = m_appIds;
     auto subtract = newAppIds.subtract(oldAppIds);
 
-    KLOG_INFO(LCMenu) << "新应用:" << subtract;
+    KLOG_INFO(LCMenu) << "new app:" << subtract;
     // 处理新应用分类
     if (!subtract.isEmpty())
     {
