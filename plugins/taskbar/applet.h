@@ -29,7 +29,7 @@ class Applet : public QWidget
 
 public:
     Applet(IAppletImport *import);
-    ~Applet();
+    ~Applet() override;
 
 signals:
     //  打开或关闭窗口软件
@@ -52,7 +52,7 @@ class Plugin : public QObject, public IPlugin
     Q_INTERFACES(Kiran::IPlugin)
 
 public:
-    virtual QWidget *createApplet(const QString &appletID, IAppletImport *import)
+    QWidget *createApplet(const QString &appletID, IAppletImport *import) override
     {
         return new Applet(import);
     }

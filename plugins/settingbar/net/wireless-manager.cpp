@@ -153,7 +153,7 @@ WirelessNetworkInfoList WirelessManager::getNetworkInfoList(const QString &devic
 {
     if (!m_deviceManagerMap.contains(deviceUni))
     {
-        return WirelessNetworkInfoList();
+        return {};
     }
 
     return m_deviceManagerMap[deviceUni]->getNetworkInfoList();
@@ -173,7 +173,7 @@ void WirelessManager::activateNetowrk(const QString &deviceUni, const QString &s
 {
     KLOG_INFO(LCSettingbar) << "wireless activate network" << deviceUni << ssid;
 
-    return m_deviceManagerMap[deviceUni]->activateNetowrk(ssid);
+    m_deviceManagerMap[deviceUni]->activateNetowrk(ssid);
 }
 
 void WirelessManager::addAndActivateNetwork(const QString &deviceUni, const QString &ssid, const QString &password)

@@ -21,6 +21,8 @@
 #include "shelld.h"
 #include "status-notifier-watcher.h"
 
+static constexpr unsigned int SYCOCA_BUILD_TIME = 2000;
+
 namespace Kiran
 {
 Shelld::Shelld()
@@ -49,12 +51,8 @@ Shelld::Shelld()
     new StatusNotifierWatcher(this);
 }
 
-Shelld::~Shelld()
-{
-}
-
 void Shelld::update(const QString &path)
 {
-    m_timer->start(2000);
+    m_timer->start(SYCOCA_BUILD_TIME);
 }
-}
+}  // namespace Kiran

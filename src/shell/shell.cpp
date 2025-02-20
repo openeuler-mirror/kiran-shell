@@ -33,12 +33,10 @@ void Shell::globalDeinit()
 
 Panel* Shell::getPanel(const QString& uid)
 {
-    return this->m_panels.value(uid);
+    return m_panels.value(uid);
 }
 
-Shell::Shell()
-{
-}
+Shell::Shell() = default;
 
 void Shell::init()
 {
@@ -59,7 +57,7 @@ void Shell::initChildren()
         auto panelUID = profilePanel->getUID();
         if (!m_panels.contains(panelUID))
         {
-            auto panel = new Panel(profilePanel);
+            auto* panel = new Panel(profilePanel);
             panelsNew.insert(panelUID, panel);
         }
         else
@@ -68,9 +66,9 @@ void Shell::initChildren()
         }
     }
     // 清理不存在的面板
-    while (m_panels.size())
+    while (!m_panels.empty())
     {
-        auto panel = m_panels.take(m_panels.firstKey());
+        auto* panel = m_panels.take(m_panels.firstKey());
         delete panel;
     }
 

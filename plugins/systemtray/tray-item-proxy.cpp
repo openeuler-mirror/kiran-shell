@@ -43,7 +43,7 @@ QDBusVariant TrayItemProxy::getProperty(const QString &name)
         }
     }
 
-    return QDBusVariant();
+    return {};
 }
 
 QStringList TrayItemProxy::getAllPropertyKey()
@@ -57,7 +57,7 @@ QStringList TrayItemProxy::getAllPropertyKey()
     if (arguments.isEmpty())
     {
         KLOG_WARNING(LCSystemtray) << "No arguments in the message!" << msg.interface() << msg.path();
-        return QStringList();
+        return {};
     }
     QDBusArgument arg = arguments.first().value<QDBusArgument>();
     QVariantMap map;

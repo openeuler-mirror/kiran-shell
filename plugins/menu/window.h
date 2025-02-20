@@ -97,13 +97,13 @@ private:
     Ui::Window* m_ui;
 
     // 常用应用 收藏夹 依赖kactivitymanagerd服务
-    KActivities::Stats::ResultWatcher* m_actStatsWatcher;
+    KActivities::Stats::ResultWatcher* m_actStatsWatcher = nullptr;
     std::unique_ptr<KActivities::Consumer> m_activitiesConsumer;
     QStringList m_favoriteAppId;
 
     // 用户信息 dbus
-    KSAccountsUser* m_ksAccountsUser;
-    KSAccounts* m_ksAccounts;
+    KSAccountsUser* m_ksAccountsUser = nullptr;
+    KSAccounts* m_ksAccounts = nullptr;
 };
 }  // namespace Menu
 }  // namespace Kiran

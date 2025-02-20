@@ -24,29 +24,29 @@ static void DumpDeviceInfo(NetworkManager::Device::List devices)
 {
     for (const auto &device : devices)
     {
-        KLOG_INFO(LCSettingbar) << "设备名称:" << device->interfaceName();
-        KLOG_INFO(LCSettingbar) << "设备类型:" << device->type();
-        KLOG_INFO(LCSettingbar) << "设备状态:" << device->state();
+        KLOG_INFO(LCSettingbar) << "device interface name:" << device->interfaceName();
+        KLOG_INFO(LCSettingbar) << "device type:" << device->type();
+        KLOG_INFO(LCSettingbar) << "device state:" << device->state();
 
         // 获取设备的连接
         const auto availableConnections = device->availableConnections();
         for (const auto &availableConnection : availableConnections)
         {
-            KLOG_INFO(LCSettingbar) << "  连接 UUID:" << availableConnection->uuid();
-            KLOG_INFO(LCSettingbar) << "  path:" << availableConnection->path();
-            KLOG_INFO(LCSettingbar) << "  name:" << availableConnection->name();
+            KLOG_INFO(LCSettingbar) << "  connection UUID:" << availableConnection->uuid();
+            KLOG_INFO(LCSettingbar) << "  connection path:" << availableConnection->path();
+            KLOG_INFO(LCSettingbar) << "  connection name:" << availableConnection->name();
         }
 
         // 获取设备 IP 地址
         const auto ipv4Config = device->ipV4Config();
         if (ipv4Config.isValid())
         {
-            KLOG_INFO(LCSettingbar) << "  IPv4 信息:\n"
+            KLOG_INFO(LCSettingbar) << "  IPv4 info:\n"
                                     << "    domains:" << ipv4Config.domains()
                                     << "    gateway:" << ipv4Config.gateway()
                                     << "    nameservers:" << ipv4Config.nameservers()
                                     << "    dnsOptions:" << ipv4Config.dnsOptions();
-            KLOG_INFO(LCSettingbar) << "  IPv4 地址:";
+            KLOG_INFO(LCSettingbar) << "  IPv4 addresses:";
             for (auto addr : ipv4Config.addresses())
             {
                 KLOG_INFO(LCSettingbar) << "    " << addr.ip() << addr.gateway();
@@ -56,12 +56,12 @@ static void DumpDeviceInfo(NetworkManager::Device::List devices)
         const auto ipv6Config = device->ipV6Config();
         if (ipv6Config.isValid())
         {
-            KLOG_INFO(LCSettingbar) << "  IPv6 信息:"
+            KLOG_INFO(LCSettingbar) << "  IPv6 info:"
                                     << "    domains:" << ipv6Config.domains()
                                     << "    gateway:" << ipv6Config.gateway()
                                     << "    nameservers:" << ipv6Config.nameservers()
                                     << "    dnsOptions:" << ipv6Config.dnsOptions();
-            KLOG_INFO(LCSettingbar) << "  IPv6 地址:";
+            KLOG_INFO(LCSettingbar) << "  IPv6 addresses:";
             for (auto addr : ipv6Config.addresses())
             {
                 KLOG_INFO(LCSettingbar) << "    " << addr.ip() << addr.gateway();
@@ -74,9 +74,9 @@ static void TestDevice()
 {
     // 获取所有网络设备
     const auto devices = NetworkManager::networkInterfaces();
-    KLOG_INFO(LCSettingbar) << "发现的网络设备数量:" << devices.size();
+    KLOG_INFO(LCSettingbar) << "find network interfaces num:" << devices.size();
     // 打印 NetworkManager 管理器级别的信息
-    KLOG_INFO(LCSettingbar) << "NetworkManager 状态:" << NetworkManager::status();
+    KLOG_INFO(LCSettingbar) << "NetworkManager status:" << NetworkManager::status();
 
     DumpDeviceInfo(devices);
 }
@@ -176,19 +176,17 @@ bool NetCommon::disconnectDevice(const NetworkManager::Device::Type &type)
         QDBusReply<void> reply = device->disconnectInterface();
         if (!reply.isValid())
         {
-            KLOG_ERROR(LCSettingbar) << "断连设备失败:"
+            KLOG_ERROR(LCSettingbar) << "disconnect interface failed:"
                                      << "name:" << device->interfaceName()
                                      << "uuid:" << device->uni()
                                      << "error:" << reply.error().message();
             return false;
         }
-        else
-        {
-            KLOG_INFO(LCSettingbar) << "断连设备成功:"
-                                    << "name:" << device->interfaceName()
-                                    << "uuid:" << device->uni();
-            return true;
-        }
+
+        KLOG_INFO(LCSettingbar) << "disconnect interface success:"
+                                << "name:" << device->interfaceName()
+                                << "uuid:" << device->uni();
+        return true;
     }
     return true;
 }
@@ -202,19 +200,17 @@ bool NetCommon::disconnectDevice(const QString &deviceUni)
             QDBusReply<void> reply = device->disconnectInterface();
             if (!reply.isValid())
             {
-                KLOG_ERROR(LCSettingbar) << "断连设备失败:"
+                KLOG_ERROR(LCSettingbar) << "disconnect interface failed:"
                                          << "name:" << device->interfaceName()
                                          << "uuid:" << device->uni()
                                          << "error:" << reply.error().message();
                 return false;
             }
-            else
-            {
-                KLOG_INFO(LCSettingbar) << "断连设备成功:"
-                                        << "name:" << device->interfaceName()
-                                        << "uuid:" << device->uni();
-                return true;
-            }
+
+            KLOG_INFO(LCSettingbar) << "disconnect interface success:"
+                                    << "name:" << device->interfaceName()
+                                    << "uuid:" << device->uni();
+            return true;
         }
     }
 
@@ -240,13 +236,11 @@ bool NetCommon::activateConnection(const QString &deviceUni, const QString &conn
                                              << "error:" << reply.error().message();
                     return false;
                 }
-                else
-                {
-                    KLOG_INFO(LCSettingbar) << "activate connection success:"
-                                            << "device uni:" << deviceUni
-                                            << "connection uuid:" << connectionUuid;
-                    return true;
-                }
+
+                KLOG_INFO(LCSettingbar) << "activate connection success:"
+                                        << "device uni:" << deviceUni
+                                        << "connection uuid:" << connectionUuid;
+                return true;
             }
         }
     }
@@ -272,13 +266,11 @@ bool NetCommon::deactivateConnection(const QString &connectionUuid)
                                          << "error:" << reply.error().message();
                 return false;
             }
-            else
-            {
-                KLOG_INFO(LCSettingbar) << "deactivate connection success:"
-                                        << "connection uuid:" << connectionUuid;
 
-                return true;
-            }
+            KLOG_INFO(LCSettingbar) << "deactivate connection success:"
+                                    << "connection uuid:" << connectionUuid;
+
+            return true;
 
             break;
         }
@@ -309,7 +301,7 @@ NetworkManager::Connection::Ptr NetCommon::getAvailableConnectionBySsid(const QS
                              << "device uni:" << deviceUni
                              << "ssid:" << ssid;
 
-    return NetworkManager::Connection::Ptr();
+    return {};
 }
 
 QPair<QString, QString> NetCommon::getNetworkIcon()
@@ -392,10 +384,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon()
     {
         return getNetworkIcon(topLevelConnection);
     }
-    else
-    {
-        return getNetworkIcon(DISCONNECTED);
-    }
+
+    return getNetworkIcon(DISCONNECTED);
 }
 
 QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
@@ -423,10 +413,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveCo
         {
             return getNetworkIcon(WIRED_CONNECTED);
         }
-        else
-        {
-            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
-        }
+
+        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
     }
     case NetworkManager::ConnectionSettings::Wireless:
     {
@@ -434,10 +422,8 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveCo
         {
             return getNetworkIcon(WIRELESS_CONNECTED);
         }
-        else
-        {
-            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
-        }
+
+        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
     }
     default:
     {

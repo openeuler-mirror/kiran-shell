@@ -29,8 +29,7 @@ namespace SettingBar
 {
 NetConfItem::NetConfItem(NetworkManager::Device::Type type, QWidget *parent)
     : SettingItem(parent),
-      m_netType(type),
-      m_settingWidget(nullptr)
+      m_netType(type)
 {
     initUI();
 }

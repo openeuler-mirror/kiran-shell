@@ -39,9 +39,7 @@ WindowPreviewer::WindowPreviewer(WId wid, IAppletImport *import, AppPreviewer *p
     connect(parent, &AppPreviewer::activeWindowChanged, this, &WindowPreviewer::changedActiveWindow);
 }
 
-WindowPreviewer::~WindowPreviewer()
-{
-}
+WindowPreviewer::~WindowPreviewer() = default;
 
 bool WindowPreviewer::checkCanHide()
 {

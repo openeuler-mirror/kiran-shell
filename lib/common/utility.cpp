@@ -34,7 +34,7 @@ static pinyin_instance_t *pinyininstance = pinyinContext ? pinyin_alloc_instance
 QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
 {
     KLOG_INFO(LCLib) << "run cmd" << cmd << cmdArg;
-    QProcess p(0);
+    QProcess p;
     p.start(cmd, cmdArg);
     p.waitForStarted();
     p.waitForFinished();
@@ -44,7 +44,7 @@ QByteArray Utility::runCmd(QString cmd, QStringList cmdArg)
 void Utility::clearLayout(QLayout *layout, bool deleteWidget, bool hideWidget)
 {
     QLayoutItem *child;
-    while ((child = layout->takeAt(0)) != 0)
+    while ((child = layout->takeAt(0)) != nullptr)
     {
         QWidget *widget = child->widget();
         if (widget)
@@ -52,13 +52,13 @@ void Utility::clearLayout(QLayout *layout, bool deleteWidget, bool hideWidget)
             if (deleteWidget)
             {
                 // 不再需要子项
-                widget->setParent(NULL);
+                widget->setParent(nullptr);
                 delete widget;
             }
             else if (hideWidget)
             {
                 // 隐藏功能，用于只需要显示部分子项，调用后再次显示需要调用show
-                // setParent(NULL)会导致不显示的子项无法自动析构
+                // setParent(nullptr)会导致不显示的子项无法自动析构
                 layout->removeWidget(widget);
                 widget->hide();
             }
@@ -93,8 +93,6 @@ QString Utility::getElidedText(QFontMetrics fontMetrics, QString text, int elide
 
 void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWidget *popWidget)
 {
-    auto baseGeometry = triggerWidget->geometry();
-    auto baseCenter = baseGeometry.center();
     auto windowSize = popWidget->frameSize();
     QPoint windowPosition(0, 0);
 
@@ -252,17 +250,17 @@ QStringList Utility::pinyinGuess(const QString &pinyinInput)
     }
 
     // 猜测候选
-    pinyin_guess_candidates(pinyininstance, 0, SORT_BY_PHRASE_LENGTH | SORT_BY_FREQUENCY);
+    pinyin_guess_candidates(pinyininstance, 0, SORT_BY_PHRASE_LENGTH_AND_FREQUENCY);
 
     // 获取候选
     unsigned int num = 0;
     pinyin_get_n_candidate(pinyininstance, &num);
     for (unsigned int i = 0; i < num; ++i)
     {
-        lookup_candidate_t *candidate = NULL;
+        lookup_candidate_t *candidate = nullptr;
         pinyin_get_candidate(pinyininstance, i, &candidate);
 
-        const char *word = NULL;
+        const char *word = nullptr;
         pinyin_get_candidate_string(pinyininstance, candidate, &word);
 
         resultList.append(QString::fromUtf8(word));

@@ -36,12 +36,12 @@ class WiredConnectionWidget : public QWidget
 
 public:
     explicit WiredConnectionWidget(QString deviceUni, QString connectionUuid, QWidget *parent = nullptr);
-    ~WiredConnectionWidget();
+    ~WiredConnectionWidget() override;
 
     void updateStatus();
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private:
     Ui::WiredConnectionWidget *m_ui;

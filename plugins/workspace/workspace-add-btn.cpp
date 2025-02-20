@@ -34,7 +34,7 @@ void WorkspaceAddBtn::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
     QColor bgColor;
     if (m_pressed)
     {
@@ -64,10 +64,10 @@ void WorkspaceAddBtn::paintEvent(QPaintEvent *event)
     painter.drawPath(path);
 
     int iconWH = iconSize().width();
-    int x = (width() - iconWH) / 2;
-    int y = (height() - iconWH) / 2;
+    int iconX = (width() - iconWH) / 2;
+    int iconY = (height() - iconWH) / 2;
     QPixmap pixmap = icon().pixmap(iconWH, iconWH);
-    painter.drawPixmap(x, y, iconWH, iconWH, pixmap);
+    painter.drawPixmap(iconX, iconY, iconWH, iconWH, pixmap);
 }
 }  // namespace Workspace
 }  // namespace Kiran

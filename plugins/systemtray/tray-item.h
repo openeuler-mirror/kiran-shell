@@ -29,7 +29,7 @@ class TrayItem : public StyledButton
     Q_OBJECT
 public:
     TrayItem(QString service, QString objectPath, QWidget *parent = nullptr);
-    ~TrayItem();
+    ~TrayItem() override;
 
     enum Status
     {
@@ -75,13 +75,14 @@ signals:
     void startDrag(TrayItem *);
 
 private:
-    bool m_isInit;
+    bool m_isInit = false;
+
     // dbus路径
     QString m_service;
     QString m_objectPath;
 
     // dbus属性获取
-    TrayItemProxy *m_trayItemProxy;
+    TrayItemProxy *m_trayItemProxy = nullptr;
     QStringList m_propertyKeys;
 
     // 为什么要定时器去刷新数据：
@@ -90,7 +91,7 @@ private:
     // 如果马上调用其提供的接口，必然导致堵塞，结果无法返回，此时双方都在等待执行结果
     // 等dbus接口超时后，才会正常
     // 其他情况类似（如果对方需要等待信号的结果，而服务端在处理这个信号时调用了对方的接口）
-    QTimer *m_refreshTimer;
+    QTimer *m_refreshTimer = nullptr;
 
     // 状态
     Status m_status;
@@ -101,7 +102,7 @@ private:
     QIcon m_attentionIcon;
 
     // 右键菜单
-    DBusMenuImporter *m_dBusMenuImporter;
+    DBusMenuImporter *m_dBusMenuImporter = nullptr;
 
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint m_pressPoint;

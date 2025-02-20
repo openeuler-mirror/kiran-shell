@@ -32,8 +32,8 @@ Spacer::Spacer(IAppletImport *import)
     m_layout->addWidget(m_prevBlock);
     m_layout->addWidget(m_nextBlock);
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     updateLayout();
 }

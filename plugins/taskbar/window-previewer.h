@@ -35,7 +35,7 @@ class WindowPreviewer : public WindowThumbnail
 
 public:
     explicit WindowPreviewer(WId wid, IAppletImport *import, AppPreviewer *parent = nullptr);
-    ~WindowPreviewer();
+    ~WindowPreviewer() override;
 
     // 当弹出菜单时，父窗口会检测到leaveEvent，
     // 此处判断是否可以隐藏，如果菜单已弹出，则在菜单执行结束时隐藏窗口

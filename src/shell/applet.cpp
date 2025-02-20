@@ -31,29 +31,27 @@ AppletImport::AppletImport(Applet *applet, QObject *parent)
 
 IPanel *AppletImport::getPanel()
 {
-    return this->m_applet->getPanel();
+    return m_applet->getPanel();
 }
 
 IApplet *AppletImport::getApplet()
 {
-    return this->m_applet;
+    return m_applet;
 }
 
 Applet::Applet(ProfileApplet *profileApplet,
                Panel *panel)
     : QWidget(panel),
       m_profileApplet(profileApplet),
-      m_panel(panel),
-      m_appletImport(nullptr),
-      m_pluginApplet(nullptr)
+      m_panel(panel)
 {
-    this->m_appletImport = new AppletImport(this, this);
-    this->init();
+    m_appletImport = new AppletImport(this, this);
+    init();
 }
 
 Panel *Applet::getPanel()
 {
-    return this->m_panel;
+    return m_panel;
 }
 
 QString Applet::getID()
@@ -63,9 +61,9 @@ QString Applet::getID()
 
 void Applet::init()
 {
-    auto appletID = this->m_profileApplet->getID();
-    auto plugin = PluginPool::getInstance()->findPluginForApplet(appletID);
-    auto layout = new QHBoxLayout(this);
+    auto appletID = m_profileApplet->getID();
+    auto *plugin = PluginPool::getInstance()->findPluginForApplet(appletID);
+    auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
@@ -76,8 +74,8 @@ void Applet::init()
     }
 
     KLOG_DEBUG(LCShell) << "Found plugin for appletID " << appletID;
-    this->m_pluginApplet = plugin->createApplet(appletID, this->m_appletImport);
-    if (!this->m_pluginApplet)
+    m_pluginApplet = plugin->createApplet(appletID, m_appletImport);
+    if (!m_pluginApplet)
     {
         KLOG_WARNING(LCShell) << "Create applet " << appletID << " failed.";
         return;

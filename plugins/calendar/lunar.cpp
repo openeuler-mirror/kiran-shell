@@ -1,7 +1,10 @@
 #include <QDate>
 
 #include "lunar.h"
-#define TIANGAN_DIZHI_START_YAER 1924  //  天干地支开始计算年月
+enum
+{
+    TIANGAN_DIZHI_START_YAER = 1924  //  天干地支开始计算年月
+};
 
 // 农历每年春节对应的公历日期 130：1月30号
 static const QList<int> springFestivalDate =
@@ -333,8 +336,10 @@ QString Lunar::getLunarDayStr(int year, int month, int day)
     else
     {
         // 公历节日
-        if ("" != lunarDateStr)
+        if (!lunarDateStr.isEmpty())
+        {
             return lunarDateStr;
+        }
 
         // 计算农历节日
         lunarDateStr = lunarFestival(year, month, day);
@@ -505,21 +510,24 @@ QString Lunar::holiday(int month, int day)
 QString Lunar::solarTerms(int year, int month, int day)
 {
     int solarTermsDay = 0;
-    int lunarMonth = (year - 1970) * 12 + month - 1;
+    int lunarMonth = ((year - 1970) * 12) + month - 1;
 
     if (day < 15)
     {
         solarTermsDay = 15 - day;
         if ((chSolarData.at(lunarMonth) >> 4) == solarTermsDay)
+        {
             return chSolarName.at(2 * (month - 1));
-        else
-            return "";
+        }
+        return "";
     }
-    else if (day > 15)
+    if (day > 15)
     {
         solarTermsDay = day - 15;
         if ((chSolarData.at(lunarMonth) & 0x0f) == solarTermsDay)
-            return chSolarName.at(2 * (month - 1) + 1);
+        {
+            return chSolarName.at((2 * (month - 1)) + 1);
+        }
     }
 
     return "";
@@ -646,9 +654,13 @@ bool Lunar::findLunarData(int& year, int& month, int& day)
     if (monthNum == 13)
     {
         if (month == (lunarData.at(lunarDataIndex) / 65536) + 1)
+        {
             month = 1 - month;
+        }
         else if (month > (lunarData.at(lunarDataIndex) / 65536) + 1)
+        {
             month = month - 1;
+        }
     }
 
     return true;

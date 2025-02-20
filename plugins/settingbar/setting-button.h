@@ -25,7 +25,7 @@ class SettingButton : public StyledButton
     Q_OBJECT
 public:
     SettingButton(QWidget* parent = nullptr);
-    virtual ~SettingButton();
+    ~SettingButton() override;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

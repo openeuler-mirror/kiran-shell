@@ -32,7 +32,6 @@ class Window : public KiranColorBlock
     Q_OBJECT
 public:
     explicit Window(IAppletImport *import, Applet *parent);
-    ~Window();
 
 protected:
     void enterEvent(QEvent *event) override;
@@ -62,8 +61,8 @@ private:
     QList<SettingButton *> hwConfButtons;
     SettingWindow *m_hwConfWindow;
 
-    bool m_hovered;
-    bool m_pressed;
+    bool m_hovered = false;
+    bool m_pressed = false;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

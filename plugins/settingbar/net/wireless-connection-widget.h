@@ -37,14 +37,14 @@ class WirelessConnectionWidget : public QWidget
 
 public:
     explicit WirelessConnectionWidget(QString deviceUni, QString ssid, QWidget *parent = nullptr);
-    ~WirelessConnectionWidget();
+    ~WirelessConnectionWidget() override;
 
     void updateStatus();
 
     void requestPassword();
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private slots:
     void on_btnOkPassword_clicked();
@@ -58,7 +58,7 @@ private:
     void signalStrengthChanged(int strength);
 
 signals:
-    void addAndActivateNetwork(QString deviceUni, QString ssid, const QString password);
+    void addAndActivateNetwork(QString deviceUni, QString ssid, QString password);
     void respondPasswdRequest(QString ssid, QString password, bool isCancel);
 
     void resizeShow();

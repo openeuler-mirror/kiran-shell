@@ -36,7 +36,7 @@ class AppsOverview : public QWidget
 
 public:
     AppsOverview(QWidget* parent = nullptr);
-    virtual ~AppsOverview();
+    ~AppsOverview() override;
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -54,8 +54,8 @@ private slots:
 private:
     // 应用加载和管理
     void loadApps();
-    void addGroup(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
-    void addItem(KSycocaEntry* entry, const QString filter = "", QTreeWidgetItem* parent = nullptr);
+    void addGroup(KSycocaEntry* entry, QString filter = "", QTreeWidgetItem* parent = nullptr);
+    void addItem(KSycocaEntry* entry, QString filter = "", QTreeWidgetItem* parent = nullptr);
 
     // 新应用更新
     void updateNewApp(QString key = "");

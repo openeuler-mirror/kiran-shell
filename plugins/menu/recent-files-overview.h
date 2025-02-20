@@ -37,17 +37,18 @@ class RecentFilesOverview : public QWidget
 
 public:
     RecentFilesOverview(QWidget* parent = nullptr);
-    virtual ~RecentFilesOverview();
+    ~RecentFilesOverview() override;
 
 private slots:
     void on_treeWidgetShowFiles_itemClicked(QTreeWidgetItem* item, int column);
     void on_lineEditSearch_textChanged(const QString& arg1);
 
 private:
-    void updateRecentFiles(const QString filter = "");
+    void updateRecentFiles(QString filter = "");
 
 protected:
-    void showEvent(QShowEvent* event);
+    void showEvent(QShowEvent* event) override;
+
 signals:
     void fileItemClicked(QString filePath);
 

@@ -29,9 +29,9 @@ class Window : public QObject
     Q_OBJECT
 public:
     Window(WId wid, QObject* parent = nullptr);
-    ~Window();
+    ~Window() override;
 
-    QRect getWindowGeometry();
+    QRect getWindowGeometry() const;
     QPixmap getPixPreviewr();
 
     // 启动截图
@@ -61,14 +61,14 @@ public:
     static WindowManager& getInstance();
 
     QList<WId> getAllWindow();
-    QList<WId> getAllWindow(int desktop);
+    static QList<WId> getAllWindow(int desktop);
 
     QRect getWindowGeometry(WId wid);
     QPixmap getPixPreviewr(WId wid);
 
 private:
     WindowManager();
-    ~WindowManager();
+    ~WindowManager() override;
 
     //  打开或关闭窗口软件
     void addWindow(WId wid);

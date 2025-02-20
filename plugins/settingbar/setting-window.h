@@ -30,7 +30,7 @@ class SettingWindow : public QDialog
 
 public:
     explicit SettingWindow(QWidget* parent = nullptr);
-    ~SettingWindow();
+    ~SettingWindow() override;
 
     void syncVolumeValue(const int& value);
     void syncVolumeIcon(const QIcon& icon);

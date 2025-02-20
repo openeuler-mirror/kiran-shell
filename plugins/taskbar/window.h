@@ -38,7 +38,7 @@ class Window : public KiranColorBlock
     Q_OBJECT
 public:
     Window(IAppletImport *import, Applet *parent);
-    ~Window();
+    ~Window() override;
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -72,7 +72,7 @@ private:
 
     // 收藏夹关联
     void updateFavorite();
-    void isInFavorite(const QString &appId, bool &isFavorite);
+    void isInFavorite(const QString &appId, bool &checkResult);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
     // 固定到任务栏信息 查询、增加、删除
@@ -113,33 +113,33 @@ signals:
     void previewerShowChange(QList<WId> wids, QWidget *triggerWidget);
 
 private:
-    IAppletImport *m_import;
+    IAppletImport *m_import = nullptr;
 
-    QGSettings *m_gsettings;
+    QGSettings *m_gsettings = nullptr;
 
-    QBoxLayout *m_layout;
+    QBoxLayout *m_layout = nullptr;
 
     QMap<QByteArray, AppGroup *> m_mapAppGroupOpened;  // 打开的应用组，key:wm_class
     QList<AppGroup *> m_listAppGroupLocked;            // 锁定应用组
     QList<AppGroup *> m_listAppGroupShow;              // 所有应用组，用于排序显示
 
-    AppPreviewer *m_appPreviewer;  // 应用预览窗口
+    AppPreviewer *m_appPreviewer = nullptr;  // 应用预览窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
 
     // 收藏夹相关KActivities/Stats/ResultWatcher（用于从任务栏右键 添加或移除 收藏夹应用项）
-    KActivities::Stats::ResultWatcher *m_actStatsLinkedWatcher;
+    KActivities::Stats::ResultWatcher *m_actStatsLinkedWatcher = nullptr;
     // 保存收藏夹应用信息，用于判断应用是否在收藏夹中
     QStringList m_favoriteAppId;
 
     // 拖拽相关
-    int m_currentDropIndex;
-    AppGroup *m_indicatorWidget;
+    int m_currentDropIndex = -1;
+    AppGroup *m_indicatorWidget = nullptr;
 
     // 翻页
-    StyledButton *m_upPageBtn;
-    StyledButton *m_downPageBtn;
-    int m_curPageIndex;                  // 当前页序号
+    StyledButton *m_upPageBtn = nullptr;
+    StyledButton *m_downPageBtn = nullptr;
+    int m_curPageIndex = -1;             // 当前页序号
     QList<QList<AppGroup *>> m_appPage;  // 　app分页内容,用于拖拽计算位置需要
 };
 

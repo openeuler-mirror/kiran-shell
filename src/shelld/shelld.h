@@ -26,7 +26,6 @@ class Shelld : public QObject
     Q_OBJECT
 public:
     Shelld();
-    ~Shelld() override;
 
 private:
     void update(const QString &path);

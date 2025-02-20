@@ -31,8 +31,8 @@ public:
     AppletImport(Applet *applet, QObject *parent = nullptr);
 
 public:
-    virtual IPanel *getPanel();
-    virtual IApplet *getApplet();
+    IPanel *getPanel() override;
+    IApplet *getApplet() override;
 
 private:
     Applet *m_applet;
@@ -53,10 +53,10 @@ private:
     void init();
 
 private:
-    ProfileApplet *m_profileApplet;
-    Panel *m_panel;
+    ProfileApplet *m_profileApplet = nullptr;
+    Panel *m_panel = nullptr;
     // 提供给插件的输入对象
-    AppletImport *m_appletImport;
-    QWidget *m_pluginApplet;
+    AppletImport *m_appletImport = nullptr;
+    QWidget *m_pluginApplet = nullptr;
 };
 }  // namespace Kiran

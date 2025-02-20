@@ -16,7 +16,7 @@ protected:
     void hideEvent(QHideEvent *event) override;
 
 private:
-    void changeIndex(const int index);
+    void changeIndex(const int &index);
     int loadingIndex() const;
 
     void initPixmap();

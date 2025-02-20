@@ -42,7 +42,7 @@ int DesktopHelper::currentDesktop()
 
 void DesktopHelper::setCurrentDesktop(int desktop)
 {
-    return KWindowSystem::setCurrentDesktop(desktop);
+    KWindowSystem::setCurrentDesktop(desktop);
 }
 
 void DesktopHelper::createDesktop()

@@ -28,9 +28,7 @@ namespace Calendar
 {
 CalendarButton::CalendarButton(IAppletImport *import, QWidget *parent)
     : QPushButton(parent),
-      m_import(import),
-      m_hovered(false),
-      m_pressed(false)
+      m_import(import)
 {
     setFlat(true);
     setCheckable(true);
@@ -76,7 +74,7 @@ void CalendarButton::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
 
     // 背景绘制
     QColor bgColor;
