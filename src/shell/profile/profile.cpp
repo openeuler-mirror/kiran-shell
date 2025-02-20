@@ -43,117 +43,117 @@ void Profile::globalDeinit()
 
 Profile::Profile()
 {
-    this->m_settings = new QGSettings(SHELL_SCHEMA_ID, "", this);
+    m_settings = new QGSettings(SHELL_SCHEMA_ID, "", this);
 
-    connect(this->m_settings, SIGNAL(changed(const QString&)), this, SLOT(updateSettings(const QString&)));
+    connect(m_settings, SIGNAL(changed(const QString&)), this, SLOT(updateSettings(const QString&)));
 }
 
 void Profile::init()
 {
-    this->initSettings();
+    initSettings();
 
-    auto panelUIDs = this->getPanelUIDs();
+    auto panelUIDs = getPanelUIDs();
     // 如果面板数为0，则需要使用布局中的面板配置
 
-    if (panelUIDs.size() == 0)
+    if (panelUIDs.empty())
     {
-        this->loadFromLayout();
+        loadFromLayout();
     }
     else
     {
-        this->loadFromSettings();
+        loadFromSettings();
     }
 }
 
 void Profile::initSettings()
 {
     // 初始化阶段不发送信号，避免其他模块重复处理
-    this->blockSignals(true);
-    this->updateSettings(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT);
-    this->updateSettings(SHELL_SCHEMA_KEY_PANEL_UIDS);
-    this->updateSettings(SHELL_SCHEMA_KEY_APPLET_UIDS);
-    this->blockSignals(false);
+    blockSignals(true);
+    updateSettings(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT);
+    updateSettings(SHELL_SCHEMA_KEY_PANEL_UIDS);
+    updateSettings(SHELL_SCHEMA_KEY_APPLET_UIDS);
+    blockSignals(false);
 }
 
 void Profile::loadFromLayout()
 {
-    QScopedPointer<Layout> layout(new Layout(this->getDefaultLayout()));
+    QScopedPointer<Layout> layout(new Layout(getDefaultLayout()));
 
-    KLOG_DEBUG(LCShell) << "Load from layout " << this->getDefaultLayout();
+    KLOG_DEBUG(LCShell) << "Load from layout " << getDefaultLayout();
 
     auto layoutPanels = layout->getPanels();
-    for (auto layoutPanel : layoutPanels)
+    for (auto* layoutPanel : layoutPanels)
     {
-        this->loadPanelFromLayout(layoutPanel);
+        loadPanelFromLayout(layoutPanel);
     }
 
     auto layoutApplets = layout->getApplets();
-    for (auto layoutApplet : layoutApplets)
+    for (auto* layoutApplet : layoutApplets)
     {
-        this->loadAppletFromLayout(layoutApplet);
+        loadAppletFromLayout(layoutApplet);
     }
 }
 
 void Profile::loadPanelFromLayout(LayoutPanel* layoutPanel)
 {
-    auto panel = new ProfilePanel(layoutPanel->getUID());
+    auto* panel = new ProfilePanel(layoutPanel->getUID());
     // TODO: 将layoutPanel中的属性设置到panel
     // TODO： size需要限制一个最小值
     panel->setSize(layoutPanel->getSize());
     panel->setOrientation(layoutPanel->getOrientation());
     panel->setMonitor(layoutPanel->getMonitor());
-    this->m_panels.insert(panel->getUID(), panel);
+    m_panels.insert(panel->getUID(), panel);
 
     // 更新panel-uids属性
-    auto panelUIDs = this->getPanelUIDs();
+    auto panelUIDs = getPanelUIDs();
     if (!panelUIDs.contains(panel->getUID()))
     {
         panelUIDs.push_back(panel->getUID());
-        this->setPanelUIDs(panelUIDs);
+        setPanelUIDs(panelUIDs);
     }
 }
 
 void Profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
 {
-    auto applet = new ProfileApplet(layoutApplet->getUID());
+    auto* applet = new ProfileApplet(layoutApplet->getUID());
     // TODO: 将layoutApplet中的属性设置到applet
     applet->setID(layoutApplet->getID());
     applet->setPanel(layoutApplet->getPanel());
     applet->setPosition(layoutApplet->getPosition());
     applet->setPanelRightStick(layoutApplet->getPanelRightStick());
-    this->m_applets.insert(applet->getUID(), applet);
+    m_applets.insert(applet->getUID(), applet);
 
-    auto appletUIDs = this->getAppletUIDs();
+    auto appletUIDs = getAppletUIDs();
     if (!appletUIDs.contains(applet->getUID()))
     {
         appletUIDs.push_back(applet->getUID());
-        this->setAppletUIDs(appletUIDs);
+        setAppletUIDs(appletUIDs);
     }
 }
 
 void Profile::loadFromSettings()
 {
-    auto panelUIDs = this->getPanelUIDs();
+    auto panelUIDs = getPanelUIDs();
     KLOG_INFO(LCShell) << "load panel:" << panelUIDs;
 
     for (auto& panelUID : panelUIDs)
     {
         if (!m_panels.contains(panelUID))
         {
-            auto panel = new ProfilePanel(panelUID);
-            this->m_panels.insert(panel->getUID(), panel);
+            auto* panel = new ProfilePanel(panelUID);
+            m_panels.insert(panel->getUID(), panel);
         }
     }
 
-    auto appletUIDs = this->getAppletUIDs();
+    auto appletUIDs = getAppletUIDs();
     KLOG_INFO(LCShell) << "load applets:" << appletUIDs;
 
     for (auto& appletUID : appletUIDs)
     {
         if (!m_applets.contains(appletUID))
         {
-            auto applet = new ProfileApplet(appletUID);
-            this->m_applets.insert(applet->getUID(), applet);
+            auto* applet = new ProfileApplet(appletUID);
+            m_applets.insert(applet->getUID(), applet);
         }
     }
     // 清理不存在的插件
@@ -178,12 +178,12 @@ void Profile::loadFromSettings()
 
 QList<ProfilePanel*> Profile::getPanels()
 {
-    return this->m_panels.values();
+    return m_panels.values();
 }
 
 QList<ProfileApplet*> Profile::getApplets()
 {
-    return this->m_applets.values();
+    return m_applets.values();
 }
 
 QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
@@ -193,7 +193,7 @@ QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
     QList<ProfileApplet*> applets;
     QList<ProfileApplet*> applets_right;
 
-    for (auto& applet : this->m_applets)
+    for (auto& applet : m_applets)
     {
         if (applet->getPanel() == panelUID)
         {

@@ -35,7 +35,7 @@ class TrayExtended : public QDialog
 
 public:
     TrayExtended(IAppletImport *import, QWidget *parent = nullptr);
-    ~TrayExtended();
+    ~TrayExtended() override;
 
     // 用于左键点击，获取位置，后续删除
     QList<TrayItem *> getTrayItems();

@@ -41,8 +41,8 @@ Showdesktop::Showdesktop(IAppletImport *import)
                 KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
             });
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     setToolTip(tr("Show desktop"));
     setCheckable(false);

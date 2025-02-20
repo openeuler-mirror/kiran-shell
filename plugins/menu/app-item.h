@@ -24,9 +24,9 @@ class AppItem : public StyledButton
 
 public:
     explicit AppItem(QWidget *parent = nullptr);
-    ~AppItem();
+    ~AppItem() override;
 
-    void setAppId(QString id);
+    void setAppId(const QString &appId);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

@@ -39,16 +39,14 @@ CalendarWidget::CalendarWidget(QWidget *parent)
     setWeekdayTextFormat(Qt::Thursday, format);
 }
 
-CalendarWidget::~CalendarWidget()
-{
-}
+CalendarWidget::~CalendarWidget() = default;
 
 void CalendarWidget::paintCell(QPainter *painter, const QRect &rect,
                                const QDate &date) const
 {
     painter->save();
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
     painter->setRenderHint(QPainter::Antialiasing);
 
     painter->setPen(Qt::NoPen);
@@ -71,7 +69,7 @@ void CalendarWidget::paintCell(QPainter *painter, const QRect &rect,
                                          Kiran::Theme::Palette::WIDGET);
         painter->setBrush(bgColor);
     }
-    else if (rect.contains(mapFromGlobal(QCursor().pos())))  // 鼠标悬浮日期
+    else if (rect.contains(mapFromGlobal(QCursor::pos())))  // 鼠标悬浮日期
     {
         auto bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER,
                                          Kiran::Theme::Palette::WIDGET);

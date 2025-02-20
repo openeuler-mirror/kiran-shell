@@ -42,39 +42,39 @@ namespace Kiran
 #define LAYOUT_PROPERTY_INT_DEFINITION(className, name, humpName, key) \
     int className::get##humpName()                                     \
     {                                                                  \
-        return this->value(key).toInt();                               \
+        return value(key).toInt();                                     \
     }                                                                  \
     void className::set##humpName(int value)                           \
     {                                                                  \
-        if (value != this->get##humpName())                            \
+        if (value != get##humpName())                                  \
         {                                                              \
-            this->setValue(key, value);                                \
+            setValue(key, value);                                      \
         }                                                              \
     }
 
 #define LAYOUT_PROPERTY_BOOLEAN_DEFINITION(className, name, humpName, key) \
     bool className::get##humpName()                                        \
     {                                                                      \
-        return this->value(key).toBool();                                  \
+        return value(key).toBool();                                        \
     }                                                                      \
     void className::set##humpName(bool value)                              \
     {                                                                      \
-        if (value != this->get##humpName())                                \
+        if (value != get##humpName())                                      \
         {                                                                  \
-            this->setValue(key, value);                                    \
+            setValue(key, value);                                          \
         }                                                                  \
     }
 
 #define LAYOUT_PROPERTY_STRING_DEFINITION(className, name, humpName, key) \
     QString className::get##humpName()                                    \
     {                                                                     \
-        return this->value(key).toString();                               \
+        return value(key).toString();                                     \
     }                                                                     \
     void className::set##humpName(const QString &value)                   \
     {                                                                     \
-        if (value != this->get##humpName())                               \
+        if (value != get##humpName())                                     \
         {                                                                 \
-            this->setValue(key, value);                                   \
+            setValue(key, value);                                         \
         }                                                                 \
     }
 
@@ -89,12 +89,12 @@ Group::Group(const QString &groupName,
 
 void Group::setValue(const QString &key, const QVariant &value)
 {
-    return this->m_settings->setValue(QString("%1/%2").arg(this->m_groupName, key), value);
+    return m_settings->setValue(QString("%1/%2").arg(m_groupName, key), value);
 }
 
 QVariant Group::value(const QString &key, const QVariant &defaultValue) const
 {
-    return this->m_settings->value(QString("%1/%2").arg(this->m_groupName, key), defaultValue);
+    return m_settings->value(QString("%1/%2").arg(m_groupName, key), defaultValue);
 }
 
 LAYOUT_PROPERTY_INT_DEFINITION(LayoutPanel, size, Size, KS_PANEL_KEYFILE_KEY_SIZE)
@@ -126,30 +126,30 @@ LayoutApplet::LayoutApplet(const QString &appletUID,
 Layout::Layout(const QString &layoutName)
     : m_settings(nullptr)
 {
-    this->m_layoutFilePath = QString("%1/%2.layout").arg(KS_LAYOUTDIR).arg(layoutName);
-    if (!QFile::exists(this->m_layoutFilePath))
+    m_layoutFilePath = QString("%1/%2.layout").arg(KS_LAYOUTDIR).arg(layoutName);
+    if (!QFile::exists(m_layoutFilePath))
     {
-        KLOG_WARNING(LCShell) << "Not found the layout file " << this->m_layoutFilePath;
+        KLOG_WARNING(LCShell) << "Not found the layout file " << m_layoutFilePath;
     }
 
-    this->load();
+    load();
 }
 
 QList<LayoutPanel *> Layout::getPanels()
 {
-    return this->m_panels.values();
+    return m_panels.values();
 }
 
 QList<LayoutApplet *> Layout::getApplets()
 {
-    return this->m_applets.values();
+    return m_applets.values();
 }
 
 QList<LayoutApplet *> Layout::getAppletsOnPanel(const QString &panelUID)
 {
     QList<LayoutApplet *> applets;
 
-    for (auto &applet : this->m_applets)
+    for (auto &applet : m_applets)
     {
         if (applet->getPanel() == panelUID)
         {
@@ -161,21 +161,21 @@ QList<LayoutApplet *> Layout::getAppletsOnPanel(const QString &panelUID)
 
 void Layout::load()
 {
-    this->m_settings = new QSettings(this->m_layoutFilePath, QSettings::Format::IniFormat, this);
+    m_settings = new QSettings(m_layoutFilePath, QSettings::Format::IniFormat, this);
 
-    for (auto &groupName : this->m_settings->childGroups())
+    for (auto &groupName : m_settings->childGroups())
     {
         if (groupName.startsWith(KS_PANEL_GROUP_NAME_PREFIX))
         {
             auto panelUID = groupName.mid(QStringLiteral(KS_PANEL_GROUP_NAME_PREFIX).length());
-            auto panel = new LayoutPanel(panelUID, this->m_settings, this);
-            this->m_panels.insert(panelUID, panel);
+            auto panel = new LayoutPanel(panelUID, m_settings, this);
+            m_panels.insert(panelUID, panel);
         }
         else if (groupName.startsWith(KS_APPLET_GROUP_NAME_PREFIX))
         {
             auto appletUID = groupName.mid(QStringLiteral(KS_APPLET_GROUP_NAME_PREFIX).length());
-            auto applet = new LayoutApplet(appletUID, this->m_settings, this);
-            this->m_applets.insert(appletUID, applet);
+            auto applet = new LayoutApplet(appletUID, m_settings, this);
+            m_applets.insert(appletUID, applet);
         }
         else
         {

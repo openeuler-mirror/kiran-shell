@@ -51,7 +51,7 @@ private:
     void previewerShowChange(const QList<WId>& wids, QWidget *triggerWidget);
 
 protected:
-    void leaveEvent(QEvent *event);
+    void leaveEvent(QEvent *event) override;
 
 signals:
     // 窗口属性变化

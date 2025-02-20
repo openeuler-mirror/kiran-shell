@@ -98,13 +98,13 @@ private:
 
     AppBaseInfo m_appBaseInfo;
 
-    WId m_wid;  // 关联的窗口
+    WId m_wid = 0;  // 关联的窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测是否显示软件名称
     QString m_visualName;                     // 显示的文本
-    bool m_isShowName;
+    bool m_isShowName = false;
 
-    bool m_dragFlag;  // 当触发组拖动时，不响应按钮的点击事件
+    bool m_dragFlag = false;  // 当触发组拖动时，不响应按钮的点击事件
 };
 
 }  // namespace Taskbar

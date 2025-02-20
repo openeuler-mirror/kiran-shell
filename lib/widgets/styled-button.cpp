@@ -23,10 +23,7 @@
 #include "styled-button.h"
 
 StyledButton::StyledButton(QWidget *parent)
-    : QToolButton(parent),
-      m_hovered(false),
-      m_pressed(false),
-      m_isBackGroundColorEnabled(true)
+    : QToolButton(parent)
 {
     setCheckable(true);
     // 启用悬浮事件
@@ -82,7 +79,7 @@ void StyledButton::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
 
     // 背景绘制
     QColor bgColor;
@@ -153,17 +150,17 @@ void StyledButton::paintEvent(QPaintEvent *event)
 
         if (!icon().isNull())
         {
-            int x = (width() - iconWH - (textWidth > 0 ? (textWidth + margin) : 0)) / 2;
-            int y = (height() - iconWH) / 2;
+            int iconX = (width() - iconWH - (textWidth > 0 ? (textWidth + margin) : 0)) / 2;
+            int iconY = (height() - iconWH) / 2;
             QPixmap pixmap = icon().pixmap(iconWH, iconWH);
-            painter.drawPixmap(x, y, iconWH, iconWH, pixmap);
+            painter.drawPixmap(iconX, iconY, iconWH, iconWH, pixmap);
         }
         if (!text().isEmpty())
         {
-            int x = (width() - textWidth) / 2;
-            x += !icon().isNull() ? (iconWH + margin) : 0;
-            int y = (height() - textHeight) / 2;
-            painter.drawText(x, y, textWidth, textHeight, Qt::AlignCenter, text());
+            int textX = (width() - textWidth) / 2;
+            textX += !icon().isNull() ? (iconWH + margin) : 0;
+            int textY = (height() - textHeight) / 2;
+            painter.drawText(textX, textY, textWidth, textHeight, Qt::AlignCenter, text());
         }
         break;
     }

@@ -88,8 +88,8 @@ void WirelessConnectionWidget::updateStatus()
         return;
     }
 
-    KLOG_INFO(LCSettingbar) << "设备状态" << state;
-    KLOG_INFO(LCSettingbar) << "正在激活" << wifiSetting->ssid();
+    KLOG_INFO(LCSettingbar) << "wireless device state:" << state;
+    KLOG_INFO(LCSettingbar) << "wireless device activing:" << wifiSetting->ssid();
     KLOG_INFO(LCSettingbar) << "WirelessConnectionWidget::updateStatus" << state << activeConnection << activeConnection->state();
 
     setActiveStatus(activeConnection->state());

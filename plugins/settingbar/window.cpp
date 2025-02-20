@@ -34,9 +34,7 @@ namespace SettingBar
 Window::Window(IAppletImport *import, Applet *parent)
     : KiranColorBlock(parent),
       m_import(import),
-      m_hwConfWindow(new SettingWindow(this)),
-      m_hovered(false),
-      m_pressed(false)
+      m_hwConfWindow(new SettingWindow(this))
 {
     setRadius(0);
     setAttribute(Qt::WA_Hover);
@@ -46,9 +44,9 @@ Window::Window(IAppletImport *import, Applet *parent)
     m_layout->setMargin(4);
     m_layout->setSpacing(0);
 
-    auto volumButton = new VolumeButton(this);
-    auto networkButton = new NetButton(this);
-    auto powerButton = new BatteryButton(this);
+    auto *volumButton = new VolumeButton(this);
+    auto *networkButton = new NetButton(this);
+    auto *powerButton = new BatteryButton(this);
     m_layout->addWidget(volumButton);
     m_layout->addWidget(networkButton);
     m_layout->addWidget(powerButton);
@@ -68,15 +66,11 @@ Window::Window(IAppletImport *import, Applet *parent)
     connect(powerButton, &BatteryButton::batteryIconChanged, m_hwConfWindow, &SettingWindow::syncBatteryIcon);
     connect(m_hwConfWindow, &SettingWindow::updatePosition, this, &Window::updateWindowPosition);
 
-    QObject *Object = dynamic_cast<QObject *>(m_import->getPanel());
-    connect(Object, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
     volumButton->init();
     powerButton->init();
-}
-
-Window::~Window()
-{
 }
 
 void Window::enterEvent(QEvent *event)
@@ -117,7 +111,7 @@ void Window::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
 
-    auto palette = Kiran::Theme::Palette::getDefault();
+    auto *palette = Kiran::Theme::Palette::getDefault();
 
     QColor bgColor = palette->getBaseColors().containerBackground;
     painter.setBrush(bgColor);
@@ -141,9 +135,9 @@ void Window::paintEvent(QPaintEvent *event)
     painter.setBrush(bgColor);
 
     QPainterPath path;
-    auto re = rect();
-    re.adjust(4, 4, -4, -4);
-    path.addRoundedRect(re, 4, 4);
+    auto windowRect = rect();
+    windowRect.adjust(4, 4, -4, -4);
+    path.addRoundedRect(windowRect, 4, 4);
 
     painter.drawPath(path);
 }
@@ -207,7 +201,7 @@ void Window::showHwConfWindow()
 {
     m_hwConfWindow->setVisible(true);
 
-    for (auto button : hwConfButtons)
+    for (auto *button : hwConfButtons)
     {
         button->setEnabled(false);
     }
@@ -219,7 +213,7 @@ void Window::hideHwConfWindow()
 {
     m_hwConfWindow->setVisible(false);
 
-    for (auto button : hwConfButtons)
+    for (auto *button : hwConfButtons)
     {
         button->setChecked(false);
         button->setEnabled(true);

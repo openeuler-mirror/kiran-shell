@@ -45,15 +45,13 @@ WorkspaceOverview::WorkspaceOverview(int desktop, QWidget *parent)
 
     m_scrollArea->setWidget(m_containerWidget);
 
-    QVBoxLayout *overallLayout = new QVBoxLayout(this);
+    auto *overallLayout = new QVBoxLayout(this);
     overallLayout->addWidget(m_scrollArea);
 
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &WorkspaceOverview::updateGridLayout);
 }
 
-WorkspaceOverview::~WorkspaceOverview()
-{
-}
+WorkspaceOverview::~WorkspaceOverview() = default;
 
 void WorkspaceOverview::showEvent(QShowEvent *event)
 {
@@ -81,8 +79,8 @@ void WorkspaceOverview::updateGridLayout()
         return;
     }
 
-    int bgHeight = this->height();
-    int bgWidth = this->width();
+    int bgHeight = height();
+    int bgWidth = width();
     int maxSubHeight = bgHeight / 3;  // 子元素的高度为 主窗口 的1/3
     int maxSubWidth = bgWidth / 2;    // 子元素的最大宽度为 主窗口 的1/2
 
@@ -102,8 +100,11 @@ void WorkspaceOverview::updateGridLayout()
     int currentRowWidth = windowMargin * 2;   // 当前行的总宽度
     for (auto window : windows)
     {
-        auto widget = m_windows[window];
-        int scaleWidth, scaleHeight, extraWidth, extraHeight;
+        auto *widget = m_windows[window];
+        int scaleWidth;
+        int scaleHeight;
+        int extraWidth;
+        int extraHeight;
         widget->getOriginalSize(scaleWidth, scaleHeight, extraWidth, extraHeight);  // 获取原始大小
         float aspectRatio = static_cast<float>(scaleWidth) / scaleHeight;           // 针对要缩放的部分,计算缩放比例
 

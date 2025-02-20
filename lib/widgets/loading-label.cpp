@@ -6,7 +6,7 @@
 #include "ks-i.h"
 #include "loading-label.h"
 
-#define ANIMATION_STEP 10
+static constexpr int ANIMATION_STEP = 10;
 
 LoadingLabel::LoadingLabel(QWidget *parent)
     : QLabel(parent)
@@ -51,9 +51,9 @@ void LoadingLabel::initPixmap()
         double angle = (360.0 / ANIMATION_STEP) * i;
 
         // 创建一个固定尺寸的画布
-        int w = originalPixmap.width();
-        int h = originalPixmap.height();
-        QImage canvas(w, h, QImage::Format_ARGB32_Premultiplied);
+        int originalPixW = originalPixmap.width();
+        int originalPixH = originalPixmap.height();
+        QImage canvas(originalPixW, originalPixH, QImage::Format_ARGB32_Premultiplied);
         canvas.fill(Qt::transparent);
 
         // 使用 QPainter 绘制旋转后的图片
@@ -62,9 +62,9 @@ void LoadingLabel::initPixmap()
         painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
         // 将坐标中心移动到画布中心，再进行旋转
-        painter.translate(w / 2.0, h / 2.0);
+        painter.translate(originalPixW / 2.0, originalPixH / 2.0);
         painter.rotate(angle);
-        painter.translate(-w / 2.0, -h / 2.0);
+        painter.translate(-originalPixW / 2.0, -originalPixH / 2.0);
 
         // 绘制原始图片
         painter.drawPixmap(0, 0, originalPixmap);
@@ -74,7 +74,7 @@ void LoadingLabel::initPixmap()
     }
 }
 
-void LoadingLabel::changeIndex(const int index)
+void LoadingLabel::changeIndex(const int &index)
 {
     m_loadingIndex = index;
     setPixmap(m_pixmaps[m_loadingIndex]);

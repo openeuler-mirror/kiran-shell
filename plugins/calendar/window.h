@@ -30,7 +30,7 @@ class Window : public QDialog
 
 public:
     explicit Window(QWidget *parent = nullptr);
-    ~Window();
+    ~Window() override;
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -39,25 +39,25 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    //顶部设置导航栏加载
+    // 顶部设置导航栏加载
     void initTopSettingWidget();
-    //日期修改导航栏加载
+    // 日期修改导航栏加载
     void initDateChangeWidget();
 
-    //设置按钮操作
+    // 设置按钮操作
     void settingBtnClicked();
-    //今天按钮操作
+    // 今天按钮操作
     void gotoToday();
 
-    //上/下年月按钮切换操作
+    // 上/下年月按钮切换操作
     void changeDateTimeBtnClicked();
 
     void showDate(QDate date);
 
 private slots:
-    //输入年份操作
+    // 输入年份操作
     void enterYear();
-    //输入月份操作
+    // 输入月份操作
     void enterMonth();
 
 signals:
@@ -66,9 +66,9 @@ signals:
 private:
     Ui::Window *m_ui;
 
-    //当前页面年月
-    int m_currentYear;
-    int m_currentMonth;
+    // 当前页面年月
+    int m_currentYear = 2025;
+    int m_currentMonth = 1;
 };
 }  // namespace Calendar
 }  // namespace Kiran

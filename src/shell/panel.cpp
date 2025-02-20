@@ -45,15 +45,7 @@ namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
     : QWidget(nullptr, Qt::FramelessWindowHint),
-      m_profilePanel(profilePanel),
-      m_appletsLayout(nullptr),
-      m_gsettings(nullptr),
-      m_isPersonalityMode(false),
-      m_layoutMargin(0),
-      m_radius(0),
-      m_menu(nullptr),
-      m_isAutoHide(false),
-      m_isFullShow(false)
+      m_profilePanel(profilePanel)
 {
     setAttribute(Qt::WA_X11NetWmWindowTypeDock);
     setAttribute(Qt::WA_TranslucentBackground, true);  // 透明
@@ -73,7 +65,7 @@ int Panel::getSize()
 
 int Panel::getOrientation()
 {
-    return int(this->orientationStr2Enum(m_profilePanel->getOrientation()));
+    return int(orientationStr2Enum(m_profilePanel->getOrientation()));
 }
 
 void Panel::contextMenuEvent(QContextMenuEvent *event)
@@ -415,27 +407,27 @@ void Panel::updateGeometry(int size)
     switch (orientation)
     {
     case PanelOrientation::PANEL_ORIENTATION_TOP:
-        KWindowSystem::setExtendedStrut(this->winId(), 0, 0, 0, 0, 0, 0, panelSize,
+        KWindowSystem::setExtendedStrut(winId(), 0, 0, 0, 0, 0, 0, panelSize,
                                         rect.left(), rect.right(), 0, 0, 0);
 
         break;
     case PanelOrientation::PANEL_ORIENTATION_RIGHT:
-        KWindowSystem::setExtendedStrut(this->winId(), 0, 0, 0, panelSize,
+        KWindowSystem::setExtendedStrut(winId(), 0, 0, 0, panelSize,
                                         rect.top(), rect.bottom(), 0, 0, 0, 0, 0,
                                         0);
         break;
     case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        KWindowSystem::setExtendedStrut(this->winId(), panelSize, rect.top(),
+        KWindowSystem::setExtendedStrut(winId(), panelSize, rect.top(),
                                         rect.bottom(), 0, 0, 0, 0, 0, 0, 0, 0, 0);
         break;
     default:
         // 默认放入底部
-        KWindowSystem::setExtendedStrut(this->winId(), 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        KWindowSystem::setExtendedStrut(winId(), 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         panelSize, rect.left(), rect.right());
     }
 
     KLOG_DEBUG(LCShell) << "Panel " << m_profilePanel->getUID()
-                        << "geometry: " << this->geometry();
+                        << "geometry: " << geometry();
 }
 
 void Panel::updateLayout()

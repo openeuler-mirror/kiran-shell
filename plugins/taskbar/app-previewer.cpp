@@ -24,7 +24,10 @@
 #include "plugin-i.h"
 #include "window.h"
 
-#define PREVIEWER_SPACING 3
+enum
+{
+    PREVIEWER_SPACING = 3
+};
 
 namespace Kiran
 {
@@ -101,11 +104,11 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
     auto *previwer = windowPreviewerShow.first();
     if (QBoxLayout::Direction::LeftToRight == direction)
     {
-        setFixedSize((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING, previwer->height());
+        setFixedSize(((previwer->width() + PREVIEWER_SPACING) * windowPreviewerShow.size()) - PREVIEWER_SPACING, previwer->height());
     }
     else
     {
-        setFixedSize(previwer->width(), (previwer->height() + PREVIEWER_SPACING) * windowPreviewerShow.size() - PREVIEWER_SPACING);
+        setFixedSize(previwer->width(), ((previwer->height() + PREVIEWER_SPACING) * windowPreviewerShow.size()) - PREVIEWER_SPACING);
     }
 }
 

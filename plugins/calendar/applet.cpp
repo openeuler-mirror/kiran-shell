@@ -69,7 +69,7 @@ void Applet::initTranslator()
 
 void Applet::initPanelConnections()
 {
-    QObject *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
     if (panelObject)
     {
         connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));

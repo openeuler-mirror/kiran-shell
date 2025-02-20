@@ -28,15 +28,13 @@ AppletButton::AppletButton(IAppletImport *import)
     setFlat(true);
 }
 
-AppletButton::~AppletButton()
-{
-}
+AppletButton::~AppletButton() = default;
 
 void AppletButton::setIconByName(const QString &iconName)
 {
     auto buttonSize = size();
-    setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
-                      buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+    setIconSize(QSize(buttonSize.width() - (BUTTON_BLANK_SPACE * 2),
+                      buttonSize.height() - (BUTTON_BLANK_SPACE * 2)));
 
     setIcon(QIcon(iconName));
 }
@@ -44,8 +42,8 @@ void AppletButton::setIconByName(const QString &iconName)
 void AppletButton::setIconFromTheme(const QString &iconName)
 {
     auto buttonSize = size();
-    setIconSize(QSize(buttonSize.width() - BUTTON_BLANK_SPACE * 2,
-                      buttonSize.height() - BUTTON_BLANK_SPACE * 2));
+    setIconSize(QSize(buttonSize.width() - (BUTTON_BLANK_SPACE * 2),
+                      buttonSize.height() - (BUTTON_BLANK_SPACE * 2)));
 
     setIcon(QIcon::fromTheme(iconName));
 }

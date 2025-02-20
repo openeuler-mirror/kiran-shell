@@ -46,8 +46,7 @@ Applet::Applet(IAppletImport *import)
     gridLayout->addWidget(m_window);
 }
 
-Applet::~Applet()
-{
-}
+Applet::~Applet() = default;
+
 }  // namespace SettingBar
 }  // namespace Kiran

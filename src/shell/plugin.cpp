@@ -49,13 +49,13 @@ PluginPool *PluginPool::getInstance()
 
 PluginPool::PluginPool()
 {
-    this->loadPluginsMeta();
+    loadPluginsMeta();
 }
 
 IPlugin *PluginPool::findPluginForApplet(const QString &appletID)
 {
     // 搜索meta信息，这里数据量一般比较少，所以直接遍历了
-    for (auto iter = this->m_plugins.begin(); iter != this->m_plugins.end(); ++iter)
+    for (auto iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
     {
         if ((*iter)->metaData.appletsMetaData.find(appletID) != (*iter)->metaData.appletsMetaData.end())
         {
@@ -99,7 +99,7 @@ void PluginPool::loadPluginsMeta()
             appletMetaData.appletID = (*iter).toObject().value("applet_id").toString();
             pluginInfo->metaData.appletsMetaData.insert(appletMetaData.appletID, appletMetaData);
         }
-        this->m_plugins.insert(entryInfo.absoluteFilePath(), pluginInfo);
+        m_plugins.insert(entryInfo.absoluteFilePath(), pluginInfo);
     }
 }
 

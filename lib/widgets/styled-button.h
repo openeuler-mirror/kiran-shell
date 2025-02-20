@@ -33,9 +33,9 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 protected:
-    bool m_hovered;
-    bool m_pressed;
+    bool m_hovered = false;
+    bool m_pressed = false;
 
     QColor m_textColor;
-    bool m_isBackGroundColorEnabled;
+    bool m_isBackGroundColorEnabled = true;
 };

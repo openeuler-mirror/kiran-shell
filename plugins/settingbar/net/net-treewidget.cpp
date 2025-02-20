@@ -30,13 +30,17 @@
 #include "wireless-connection-widget.h"
 #include "wireless-manager.h"
 
-#define ROW_HEIGHT 40
-#define ICON_SIZE 24
-#define ICON_TEXT_MARGIN 12
-#define INDENTATION 10
+enum
+{
+    ROW_HEIGHT = 40,
+    ICON_SIZE = 24,
+    ICON_TEXT_MARGIN = 12,
+    INDENTATION = 10
+};
 
 namespace Kiran
 {
+
 class ItemDelegate : public QStyledItemDelegate
 {
 public:
@@ -89,9 +93,9 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
     setItemDelegate(itemDelegate);
 
     // 背景透明
-    QPalette p = this->palette();
-    p.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
-    setPalette(p);
+    QPalette palette = this->palette();
+    palette.setBrush(QPalette::Base, QBrush(QColor(0, 0, 0, 0)));
+    setPalette(palette);
 
     // 网络信号
     if (NetworkManager::Device::Type::Ethernet == m_netType)
