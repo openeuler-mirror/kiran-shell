@@ -49,17 +49,7 @@ WindowThumbnail::WindowThumbnail(WId wid, QWidget *parent)
     m_ui->btnClose->setStyleSheet(style);
     m_ui->btnClose->hide();
 
-    connect(&WindowManagerInstance, &Common::WindowManager::previewrUpdated, this, [this](WId wid)
-            {
-                if (wid == m_wid)
-                {
-                    refresh();
-                }
-            });
-
     connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, this, &WindowThumbnail::changedWindow);
-
-    refresh();
 }
 
 WindowThumbnail::~WindowThumbnail()
@@ -76,7 +66,6 @@ void WindowThumbnail::showEvent(QShowEvent *event)
 
 void WindowThumbnail::resizeEvent(QResizeEvent *event)
 {
-    refresh();
     updateVisualName();
 
     QWidget::resizeEvent(event);
@@ -133,9 +122,7 @@ void WindowThumbnail::refresh()
     {
         return;
     }
-    //    QPixmap pix = Kiran::Common::WindowManager::Instance().getPixPreviewr(m_wid);
     QPixmap pix = WindowManagerInstance.getPixPreviewr(m_wid);
-    //    new Common::WindowManager();
     if (pix.isNull())
     {
         m_ui->labelGrabWindow->setPixmap(KWindowSystem::icon(m_wid, 60, 60, true));
@@ -160,7 +147,7 @@ void WindowThumbnail::updateVisualName()
 
 void WindowThumbnail::getOriginalSize(int &scaleWidth, int &scaleHeight, int &extraWidth, int &extraHeight)
 {
-    QSize originalSize = WindowManagerInstance.getPixPreviewr(m_wid).size();
+    QSize originalSize = WindowManagerInstance.getWindowGeometry(m_wid).size();
     scaleWidth = originalSize.width();
     scaleHeight = originalSize.height();
 

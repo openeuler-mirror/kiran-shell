@@ -15,6 +15,7 @@
 #pragma once
 
 #include <qwindowdefs.h>
+#include <xcb/xcb_image.h>
 #include <KWindowSystem>
 #include <QMap>
 #include <QObject>
@@ -34,23 +35,18 @@ public:
     QRect getWindowGeometry() const;
     QPixmap getPixPreviewr();
 
-    // 启动截图
-    void startUpdatePreviewer();
-
 private:
     // 获取截图，更新显示
     void updatePreviewer();
+    static QImage x11ImageToQimage(xcb_image_t* xcbImage);
+
     // 没有获取到截图,绘制一个透明背景,中心绘制一个图标
     void updatePreviewerByIcon();
-
-signals:
-    void previewrUpdated(WId wid);
 
 private:
     WId m_wid;
 
     // 应用截图
-    bool m_updateInProgress = false;
     QPixmap m_pixPreviewer;
 };
 
@@ -83,7 +79,6 @@ signals:
     void activeWindowChanged(WId wid);
     void windowChanged(WId, NET::Properties, NET::Properties2);
 
-    void previewrUpdated(WId wid);
     void visibleNameUpdated(WId wid);
 
 private:
