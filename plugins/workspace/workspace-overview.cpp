@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <QLayoutItem>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QVBoxLayout>
 
 #include "lib/common/window-info-helper.h"
@@ -56,6 +57,7 @@ WorkspaceOverview::~WorkspaceOverview() = default;
 void WorkspaceOverview::showEvent(QShowEvent *event)
 {
     updateGridLayout();
+    m_scrollArea->verticalScrollBar()->setValue(0);
     QWidget::showEvent(event);
 }
 
@@ -149,7 +151,7 @@ void WorkspaceOverview::updateWindowItem()
     {
         if (!m_windows.contains(window))
         {
-            m_windows[window] = new WindowThumbnail(window);
+            m_windows[window] = new WindowThumbnail(window, this);
         }
     }
     for (auto window : m_windows.keys())
