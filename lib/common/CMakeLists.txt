@@ -9,8 +9,6 @@ set(ALL_FILES ${COMMON_H_FILES} ${COMMON_CPP_FILES})
 
 add_library(${TARGET_NAME} STATIC ${ALL_FILES})
 
-find_package(Qt5 REQUIRED COMPONENTS X11Extras)
-
 # 获取 libpinyin pkgdatadir
 execute_process(
   COMMAND pkg-config --variable=pkgdatadir libpinyin
@@ -27,7 +25,8 @@ target_include_directories(
           ${PROJECT_SOURCE_DIR}/include
           ${KLOG_QT5_INCLUDE_DIRS}
           ${LIBPINYIN_INCLUDE_DIRS}
-          ${GSETTINGS_QT_INCLUDE_DIRS})
+          ${GSETTINGS_QT_INCLUDE_DIRS}
+          ${X11_XCB_INCLUDE_DIRS})
 
 target_link_libraries(
   ${TARGET_NAME}
@@ -38,4 +37,6 @@ target_link_libraries(
           KF5::Service
           ${KLOG_QT5_LIBRARIES}
           ${LIBPINYIN_LIBRARIES}
-          ${GSETTINGS_QT_LIBRARIES})
+          ${GSETTINGS_QT_LIBRARIES}
+          XCB::XCB
+          XCB::IMAGE)
