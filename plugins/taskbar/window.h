@@ -31,7 +31,7 @@ namespace Taskbar
 {
 class Applet;
 class AppGroup;
-class AppBaseInfo;
+class AppInfo;
 class AppPreviewer;
 class Window : public KiranColorBlock
 {
@@ -57,18 +57,25 @@ private:
     void initWindowManager();
     void initConfig();
 
-    AppGroup *genAppGroup(const AppBaseInfo &baseinfo);
+    AppGroup *genAppGroup(const AppInfo &baseinfo);
 
     //  打开或关闭窗口软件
     void addWindow(WId wid);
+    void removeWindow(WId wid);
+    bool getAppBaseInfo(WId wid, AppInfo &appInfo);
 
     // 刷新app显示
     void updateLayout(int showPageIndex = -1);
+    void setFixedDimensions(int size, QBoxLayout::Direction direction);
+    void adjustAndGetSize(AppGroup *appGroup, QBoxLayout::Direction direction, int &addSize);
+    bool shouldCreateNewPage(AppGroup *appGroup, int appSizeCount, int addSize, int totalSize, QBoxLayout::Direction direction);
+    void calculateCurrentPageIndex(int showPageIndex);
+    void updatePageButtons(QBoxLayout::Direction direction, Qt::AlignmentFlag alignment);
 
     // 固定到任务栏操作
     void updateLockApp();
     void addLockApp(const QUrl &url);
-    void removeLockApp(const QUrl &url);
+    void removeLockApp(const AppInfo &info);
 
     // 收藏夹关联
     void updateFavorite();
@@ -101,7 +108,6 @@ private:
 
 signals:
     //  打开或关闭窗口软件
-    void windowAdded(QByteArray wmClass, WId wid);
     void windowRemoved(WId wid);
     // 窗口属性变化
     void windowChanged(WId, NET::Properties, NET::Properties2);
@@ -119,9 +125,9 @@ private:
 
     QBoxLayout *m_layout = nullptr;
 
-    QMap<QByteArray, AppGroup *> m_mapAppGroupOpened;  // 打开的应用组，key:wm_class
-    QList<AppGroup *> m_listAppGroupLocked;            // 锁定应用组
-    QList<AppGroup *> m_listAppGroupShow;              // 所有应用组，用于排序显示
+    QMap<AppInfo, QPair<AppGroup *, QList<WId>>> m_mapAppGroupOpened;  // 打开的应用组
+    QList<AppGroup *> m_listAppGroupLocked;                            // 锁定应用组
+    QList<AppGroup *> m_listAppGroupShow;                              // 所有应用组，用于排序显示
 
     AppPreviewer *m_appPreviewer = nullptr;  // 应用预览窗口
 

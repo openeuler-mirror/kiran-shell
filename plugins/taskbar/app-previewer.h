@@ -33,6 +33,10 @@ class AppPreviewer : public QWidget
 public:
     AppPreviewer(IAppletImport *import, QWidget *parent);
 
+    // 增加或关闭窗口
+    void addWindow(WId wid);
+    void removeWindow(WId wid);
+
 private:
     // 获取panel方向信息
     QBoxLayout::Direction getLayoutDirection();
@@ -41,14 +45,10 @@ private:
     // 布局更新
     void updateLayout(QList<WindowPreviewer *> windowPreviewerShow);
 
-    // 关联KWindowSystem，增加或关闭窗口
-    void addWindow(const QByteArray& wmClass, WId wid);
-    void removeWindow(WId wid);
-
-    void showPreviewer(const QList<WId>& wids, QWidget *triggerWidget);
+    void showPreviewer(const QList<WId> &wids, QWidget *triggerWidget);
     void hidePreviewer();
     void hideTimeout();
-    void previewerShowChange(const QList<WId>& wids, QWidget *triggerWidget);
+    void previewerShowChange(const QList<WId> &wids, QWidget *triggerWidget);
 
 protected:
     void leaveEvent(QEvent *event) override;

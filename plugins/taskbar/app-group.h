@@ -28,28 +28,67 @@ class IAppletImport;
 
 namespace Taskbar
 {
-class AppBaseInfo
+enum AppIdType
+{
+    APP_ID_TYPE_DESKTOP = 0,
+    APP_ID_TYPE_WMCLASS
+};
+class AppInfo
 {
 public:
+    QString m_id;
+    AppIdType m_idType;
+
     QByteArray m_wmClass;
     QUrl m_url;
-    bool m_isLocked = false;
 
-    AppBaseInfo() = default;
+    AppInfo() = default;
 
-    AppBaseInfo(QByteArray wmClass, QUrl url = QUrl(), bool isLocked = false)
-        : m_wmClass(std::move(wmClass)), m_url(std::move(url)), m_isLocked(isLocked) {}
+    AppInfo(QUrl url, QByteArray wmClass)
+        : m_wmClass(std::move(wmClass)), m_url(std::move(url))
+    {
+        // 如果desktop文件存在，则使用desktop文件作为id
+        // 否则使用wmclass作为id
+        if (!m_url.isEmpty() && m_url.isValid())
+        {
+            m_idType = APP_ID_TYPE_DESKTOP;
+            m_id = m_url.toString();
+        }
+        else
+        {
+            m_idType = APP_ID_TYPE_WMCLASS;
+            m_id = m_wmClass;
+        }
+    }
 
-    AppBaseInfo &operator=(const AppBaseInfo &other) = default;
+    AppInfo &operator=(const AppInfo &other) = default;
 
-    AppBaseInfo(const AppBaseInfo &other) = default;
+    AppInfo(const AppInfo &other)
+        : m_id(other.m_id), m_idType(other.m_idType), m_wmClass(other.m_wmClass), m_url(other.m_url) {}
 
-    friend QDebug operator<<(QDebug dbg, const AppBaseInfo &other)
+    friend QDebug operator<<(QDebug dbg, const AppInfo &other)
     {
         QDebugStateSaver saver(dbg);
 
-        dbg.nospace() << "AppBaseInfo(" << other.m_wmClass << "," << other.m_url.toString() << "," << other.m_isLocked << ")";
+        dbg.nospace() << "AppInfo(" << other.m_id << other.m_wmClass << "," << other.m_url.toString() << ")";
         return dbg.space();
+    }
+
+    // 重载==运算
+    bool operator==(const AppInfo &other) const
+    {
+        return m_id == other.m_id;
+    }
+
+    bool operator!=(const AppInfo &other) const
+    {
+        return !(*this == other);
+    }
+
+    // 重载<运算，以便map使用
+    bool operator<(const AppInfo &other) const
+    {
+        return m_id < other.m_id;
     }
 };
 
@@ -58,16 +97,23 @@ class AppGroup : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AppGroup(IAppletImport *import, const AppBaseInfo &appBaseInfo, QWidget *parent = nullptr);
+    explicit AppGroup(IAppletImport *import, const AppInfo &appInfo, QWidget *parent = nullptr);
 
     // 什么都没有，用于拖拽
     explicit AppGroup(IAppletImport *import, QWidget *parent = nullptr);
 
-    QUrl getUrl() const;
+    // 增加或关闭窗口
+    void addWindow(WId wid);
+    void removeWindow(WId wid);
+    void changedActiveWindow(WId wid);
+
+    const AppInfo &getAppBaseInfo();
     bool isLocked() const;
     void setLocked(bool lockFlag);
 
     void setDragData(const QUrl &url);
+
+    bool isOpened() const;
 
     // 由父控件统一调用
     void updateLayout();
@@ -79,11 +125,6 @@ protected:
 
 private:
     void init();
-
-    // 关联KWindowSystem，增加或关闭窗口
-    void addWindow(const QByteArray &wmClass, WId wid);
-    void removeWindow(WId wid);
-    void changedActiveWindow(WId wid);
 
     void removeLockApp();
 
@@ -132,7 +173,8 @@ private:
 
     QBoxLayout *m_layout = nullptr;
 
-    AppBaseInfo m_appBaseInfo;
+    AppInfo m_appBaseInfo;
+    bool m_isLocked = false;
 
     QMap<WId, AppButton *> m_mapWidButton;
 

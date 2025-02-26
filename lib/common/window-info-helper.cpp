@@ -290,7 +290,7 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
 
     for (auto service : allKService)
     {
-        QString serviceName = service->exec();
+        QString serviceName = service->name();
         if (serviceName.isEmpty())
         {
             continue;

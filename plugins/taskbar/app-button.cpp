@@ -35,6 +35,8 @@
 #include "lib/common/window-info-helper.h"
 #include "plugin-i.h"
 
+const int APP_BUTTON_HEIGHT = 32;
+
 namespace Kiran
 {
 namespace Taskbar
@@ -53,17 +55,15 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 }
 
-void AppButton::setAppInfo(const AppBaseInfo &appBaseInfo)
+void AppButton::setAppInfo(const AppInfo &appInfo)
 {
-    m_appBaseInfo = appBaseInfo;
+    m_appBaseInfo = appInfo;
     getInfoFromUrl();
 }
 
-void AppButton::setAppInfo(const QByteArray &wmClass, const WId &wid)
+void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
 {
-    m_appBaseInfo.m_url = WindowInfoHelper::getUrlByWId(wid);
-
-    m_appBaseInfo.m_wmClass = wmClass;
+    m_appBaseInfo = appInfo;
     m_wid = wid;
 
     if (m_appBaseInfo.m_url.isEmpty())
@@ -96,6 +96,8 @@ void AppButton::getInfoFromUrl()
         KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appBaseInfo.m_url;
         return;
     }
+
+    KLOG_INFO() << "AppButton getInfoFromUrl" << fileItem.iconName() << fileItem.mimeComment() << fileItem.name();
 
     QIcon icon = QIcon::fromTheme(fileItem.iconName());
     if (icon.isNull())
@@ -307,7 +309,17 @@ void AppButton::leaveEvent(QEvent *event)
 
 void AppButton::paintEvent(QPaintEvent *event)
 {
-    //    StyledButton::paintEvent(event);
+    // 图标 + 文字
+    // 在底部面板为40的情况下，进行等比计算
+    // 宽=40×4=160
+    // 高=32
+    // 图标+文字=136
+    // 图标文字间隔=8
+    auto panelSize = m_import->getPanel()->getSize();
+    const int designWidth = panelSize * 4;
+    const int designHeight = APP_BUTTON_HEIGHT;
+    const int designIconTextMargin = 8;
+    const int designIconTextWidth = designWidth - APP_BUTTON_HEIGHT;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
@@ -365,27 +377,13 @@ void AppButton::paintEvent(QPaintEvent *event)
     }
     else
     {
-        // 图标 + 文字
-        // 在底部面板为40的情况下，进行等比计算
-        // 宽=40×4=160
-        // 高=32
-        // 图标+文字=136
-        // 图标文字间隔=8
-
-        const int designWidth = 160;
-        const int designHeight = 32;
-        const int designIconTextWidth = 136;
-        const int designIconTextMargin = 8;
-
-        int iconX = (width() - width() * designIconTextWidth / designWidth) / 2;
+        int iconX = (width() - designIconTextWidth) / 2;
         int iconY = (height() - iconSize().height()) / 2;
         QPixmap pixmap = icon().pixmap(iconSize());
         painter.drawPixmap(iconX, iconY, iconSize().width(), iconSize().height(), pixmap);
 
-        int realMargin = height() * designIconTextMargin / designHeight;
-        int textX = iconX + iconSize().width() + realMargin;
-        int realIconTextWidth = width() * designIconTextWidth / designWidth;
-        int textWidth = realIconTextWidth - realMargin - iconSize().width();
+        int textX = iconX + iconSize().width() + designIconTextMargin;
+        int textWidth = designIconTextWidth - designIconTextMargin - iconSize().width();
 
         painter.drawText(textX, iconY, textWidth, iconSize().height(),
                          Qt::AlignLeft | Qt::AlignVCenter, text());
@@ -411,19 +409,10 @@ void AppButton::paintEvent(QPaintEvent *event)
     }
     else
     {
-        const int designIconTextWidth = 136;
-        const int designWidth = 160;
-
-        int realIconTextWidth = width() * designIconTextWidth / designWidth;
-        int adjustX = (width() - realIconTextWidth) / 2;
+        int adjustX = (width() - designIconTextWidth) / 2;
         bottomRect.adjust(adjustX, rect().height() - rectHeight, -adjustX, 0);
     }
 
-    if (!m_hovered && !isChecked())
-    {
-        // 横线短一点
-        //        bottomRect.adjust(5, 0, -5, 0);
-    }
     bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED,
                                 Kiran::Theme::Palette::WIDGET);
 
@@ -514,7 +503,7 @@ void AppButton::changedWindow(WId wid, NET::Properties properties,
 void AppButton::updateShowName()
 {
     auto panelSize = m_import->getPanel()->getSize();
-    int height = panelSize / 40.F * 32;
+    int height = APP_BUTTON_HEIGHT;
 
     if (0 != m_wid)
     {
@@ -529,7 +518,7 @@ void AppButton::updateShowName()
         {
             setFixedSize(panelSize * 4, height);
             QString elideText =
-                Utility::getElidedText(fontMetrics(), m_visualName, height * 2);
+                Utility::getElidedText(fontMetrics(), m_visualName, height * 3);
             setText(elideText);
             return;
         }
