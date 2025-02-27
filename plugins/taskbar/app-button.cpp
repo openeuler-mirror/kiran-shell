@@ -57,16 +57,16 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
 
 void AppButton::setAppInfo(const AppInfo &appInfo)
 {
-    m_appBaseInfo = appInfo;
+    m_appInfo = appInfo;
     getInfoFromUrl();
 }
 
 void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
 {
-    m_appBaseInfo = appInfo;
+    m_appInfo = appInfo;
     m_wid = wid;
 
-    if (m_appBaseInfo.m_url.isEmpty())
+    if (m_appInfo.m_url.isEmpty())
     {
         // 找不到 desktop file 的app
         // 使用默认图标
@@ -85,15 +85,15 @@ void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
 
 void AppButton::getInfoFromUrl()
 {
-    if (m_appBaseInfo.m_url.isEmpty())
+    if (m_appInfo.m_url.isEmpty())
     {
         return;
     }
 
-    KFileItem fileItem(m_appBaseInfo.m_url);
+    KFileItem fileItem(m_appInfo.m_url);
     if (fileItem.isNull())
     {
-        KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appBaseInfo.m_url;
+        KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appInfo.m_url;
         return;
     }
 
@@ -160,7 +160,7 @@ Qt::AlignmentFlag AppButton::getLayoutAlignment()
 
 void AppButton::setUrl(QUrl url)
 {
-    m_appBaseInfo.m_url = std::move(url);
+    m_appInfo.m_url = std::move(url);
     getInfoFromUrl();
 }
 
@@ -205,29 +205,29 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                        });
     }
 
-    emit isInFavorite(m_appBaseInfo.m_url.fileName(), check_result);
+    emit isInFavorite(m_appInfo.m_url.fileName(), check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to favorite"), this, [=]()
                        {
-                           emit addToFavorite(m_appBaseInfo.m_url.fileName());
+                           emit addToFavorite(m_appInfo.m_url.fileName());
                        });
     }
     else
     {
         menu.addAction(tr("Remove from favorite"), this, [=]()
                        {
-                           emit removeFromFavorite(m_appBaseInfo.m_url.fileName());
+                           emit removeFromFavorite(m_appInfo.m_url.fileName());
                        });
     }
 
-    emit isInTasklist(m_appBaseInfo.m_url, check_result);
+    emit isInTasklist(m_appInfo.m_url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this,
                        [=]()
                        {
-                           emit addToTasklist(m_appBaseInfo.m_url, this);
+                           emit addToTasklist(m_appInfo.m_url, this);
                        });
     }
     else
@@ -235,12 +235,12 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
         menu.addAction(tr("Remove from tasklist"), this,
                        [=]()
                        {
-                           emit removeFromTasklist(m_appBaseInfo.m_url);
+                           emit removeFromTasklist(m_appInfo.m_url);
                        });
     }
 
     // 自带菜单
-    KService::Ptr service = KService::serviceByMenuId(m_appBaseInfo.m_url.fileName());
+    KService::Ptr service = KService::serviceByMenuId(m_appInfo.m_url.fileName());
     if (service.data())
     {
         bool firstAdd = true;
@@ -538,17 +538,17 @@ void AppButton::buttonClicked()
 
     if (0 == relationAppSize)
     {
-        KFileItem fileItem(m_appBaseInfo.m_url);
+        KFileItem fileItem(m_appInfo.m_url);
         if (fileItem.isNull())
         {
-            KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appBaseInfo.m_url;
+            KLOG_WARNING(LCTaskbar) << "get url info failed, url:" << m_appInfo.m_url;
             return;
         }
 
         if (fileItem.isDesktopFile())
         {
             KService::Ptr service =
-                KService::serviceByStorageId(m_appBaseInfo.m_url.fileName());
+                KService::serviceByStorageId(m_appInfo.m_url.fileName());
             // 启动应用
             auto *job = new KIO::ApplicationLauncherJob(service);
             job->start();
@@ -559,10 +559,10 @@ void AppButton::buttonClicked()
         }
         else
         {
-            bool ret = QDesktopServices::openUrl(m_appBaseInfo.m_url);
+            bool ret = QDesktopServices::openUrl(m_appInfo.m_url);
             if (!ret)
             {
-                KLOG_WARNING(LCTaskbar) << "start programe failed，url:" << m_appBaseInfo.m_url;
+                KLOG_WARNING(LCTaskbar) << "start programe failed，url:" << m_appInfo.m_url;
             }
         }
     }

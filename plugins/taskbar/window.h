@@ -57,12 +57,12 @@ private:
     void initWindowManager();
     void initConfig();
 
-    AppGroup *genAppGroup(const AppInfo &baseinfo);
+    AppGroup *genAppGroup(const AppInfo &appInfo);
 
     //  打开或关闭窗口软件
     void addWindow(WId wid);
     void removeWindow(WId wid);
-    bool getAppBaseInfo(WId wid, AppInfo &appInfo);
+    static bool getAppInfo(WId wid, AppInfo &appInfo);
 
     // 刷新app显示
     void updateLayout(int showPageIndex = -1);

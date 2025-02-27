@@ -107,7 +107,7 @@ public:
     void removeWindow(WId wid);
     void changedActiveWindow(WId wid);
 
-    const AppInfo &getAppBaseInfo();
+    const AppInfo &getAppInfo();
     bool isLocked() const;
     void setLocked(bool lockFlag);
 
@@ -173,7 +173,7 @@ private:
 
     QBoxLayout *m_layout = nullptr;
 
-    AppInfo m_appBaseInfo;
+    AppInfo m_appInfo;
     bool m_isLocked = false;
 
     QMap<WId, AppButton *> m_mapWidButton;

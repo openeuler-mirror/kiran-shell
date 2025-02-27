@@ -320,14 +320,14 @@ void Window::updateLayoutByProfile()
     updateLayout();
 }
 
-AppGroup *Window::genAppGroup(const AppInfo &baseinfo)
+AppGroup *Window::genAppGroup(const AppInfo &appInfo)
 {
     AppGroup *appGroup = nullptr;
 
     // 是否是已固定应用
     for (auto *iter : m_listAppGroupLocked)
     {
-        if (iter->getAppBaseInfo() == baseinfo)
+        if (iter->getAppInfo() == appInfo)
         {
             appGroup = iter;
             break;
@@ -342,7 +342,7 @@ AppGroup *Window::genAppGroup(const AppInfo &baseinfo)
     // 是否是已打开应用
     for (auto iter : m_mapAppGroupOpened)
     {
-        if (iter.first->getAppBaseInfo() == baseinfo)
+        if (iter.first->getAppInfo() == appInfo)
         {
             appGroup = iter.first;
             break;
@@ -354,9 +354,9 @@ AppGroup *Window::genAppGroup(const AppInfo &baseinfo)
         return appGroup;
     }
 
-    KLOG_INFO() << "-------------new AppGroup:" << baseinfo;
+    KLOG_INFO(LCTaskbar) << "new AppGroup:" << appInfo;
 
-    appGroup = new AppGroup(m_import, baseinfo, this);
+    appGroup = new AppGroup(m_import, appInfo, this);
 
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
     connect(appGroup, &AppGroup::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
@@ -376,7 +376,7 @@ AppGroup *Window::genAppGroup(const AppInfo &baseinfo)
 void Window::addWindow(WId wid)
 {
     AppInfo appInfo;
-    if (!getAppBaseInfo(wid, appInfo))
+    if (!getAppInfo(wid, appInfo))
     {
         return;
     }
@@ -389,7 +389,7 @@ void Window::addWindow(WId wid)
     {
         for (auto *appLocked : m_listAppGroupLocked)
         {
-            if (appLocked->getAppBaseInfo() == appInfo)
+            if (appLocked->getAppInfo() == appInfo)
             {
                 appGroup = appLocked;
                 break;
@@ -446,11 +446,11 @@ void Window::removeWindow(WId wid)
     if (iter != m_mapAppGroupOpened.end())
     {
         auto info = iter.key();
-        auto group = iter.value().first;
-
+        auto *group = iter.value().first;
+        auto widList = iter.value().second;
         group->removeWindow(wid);
-        iter.value().second.removeAll(wid);
-        if (iter.value().second.isEmpty())
+        widList.removeAll(wid);
+        if (widList.isEmpty())
         {
             m_mapAppGroupOpened.remove(info);
         }
@@ -459,7 +459,7 @@ void Window::removeWindow(WId wid)
     }
 }
 
-bool Window::getAppBaseInfo(WId wid, AppInfo &info)
+bool Window::getAppInfo(WId wid, AppInfo &info)
 {
     QUrl url = WindowInfoHelper::getUrlByWId(wid);
     QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
@@ -485,30 +485,23 @@ void Window::updateLayout(int showPageIndex)
     // 任务栏空间总大小
     int totalSize = direction == QBoxLayout::Direction::LeftToRight ? width() : height();
 
-    // KLOG_INFO() << "totalSize:" << totalSize;
-
     int appSizeCount = appMargin * 2;  // 累计app宽或高
-    KLOG_INFO() << "@@@@@@@@@@@@@@@@@@appSizeCount init";
 
     m_appPage.clear();
     m_appPage.push_back(QList<AppGroup *>());  // 新建空页
 
     for (auto *appGroup : m_listAppGroupShow)
     {
-        KLOG_INFO(LCTaskbar) << "appGroup show size:" << appGroup->size();
         int addSize = 0;
         adjustAndGetSize(appGroup, direction, addSize);
-        KLOG_INFO(LCTaskbar) << "appGroup show size:" << appGroup->size();
 
         if (shouldCreateNewPage(appGroup, appSizeCount, addSize, totalSize, direction))
         {
             m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
-            // KLOG_INFO() << "----------appSizeCount init:" << appSizeCount << totalSize << addSize;
-            appSizeCount = appMargin * 2;  // 重置累计值
+            appSizeCount = appMargin * 2;              // 重置累计值
         }
 
         appSizeCount += addSize;
-        KLOG_INFO() << "appSizeCount:" << appSizeCount << addSize;
         m_appPage.last().push_back(appGroup);
     }
 
@@ -571,7 +564,7 @@ void Window::adjustAndGetSize(AppGroup *appGroup, QBoxLayout::Direction directio
 
     addSize += appSpacing;
 
-    KLOG_INFO() << "adjustAndGetSize:" << direction << addSize << appGroup->getAppBaseInfo() << appGroup;
+    //    KLOG_INFO() << "adjustAndGetSize:" << direction << addSize << appGroup->getAppInfo() << appGroup;
 }
 
 bool Window::shouldCreateNewPage(AppGroup *appGroup, int appSizeCount, int addSize, int totalSize, QBoxLayout::Direction direction)
@@ -662,7 +655,7 @@ void Window::updateLockApp()
     QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
     for (auto *appGroup : m_listAppGroupLocked)
     {
-        auto info = appGroup->getAppBaseInfo();
+        auto info = appGroup->getAppInfo();
         if (!appUrls.contains(info.m_url))
         {
             removeLockApp(info);
@@ -708,7 +701,7 @@ void Window::removeLockApp(const AppInfo &info)
     AppGroup *appGroup = nullptr;
     for (auto *app : m_listAppGroupLocked)
     {
-        if (app->getAppBaseInfo() == info)
+        if (app->getAppInfo() == info)
         {
             appGroup = app;
             break;
@@ -1151,7 +1144,7 @@ void Window::openFileByDrop(QDropEvent *event)
     {
         if (appGroup->geometry().contains(pos))
         {
-            appUrl = appGroup->getAppBaseInfo().m_url;
+            appUrl = appGroup->getAppInfo().m_url;
         }
     }
 

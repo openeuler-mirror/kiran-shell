@@ -96,7 +96,7 @@ signals:
 private:
     IAppletImport *m_import;
 
-    AppInfo m_appBaseInfo;
+    AppInfo m_appInfo;
 
     WId m_wid = 0;  // 关联的窗口
 
