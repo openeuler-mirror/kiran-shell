@@ -863,7 +863,7 @@ int Window::getInsertedIndex(const QPoint &pos)
 
     // 不在按钮区域：
     //      首尾区域，返回 0 或 最大值
-
+    //      在两个按钮的中间，返回中间的序号
     if (m_indicatorWidget->geometry().contains(pos))
     {
         return m_listAppGroupShow.indexOf(m_indicatorWidget);
@@ -931,21 +931,28 @@ int Window::getInsertedIndex(const QPoint &pos)
     }
 
     // 不在按钮区域
+    // 横向
     if (Qt::AlignLeft == alignment)
     {
-        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        for (size_t i = 0; i < m_listAppGroupShow.size(); i++)
         {
-            return 0;
+            if (pos.x() < m_listAppGroupShow.at(i)->pos().x())
+            {
+                return i;
+            }
         }
 
         return m_listAppGroupShow.size();
     }
-
-    if (pos.y() < m_listAppGroupShow.first()->pos().y())
+    
+    // 纵向
+    for (size_t i = 0; i < m_listAppGroupShow.size(); i++)
     {
-        return 0;
+        if (pos.y() < m_listAppGroupShow.first()->pos().y())
+        {
+            return i;
+        }
     }
-
     return m_listAppGroupShow.size();
 }
 
