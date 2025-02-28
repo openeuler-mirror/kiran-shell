@@ -30,10 +30,10 @@ namespace Kiran
 {
 namespace Taskbar
 {
-AppGroup::AppGroup(IAppletImport *import, const AppBaseInfo &appBaseInfo, QWidget *parent)
+AppGroup::AppGroup(IAppletImport *import, const AppInfo &appInfo, QWidget *parent)
     : QWidget(parent),
       m_import(import),
-      m_appBaseInfo(appBaseInfo),
+      m_appInfo(appInfo),
       m_buttonFixed(newAppBtn())
 {
     init();
@@ -44,26 +44,27 @@ AppGroup::AppGroup(IAppletImport *import, QWidget *parent)
       m_import(import),
       m_buttonFixed(newAppBtn())
 {
-    m_appBaseInfo.m_isLocked = true;
+    m_isLocked = true;
 
     init();
 
     m_buttonFixed->show();
 }
 
-QUrl AppGroup::getUrl() const
+const AppInfo &AppGroup::getAppInfo()
 {
-    return m_appBaseInfo.m_url;
+    return m_appInfo;
 }
 
 bool AppGroup::isLocked() const
 {
-    return m_appBaseInfo.m_isLocked;
+    return m_isLocked;
 }
 
 void AppGroup::setLocked(bool lockFlag)
 {
-    m_appBaseInfo.m_isLocked = lockFlag;
+    m_isLocked = lockFlag;
+    updateLayout();
 }
 
 void AppGroup::setDragData(const QUrl &url)
@@ -73,6 +74,11 @@ void AppGroup::setDragData(const QUrl &url)
         m_buttonFixed->setUrl(url);
         m_buttonFixed->show();
     }
+}
+
+bool AppGroup::isOpened() const
+{
+    return !m_mapWidButton.isEmpty();
 }
 
 void AppGroup::getRelationAppSize(int &size)
@@ -134,8 +140,7 @@ void AppGroup::init()
     m_layout->setContentsMargins(0, 0, 0, 0);
 
     auto *window = (Window *)parent();
-    connect(window, &Window::windowAdded, this, &AppGroup::addWindow);
-    connect(window, &Window::windowRemoved, this, &AppGroup::removeWindow);
+    // connect(window, &Window::windowRemoved, this, &AppGroup::removeWindow);
     connect(window, &Window::windowChanged, this, &AppGroup::windowChanged);
     connect(window, &Window::activeWindowChanged, this, &AppGroup::changedActiveWindow);
     connect(window, &Window::activeWindowChanged, this, &AppGroup::activeWindowChanged);
@@ -143,7 +148,7 @@ void AppGroup::init()
     connect(this, &AppGroup::previewerHide, window, &Window::previewerHide);
     connect(this, &AppGroup::previewerShowChange, window, &Window::previewerShowChange);
 
-    m_buttonFixed->setAppInfo(m_appBaseInfo);
+    m_buttonFixed->setAppInfo(m_appInfo);
 
     updateLayout();
 }
@@ -200,24 +205,15 @@ void AppGroup::mouseReleaseEvent(QMouseEvent *event)
     emit moveGroupEnded(this);
 }
 
-void AppGroup::addWindow(const QByteArray &wmClass, WId wid)
+void AppGroup::addWindow(WId wid)
 {
     if (m_mapWidButton.contains(wid))
     {
         return;
     }
-    QUrl url = WindowInfoHelper::getUrlByWId(wid);
-
-    // 一些软件拉起的另一个窗口 wmClass 不一致，但desktopfile一致，如uniface
-    if (wmClass != m_appBaseInfo.m_wmClass && url != m_appBaseInfo.m_url)
-    {
-        return;
-    }
 
     AppButton *appButton = newAppBtn();
-    m_appBaseInfo.m_wmClass = wmClass;
-
-    appButton->setAppInfo(wmClass, wid);
+    appButton->setAppInfo(m_appInfo, wid);
 
     m_mapWidButton[wid] = appButton;
 
@@ -251,7 +247,7 @@ void AppGroup::removeWindow(WId wid)
     // 是否已空
     int size = 0;
     getRelationAppSize(size);
-    if (0 == size && !m_appBaseInfo.m_isLocked)
+    if (0 == size && !m_isLocked)
     {
         emit emptyGroup(this);
     }
@@ -309,7 +305,7 @@ void AppGroup::updateLayout()
     m_layout->setAlignment(alignment);
 
     QList<AppButton *> appButtons;
-    if (m_mapWidButton.isEmpty() && m_appBaseInfo.m_isLocked)
+    if (m_mapWidButton.isEmpty() && m_isLocked)
     {
         appButtons.append(m_buttonFixed);
         m_buttonFixed->setShowVisualName(false);

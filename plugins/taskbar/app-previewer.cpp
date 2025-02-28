@@ -38,8 +38,7 @@ AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
       m_import(import)
 {
     auto *window = (Window *)parent;
-    connect(window, &Window::windowAdded, this, &AppPreviewer::addWindow);
-    connect(window, &Window::windowRemoved, this, &AppPreviewer::removeWindow);
+    // connect(window, &Window::windowRemoved, this, &AppPreviewer::removeWindow);
     connect(window, &Window::windowChanged, this, &AppPreviewer::windowChanged);
     connect(window, &Window::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
     connect(window, &Window::previewerShow, this, &AppPreviewer::showPreviewer);
@@ -112,7 +111,7 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
     }
 }
 
-void AppPreviewer::addWindow(const QByteArray& wmClass, WId wid)
+void AppPreviewer::addWindow(WId wid)
 {
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, [this](WId wid)
@@ -140,7 +139,7 @@ void AppPreviewer::removeWindow(WId wid)
     }
 }
 
-void AppPreviewer::showPreviewer(const QList<WId>& wids, QWidget *triggerWidget)
+void AppPreviewer::showPreviewer(const QList<WId> &wids, QWidget *triggerWidget)
 {
     m_hideTimer->stop();
 
@@ -175,7 +174,7 @@ void AppPreviewer::hideTimeout()
     }
 }
 
-void AppPreviewer::previewerShowChange(const QList<WId>& wids, QWidget *triggerWidget)
+void AppPreviewer::previewerShowChange(const QList<WId> &wids, QWidget *triggerWidget)
 {
     if (isVisible())
     {

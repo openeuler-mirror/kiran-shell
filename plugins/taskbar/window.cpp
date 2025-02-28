@@ -55,11 +55,13 @@ Window::Window(IAppletImport *import, Applet *parent)
       m_import(import)
 {
     initUI();
-    initWindowManager();
     initConfig();
 
     updateLockApp();
     updateFavorite();
+
+    initWindowManager();
+
     updateLayout();
 }
 
@@ -103,10 +105,15 @@ void Window::initUI()
 void Window::initWindowManager()
 {
     connect((Applet *)parent(), &Applet::windowAdded, this, &Window::addWindow);
-    connect((Applet *)parent(), &Applet::windowRemoved, this, &Window::windowRemoved);
+    connect((Applet *)parent(), &Applet::windowRemoved, this, &Window::removeWindow);
     connect((Applet *)parent(), &Applet::activeWindowChanged, [this](WId wid)
             {
-                updateLayout();
+                static WId lastWid = 0;
+                if (lastWid != wid)
+                {
+                    lastWid = wid;
+                    updateLayout();
+                }
                 emit activeWindowChanged(wid);
             });
 
@@ -215,8 +222,7 @@ void Window::dropEvent(QDropEvent *event)
     m_listAppGroupShow.removeAll(m_indicatorWidget);
     m_indicatorWidget->hide();
 
-    AppBaseInfo appBaseinfo;
-
+    QUrl appUrl;
     QList<QUrl> urls(event->mimeData()->urls());
     KLOG_INFO(LCTaskbar) << "dropEvent" << urls;
     for (const auto &url : urls)
@@ -227,17 +233,18 @@ void Window::dropEvent(QDropEvent *event)
             continue;
         }
 
-        appBaseinfo.m_url = url;
+        appUrl = url;
         break;
     }
 
-    if (appBaseinfo.m_url.isEmpty())
+    if (appUrl.isEmpty())
     {
         event->accept();
         return;
     }
 
-    AppGroup *appGroup = genAppGroup(appBaseinfo);
+    AppInfo info(appUrl, {});
+    AppGroup *appGroup = genAppGroup(info);
 
     // 如果 appGroup 本来就在任务栏显示，调整位置，不锁定
     if (m_listAppGroupShow.contains(appGroup))
@@ -261,7 +268,7 @@ void Window::dropEvent(QDropEvent *event)
                 }
             }
             m_listAppGroupLocked = listAppGroupLocked;
-            addToTasklist(appBaseinfo.m_url, appGroup);
+            addToTasklist(appUrl, appGroup);
         }
     }
     else
@@ -276,7 +283,7 @@ void Window::dropEvent(QDropEvent *event)
             m_listAppGroupShow.insert(m_currentDropIndex, appGroup);
         }
 
-        addToTasklist(appBaseinfo.m_url, appGroup);
+        addToTasklist(appUrl, appGroup);
     }
 
     updateLayout();
@@ -296,6 +303,16 @@ void Window::resizeEvent(QResizeEvent *event)
 
 void Window::updateLayoutByProfile()
 {
+    // 横竖摆放
+    auto direction = getLayoutDirection();
+    m_layout->setDirection(direction);
+    // 子控件对齐方式：左右、上下
+    Qt::AlignmentFlag alignment = getLayoutAlignment();
+    m_layout->setAlignment(alignment);
+
+    auto panelSize = m_import->getPanel()->getSize();
+    setFixedDimensions(panelSize, direction);
+
     for (auto *appGroup : m_listAppGroupShow)
     {
         appGroup->updateLayout();
@@ -303,14 +320,14 @@ void Window::updateLayoutByProfile()
     updateLayout();
 }
 
-AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
+AppGroup *Window::genAppGroup(const AppInfo &appInfo)
 {
     AppGroup *appGroup = nullptr;
 
     // 是否是已固定应用
     for (auto *iter : m_listAppGroupLocked)
     {
-        if (iter->getUrl() == baseinfo.m_url)
+        if (iter->getAppInfo() == appInfo)
         {
             appGroup = iter;
             break;
@@ -323,11 +340,11 @@ AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
     }
 
     // 是否是已打开应用
-    for (auto *iter : m_mapAppGroupOpened)
+    for (auto iter : m_mapAppGroupOpened)
     {
-        if (iter->getUrl() == baseinfo.m_url)
+        if (iter.first->getAppInfo() == appInfo)
         {
-            appGroup = iter;
+            appGroup = iter.first;
             break;
         }
     }
@@ -337,7 +354,9 @@ AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
         return appGroup;
     }
 
-    appGroup = new AppGroup(m_import, baseinfo, this);
+    KLOG_INFO(LCTaskbar) << "new AppGroup:" << appInfo;
+
+    appGroup = new AppGroup(m_import, appInfo, this);
 
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
     connect(appGroup, &AppGroup::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
@@ -356,27 +375,23 @@ AppGroup *Window::genAppGroup(const AppBaseInfo &baseinfo)
 
 void Window::addWindow(WId wid)
 {
-    QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
-    if (wmClass.isEmpty())
+    AppInfo appInfo;
+    if (!getAppInfo(wid, appInfo))
     {
-        KLOG_WARNING(LCTaskbar) << "can't find wmclass by wid:" << wid;
         return;
     }
 
-    QUrl url = WindowInfoHelper::getUrlByWId(wid);
-
-    KLOG_INFO(LCTaskbar) << "addWindow" << wid << wmClass << url;
+    KLOG_INFO(LCTaskbar) << "addWindow" << wid << appInfo;
 
     // 锁定应用的打开
     AppGroup *appGroup = nullptr;
-    if (!url.isEmpty())
+    if (!appInfo.m_url.isEmpty())
     {
         for (auto *appLocked : m_listAppGroupLocked)
         {
-            if (appLocked->getUrl() == url)
+            if (appLocked->getAppInfo() == appInfo)
             {
                 appGroup = appLocked;
-                m_mapAppGroupOpened[wmClass] = appGroup;
                 break;
             }
         }
@@ -384,18 +399,78 @@ void Window::addWindow(WId wid)
 
     if (!appGroup)
     {
-        if (!m_mapAppGroupOpened.contains(wmClass))
+        if (!m_mapAppGroupOpened.contains(appInfo))
         {
             // 创建组
-            AppBaseInfo appBaseInfo(wmClass, url);
-            appGroup = genAppGroup(appBaseInfo);
-            m_mapAppGroupOpened[wmClass] = appGroup;
-            m_listAppGroupShow.append(appGroup);
+            appGroup = genAppGroup(appInfo);
+        }
+        else
+        {
+            appGroup = m_mapAppGroupOpened[appInfo].first;
         }
     }
 
-    emit windowAdded(wmClass, wid);
+    if (m_mapAppGroupOpened.contains(appInfo))
+    {
+        m_mapAppGroupOpened[appInfo].second.append(wid);
+    }
+    else
+    {
+        m_mapAppGroupOpened[appInfo] = qMakePair(appGroup, QList<WId>({wid}));
+    }
+
+    if (!m_listAppGroupShow.contains(appGroup))
+    {
+        m_listAppGroupShow.append(appGroup);
+    }
+
+    appGroup->addWindow(wid);
+    m_appPreviewer->addWindow(wid);
+
     updateLayout();
+}
+
+void Window::removeWindow(WId wid)
+{
+    KLOG_INFO(LCTaskbar) << "removeWindow" << wid;
+
+    auto iter = m_mapAppGroupOpened.begin();
+    while (iter != m_mapAppGroupOpened.end())
+    {
+        if (iter.value().second.contains(wid))
+        {
+            break;
+        }
+        iter++;
+    }
+    if (iter != m_mapAppGroupOpened.end())
+    {
+        auto info = iter.key();
+        auto *group = iter.value().first;
+        auto widList = iter.value().second;
+        group->removeWindow(wid);
+        widList.removeAll(wid);
+        if (widList.isEmpty())
+        {
+            m_mapAppGroupOpened.remove(info);
+        }
+
+        m_appPreviewer->removeWindow(wid);
+    }
+}
+
+bool Window::getAppInfo(WId wid, AppInfo &info)
+{
+    QUrl url = WindowInfoHelper::getUrlByWId(wid);
+    QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
+    if (url.isEmpty() && wmClass.isEmpty())
+    {
+        KLOG_WARNING(LCTaskbar) << "can't find url and wmclass by wid:" << wid;
+        return false;
+    }
+
+    info = AppInfo(url, wmClass);
+    return true;
 }
 
 void Window::updateLayout(int showPageIndex)
@@ -404,125 +479,33 @@ void Window::updateLayout(int showPageIndex)
 
     // 横竖摆放
     auto direction = getLayoutDirection();
-    m_layout->setDirection(direction);
     // 子控件对齐方式：左右、上下
     Qt::AlignmentFlag alignment = getLayoutAlignment();
-    m_layout->setAlignment(alignment);
 
-    auto size = m_import->getPanel()->getSize();
-
-    if (QBoxLayout::Direction::LeftToRight == direction)
-    {
-        // 清理之前设置的fixed大小
-        setMaximumWidth(QWIDGETSIZE_MAX);
-        // 重新设置
-        setFixedHeight(size);
-    }
-    else
-    {
-        setMaximumHeight(QWIDGETSIZE_MAX);
-        setFixedWidth(size);
-    }
+    // 任务栏空间总大小
+    int totalSize = direction == QBoxLayout::Direction::LeftToRight ? width() : height();
 
     int appSizeCount = appMargin * 2;  // 累计app宽或高
 
     m_appPage.clear();
     m_appPage.push_back(QList<AppGroup *>());  // 新建空页
 
-    int totalSize = width();
-    if (QBoxLayout::Direction::LeftToRight != direction)
-    {
-        totalSize = height();
-    }
-
     for (auto *appGroup : m_listAppGroupShow)
     {
-        // 为什么先调整大小?
-        // 1.AppButton大小变化 2.当前窗口缩放时,引起AppGroup缩放
-        // 以上缩放不会马上应用到实际大小,导致获取大小有偏差
-        appGroup->adjustSize();
-        //        KLOG_INFO(LCTaskbar) <<"appGroup show size:" appGroup->size();
-
         int addSize = 0;
-        if (QBoxLayout::Direction::LeftToRight == direction)
-        {
-            addSize += appGroup->width();
-        }
-        else
-        {
-            addSize += appGroup->height();
-        }
-        addSize += appSpacing;
+        adjustAndGetSize(appGroup, direction, addSize);
 
-        // 如果是第一页最后一个app,不需要提前将翻页按钮大小计算进去,可能不需要显示翻页按钮
-        if (1 == m_appPage.size() && appGroup == m_listAppGroupShow.last())
+        if (shouldCreateNewPage(appGroup, appSizeCount, addSize, totalSize, direction))
         {
-            if (appSizeCount + addSize > totalSize)
-            {
-                m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
-                appSizeCount = appMargin * 2;
-            }
-        }
-        else
-        {
-            if (appSizeCount + addSize + m_upPageBtn->width() * 2 > totalSize)
-            {
-                m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
-                appSizeCount = appMargin * 2;
-            }
+            m_appPage.push_back(QList<AppGroup *>());  // 超出页面，新建空页
+            appSizeCount = appMargin * 2;              // 重置累计值
         }
 
         appSizeCount += addSize;
         m_appPage.last().push_back(appGroup);
     }
 
-    // 计算当前页面序号
-    // 获取当前激活窗口信息
-    // 判断位于哪页，就是当前页面序号
-    if (-1 == showPageIndex)
-    {
-        // 未指定显示哪页,按照窗口激活情况进行显示
-        if (1 == m_appPage.size())
-        {
-            m_curPageIndex = 0;
-        }
-        else
-        {
-            QByteArray wmClass;
-            auto wid = WindowInfoHelper::activeWindow();
-            if (0 != wid)
-            {
-                wmClass = WindowInfoHelper::getWmClassByWId(wid);
-            }
-            if (wmClass.isEmpty() || !m_mapAppGroupOpened.contains(wmClass))
-            {
-                m_curPageIndex = 0;
-            }
-            else
-            {
-                auto *appGroup = m_mapAppGroupOpened[wmClass];
-                for (m_curPageIndex = 0; m_curPageIndex < m_appPage.size(); m_curPageIndex++)
-                {
-                    if (m_appPage[m_curPageIndex].contains(appGroup))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        // 指定了显示哪页
-        if (showPageIndex >= m_appPage.size())
-        {
-            m_curPageIndex = m_appPage.size() - 1;
-        }
-        else
-        {
-            m_curPageIndex = showPageIndex;
-        }
-    }
+    calculateCurrentPageIndex(showPageIndex);
 
     // 显示对应页
     for (auto *appGroup : m_appPage[m_curPageIndex])
@@ -541,6 +524,110 @@ void Window::updateLayout(int showPageIndex)
     }
 
     // 翻页按钮
+    updatePageButtons(direction, alignment);
+
+    // 强制重布局
+    // 解决鼠标拖动过程中，鼠标偏离控件，会导致布局不能及时更新
+    m_layout->activate();
+}
+
+void Window::setFixedDimensions(int size, QBoxLayout::Direction direction)
+{
+    if (QBoxLayout::Direction::LeftToRight == direction)
+    {
+        setMaximumWidth(QWIDGETSIZE_MAX);
+        setFixedHeight(size);
+    }
+    else
+    {
+        setMaximumHeight(QWIDGETSIZE_MAX);
+        setFixedWidth(size);
+    }
+}
+
+void Window::adjustAndGetSize(AppGroup *appGroup, QBoxLayout::Direction direction, int &addSize)
+{
+    // 为什么先调整大小?
+    // 1.AppButton大小变化 2.当前窗口缩放时,引起AppGroup缩放
+    // 以上缩放不会马上应用到实际大小,导致获取大小有偏差
+    appGroup->adjustSize();
+    appGroup->updateGeometry();  // 确保尺寸更新完成
+
+    if (direction == QBoxLayout::Direction::LeftToRight)
+    {
+        addSize = appGroup->width();
+    }
+    else
+    {
+        addSize = appGroup->height();
+    }
+
+    addSize += appSpacing;
+
+    //    KLOG_INFO() << "adjustAndGetSize:" << direction << addSize << appGroup->getAppInfo() << appGroup;
+}
+
+bool Window::shouldCreateNewPage(AppGroup *appGroup, int appSizeCount, int addSize, int totalSize, QBoxLayout::Direction direction)
+{
+    // 如果是最后一个app,不需要提前将翻页按钮大小计算进去,可能不需要显示翻页按钮
+    if (m_listAppGroupShow.last() == appGroup)
+    {
+        // KLOG_INFO() << "预计需要空间" << appSizeCount + addSize << "原始空间" << totalSize;
+
+        return appSizeCount + addSize > totalSize;
+    }
+    // KLOG_INFO() << "预计需要空间1" << appSizeCount + addSize + m_upPageBtn->width() * 2 << "原始空间" << totalSize;
+    return appSizeCount + addSize + m_upPageBtn->width() * 2 > totalSize;
+}
+
+void Window::calculateCurrentPageIndex(int showPageIndex)
+{
+    // 计算当前页面序号
+    // 获取当前激活窗口信息
+    // 判断位于哪页，就是当前页面序号
+    if (showPageIndex < 0 || showPageIndex > m_appPage.size())
+    {
+        // 未指定显示哪页,按照窗口激活情况进行显示
+        if (1 == m_appPage.size())
+        {
+            m_curPageIndex = 0;
+            return;
+        }
+
+        auto wid = WindowInfoHelper::activeWindow();
+        if (0 == wid)
+        {
+            m_curPageIndex = 0;
+            return;
+        }
+
+        auto url = WindowInfoHelper::getUrlByWId(wid);
+        auto wmClass = WindowInfoHelper::getWmClassByWId(wid);
+        AppInfo info = AppInfo(url, wmClass);
+        if (!m_mapAppGroupOpened.contains(info))
+        {
+            m_curPageIndex = 0;
+        }
+        else
+        {
+            auto *appGroup = m_mapAppGroupOpened[info].first;
+            for (m_curPageIndex = 0; m_curPageIndex < m_appPage.size(); ++m_curPageIndex)
+            {
+                if (m_appPage[m_curPageIndex].contains(appGroup))
+                {
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        m_curPageIndex = std::min(showPageIndex, m_appPage.size() - 1);
+    }
+}
+
+void Window::updatePageButtons(QBoxLayout::Direction direction, Qt::AlignmentFlag alignment)
+{
     if (m_appPage.size() > 1)
     {
         auto *layoutPage = new QBoxLayout(direction);
@@ -561,39 +648,34 @@ void Window::updateLayout(int showPageIndex)
         m_upPageBtn->hide();
         m_downPageBtn->hide();
     }
-
-    // 强制重布局
-    // 解决鼠标拖动过程中，鼠标偏离控件，会导致布局不能及时更新
-    m_layout->activate();
 }
 
 void Window::updateLockApp()
 {
     QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    for (auto *appGroup : m_listAppGroupLocked)
+    {
+        auto info = appGroup->getAppInfo();
+        if (!appUrls.contains(info.m_url))
+        {
+            removeLockApp(info);
+        }
+    }
     for (const auto &appUrl : appUrls)
     {
         addLockApp(appUrl.toUrl());
-    }
-
-    for (auto *appGroup : m_listAppGroupLocked)
-    {
-        if (!appUrls.contains(appGroup->getUrl()))
-        {
-            removeLockApp(appGroup->getUrl());
-        }
     }
 }
 
 void Window::addLockApp(const QUrl &url)
 {
-    AppBaseInfo baseinfo;
-    baseinfo.m_url = url;
-    baseinfo.m_isLocked = true;
-    AppGroup *appGroup = genAppGroup(baseinfo);
+    AppInfo info(url, {});
+    AppGroup *appGroup = genAppGroup(info);
     if (!appGroup)
     {
         return;
     }
+    appGroup->setLocked(true);
 
     if (!m_listAppGroupLocked.contains(appGroup))
     {
@@ -602,19 +684,24 @@ void Window::addLockApp(const QUrl &url)
 
     if (!m_listAppGroupShow.contains(appGroup))
     {
-        // 不需要调整位置，只有初次加载时，才会走这里
-        m_listAppGroupShow.append(appGroup);
+        // 若没有打开，则往前排
+        // if (!appGroup->isOpened())
+        // {
+        //     m_listAppGroupShow.insert(0, appGroup);
+        // }
+        // else
+        {
+            m_listAppGroupShow.append(appGroup);
+        }
     }
-
-    updateLayout();
 }
 
-void Window::removeLockApp(const QUrl &url)
+void Window::removeLockApp(const AppInfo &info)
 {
     AppGroup *appGroup = nullptr;
     for (auto *app : m_listAppGroupLocked)
     {
-        if (app->getUrl() == url)
+        if (app->getAppInfo() == info)
         {
             appGroup = app;
             break;
@@ -626,10 +713,11 @@ void Window::removeLockApp(const QUrl &url)
         m_listAppGroupLocked.removeAll(appGroup);
         appGroup->setLocked(false);
 
+        // 如果固定的应用没有被打开，则移除掉应用
         auto iter = m_mapAppGroupOpened.begin();
         while (iter != m_mapAppGroupOpened.end())
         {
-            if (iter.value() == appGroup)
+            if (iter.value().first == appGroup)
             {
                 break;
             }
@@ -744,10 +832,11 @@ void Window::removeFromTasklist(const QUrl &url)
 
 void Window::removeGroup(AppGroup *group)
 {
+    // 移除应用组
     auto iter = m_mapAppGroupOpened.begin();
     while (iter != m_mapAppGroupOpened.end())
     {
-        if (iter.value() == group)
+        if (iter.value().first == group)
         {
             break;
         }
@@ -774,7 +863,7 @@ int Window::getInsertedIndex(const QPoint &pos)
 
     // 不在按钮区域：
     //      首尾区域，返回 0 或 最大值
-
+    //      在两个按钮的中间，返回中间的序号
     if (m_indicatorWidget->geometry().contains(pos))
     {
         return m_listAppGroupShow.indexOf(m_indicatorWidget);
@@ -842,21 +931,28 @@ int Window::getInsertedIndex(const QPoint &pos)
     }
 
     // 不在按钮区域
+    // 横向
     if (Qt::AlignLeft == alignment)
     {
-        if (pos.x() < m_listAppGroupShow.first()->pos().x())
+        for (size_t i = 0; i < m_listAppGroupShow.size(); i++)
         {
-            return 0;
+            if (pos.x() < m_listAppGroupShow.at(i)->pos().x())
+            {
+                return i;
+            }
         }
 
         return m_listAppGroupShow.size();
     }
-
-    if (pos.y() < m_listAppGroupShow.first()->pos().y())
+    
+    // 纵向
+    for (size_t i = 0; i < m_listAppGroupShow.size(); i++)
     {
-        return 0;
+        if (pos.y() < m_listAppGroupShow.first()->pos().y())
+        {
+            return i;
+        }
     }
-
     return m_listAppGroupShow.size();
 }
 
@@ -1055,7 +1151,7 @@ void Window::openFileByDrop(QDropEvent *event)
     {
         if (appGroup->geometry().contains(pos))
         {
-            appUrl = appGroup->getUrl();
+            appUrl = appGroup->getAppInfo().m_url;
         }
     }
 
