@@ -34,8 +34,8 @@ class AppButton : public StyledButton
 public:
     AppButton(IAppletImport *import, QWidget *parent);
 
-    void setAppInfo(const AppBaseInfo &appBaseInfo);
-    void setAppInfo(const QByteArray &wmClass, const WId &wid);  // 新增窗口时调用
+    void setAppInfo(const AppInfo &appInfo);
+    void setAppInfo(const AppInfo &appInfo, const WId &wid);  // 新增窗口时调用
     void setUrl(QUrl url);
     void setShowVisualName(const bool &isShow);
     void reset();
@@ -96,7 +96,7 @@ signals:
 private:
     IAppletImport *m_import;
 
-    AppBaseInfo m_appBaseInfo;
+    AppInfo m_appInfo;
 
     WId m_wid = 0;  // 关联的窗口
 

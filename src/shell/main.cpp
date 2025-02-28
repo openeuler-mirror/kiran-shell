@@ -38,12 +38,10 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName(programName);
     QApplication::setApplicationVersion(PROJECT_VERSION);
 
-#ifndef QT_DEBUG
     if (klog_qt5_init("", "kylinsec-session", "kiran-shell", "kiran-shell") != 0)
     {
         fprintf(stderr, "Failed to init kiran-log.");
     }
-#endif
 
     auto local = QLocale();
     KLOG_INFO(LCShell) << "current local:" << local << local.name();
