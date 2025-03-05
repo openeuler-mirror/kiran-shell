@@ -338,7 +338,7 @@ void Window::runApp(QString appId)
 
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
     QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
-    if (newApps.contains(newApps))
+    if (newApps.contains(appId))
     {
         newApps.removeAll(appId);
         gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, newApps);

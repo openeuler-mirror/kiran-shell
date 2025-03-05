@@ -87,7 +87,7 @@ void StyledTreeWidget::mouseMoveEvent(QMouseEvent *event)
         }
 
         QTreeWidgetItem *item = itemAt(event->pos());
-        if (item)
+        if (item && !item->data(0, Qt::UserRole).toString().isEmpty())
         {
             auto *drag = new QDrag(this);
             auto *mimeData = new QMimeData;
