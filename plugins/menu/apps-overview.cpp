@@ -88,17 +88,6 @@ void AppsOverview::loadApps()
 
 void AppsOverview::addGroup(KSycocaEntry *entry, QString filter, QTreeWidgetItem *parent)
 {
-    // 动态翻译
-    static const QMap<QString, const char *> TR_NOOP_STRING = {
-        {"Accessories", QT_TR_NOOP("Accessories")},
-        {"Development", QT_TR_NOOP("Development")},
-        {"Graphics", QT_TR_NOOP("Graphics")},
-        {"Internet", QT_TR_NOOP("Internet")},
-        {"Multimedia", QT_TR_NOOP("Multimedia")},
-        {"Office", QT_TR_NOOP("Office")},
-        {"System Tools", QT_TR_NOOP("System Tools")},
-        {"Other", QT_TR_NOOP("Other")}};
-
     KServiceGroup *g = static_cast<KServiceGroup *>(entry);
     if (g->entries().size() <= 0 || g->noDisplay())
     {
@@ -110,7 +99,7 @@ void AppsOverview::addGroup(KSycocaEntry *entry, QString filter, QTreeWidgetItem
     {
         QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
         item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
-        item->setText(0, TR_NOOP_STRING.contains(g->caption()) ? tr(TR_NOOP_STRING[g->caption()]) : g->caption());
+        item->setText(0, g->caption());
         parent = item;
     }
 
@@ -141,6 +130,13 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
     // X-KIRAN-NoDisplayg 是kiran桌面配置的不需要显示的应用
     auto kiranNoDisplay = s->property("X-KIRAN-NoDisplay", QVariant::Bool);
     if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
+    {
+        return;
+    }
+
+    // 不重复载入应用，一个应用可能属于多个分类，这里只载入一次
+    // 第一个分类可能是新应用，其中应用允许与其他分类重复
+    if (m_ui->treeWidgetApps->topLevelItem(0) != parent && m_appIds.contains(s->storageId()))
     {
         return;
     }
@@ -410,6 +406,7 @@ void AppsOverview::on_lineEditSearch_textChanged(const QString &arg1)
     }
 
     m_ui->treeWidgetApps->clear();
+    m_appIds.clear();
 
     QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
     item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
@@ -428,6 +425,7 @@ void AppsOverview::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     m_ui->lineEditSearch->setFocus();
+    m_ui->lineEditSearch->clear();
 }
 
 }  // namespace Menu

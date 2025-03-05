@@ -1,0 +1,125 @@
+ <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+  "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Directory>kiran-Applications.directory</Directory>
+
+  <!-- Scan legacy dirs first, as later items take priority -->
+  <LegacyDir>/usr/share/gnome/apps</LegacyDir>
+  <LegacyDir>/etc/X11/applnk</LegacyDir>
+
+  <!-- Read standard .directory and .desktop file locations -->
+  <KDELegacyDirs/>
+  <DefaultAppDirs/>
+  <DefaultDirectoryDirs/>
+
+  <!-- Add stock tarball installs to menus -->
+  <AppDir>/usr/local/share/applications</AppDir>
+
+  <Menu>
+    <Name>Office</Name>
+    <Directory>kiran-office.directory</Directory>
+    <Include>
+      <And>
+        <Category>Office</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Development</Name>
+    <Directory>kiran-development.directory</Directory>
+    <Include>
+      <And>
+        <Category>Development</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Internet</Name>
+    <Directory>kiran-internet.directory</Directory>
+    <Include>
+      <And>
+        <Category>Network</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Graphics</Name>
+    <Directory>kiran-graphics.directory</Directory>
+    <Include>
+      <Or>
+        <Category>Graphics</Category>
+        <Category>Photography</Category>
+      </Or>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Multimedia</Name>
+    <Directory>kiran-multimedia.directory</Directory>
+    <Include>
+      <Or>
+        <Category>AudioVideo</Category>
+        <Category>Audio</Category>
+        <Category>Video</Category>
+        <Category>Player</Category>
+      </Or>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Games</Name>
+    <Directory>kiran-game.directory</Directory>
+    <Include>
+      <And>
+        <Category>Game</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Utilities</Name>
+    <Directory>kiran-utilities.directory</Directory>
+    <Include>
+      <And>
+        <Category>Utility</Category>
+      </And>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Settings</Name>
+    <Directory>kiran-settings.directory</Directory>
+    <Include>
+      <Or>
+        <Category>Settings</Category>
+        <Category>System</Category>
+      </Or>
+    </Include>
+  </Menu>
+
+  <Menu>
+    <Name>Other</Name>
+    <Directory>kiran-other.directory</Directory>
+    <Include>
+      <And>
+        <Not><Category>Office</Category></Not>
+        <Not><Category>Development</Category></Not>
+        <Not><Category>Network</Category></Not>
+        <Not><Category>Graphics</Category></Not>
+        <Not><Category>Photography</Category></Not>
+        <Not><Category>AudioVideo</Category></Not>
+        <Not><Category>Audio</Category></Not>
+        <Not><Category>Video</Category></Not>
+        <Not><Category>Player</Category></Not>
+        <Not><Category>Game</Category></Not>
+        <Not><Category>Utility</Category></Not>
+        <Not><Category>Settings</Category></Not>
+        <Not><Category>System</Category></Not>
+    </Include>
+  </Menu>
+
+</Menu>

@@ -27,3 +27,19 @@ install(FILES ${PROJECT_BINARY_DIR}/data/kiran-shell.desktop
 # libpinyin user.conf 这是一个空文件，如果没有这个文件，libpinyin会报错
 install(FILES ${PROJECT_SOURCE_DIR}/data/user.conf
         DESTINATION ${KS_INSTALL_DATADIR})
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-applications.menu
+  DESTINATION /etc/xdg/menus)
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-office.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-development.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-internet.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-graphics.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-multimedia.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-game.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-utilities.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-settings.directory
+        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-other.directory
+  DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/desktop-directories)

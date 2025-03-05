@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Settings
+Name[zh_CN]=设置
+Comment=Settings applications
+Comment[zh_CN]=设置软件
+Icon=applications-setting
+Type=Directory
+Encoding=UTF-8

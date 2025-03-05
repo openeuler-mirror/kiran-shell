@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Office
+Name[zh_CN]=办公
+Comment=Office applications
+Comment[zh_CN]=办公软件
+Icon=applications-office
+Type=Directory
+Encoding=UTF-8
