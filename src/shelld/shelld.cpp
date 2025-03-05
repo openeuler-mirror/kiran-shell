@@ -28,11 +28,12 @@ namespace Kiran
 Shelld::Shelld()
     : m_dirWatch(new KDirWatch(this)), m_timer(new QTimer(this))
 {
+    // 监控系统安装的应用程序变化
     m_timer->setSingleShot(true);
     connect(m_timer, &QTimer::timeout, []()
             {
                 KSycoca::self()->ensureCacheValid();
-                QProcess::startDetached("kbuildsycoca", {});
+                QProcess::startDetached("kbuildsycoca5", {});
             });
 
     QObject::connect(m_dirWatch, &KDirWatch::dirty, this, &Shelld::update);

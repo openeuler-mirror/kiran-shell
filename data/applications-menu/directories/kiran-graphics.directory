@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Graphics
+Name[zh_CN]=图像
+Comment=Graphics applications
+Comment[zh_CN]=图像软件
+Icon=applications-graphics
+Type=Directory
+Encoding=UTF-8
