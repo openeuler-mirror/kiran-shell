@@ -1,16 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 
 # gschema.xml
-install(
-  FILES
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.panel.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.applet.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.lockdown.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.menu.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.taskbar.gschema.xml
-    ${PROJECT_SOURCE_DIR}/data/com.kylinsec.kiran.shell.systemtray.gschema.xml
-  DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/schemas/
+        DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas)
 install(
   CODE "execute_process(COMMAND glib-compile-schemas \"${CMAKE_INSTALL_FULL_DATADIR}/glib-2.0/schemas/\")"
 )
@@ -32,14 +24,5 @@ install(
   FILES ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-applications.menu
   DESTINATION /etc/xdg/menus)
 
-install(
-  FILES ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-office.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-development.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-internet.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-graphics.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-multimedia.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-game.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-utilities.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-settings.directory
-        ${PROJECT_SOURCE_DIR}/data/applications-menu/kiran-other.directory
-  DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/desktop-directories)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/applications-menu/directories/
+        DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/desktop-directories)
