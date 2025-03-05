@@ -14,6 +14,8 @@
 
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
+#include <KConfigCore/KConfigGroup>
+#include <KConfigCore/KDesktopFile>
 #include <KIO/ApplicationLauncherJob>
 #include <KService/KServiceGroup>
 #include <KSycoca>
@@ -59,6 +61,17 @@ AppsOverview::~AppsOverview()
 
 void AppsOverview::loadApps()
 {
+    // 处理等待载入的新应用
+    if (m_isReayToloadNewApp)
+    {
+        m_isReayToloadNewApp = false;
+
+        // 主动刷新应用列表，阻塞配置变化信号，后面会主动读配置
+        m_gsettings->blockSignals(true);
+        updateApp();
+        m_gsettings->blockSignals(false);
+    }
+
     m_ui->treeWidgetApps->clear();
     m_appIds.clear();
 
@@ -121,6 +134,9 @@ void AppsOverview::addGroup(KSycocaEntry *entry, QString filter, QTreeWidgetItem
 void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem *parent)
 {
     KService *s = static_cast<KService *>(entry);
+    KDesktopFile desktopFile(entry->entryPath());
+    const auto desktopGroup = desktopFile.desktopGroup();
+    auto untranslatedName = desktopGroup.readEntryUntranslated("Name");
 
     // 过滤不需要显示的APP
     if (s->noDisplay())
@@ -146,7 +162,15 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
         bool filterOK = false;
         do
         {
+            // 翻译名称搜索
             if (entry->name().contains(filter, Qt::CaseInsensitive))
+            {
+                filterOK = true;
+                break;
+            }
+
+            // 英文名称搜索
+            if (untranslatedName.contains(filter, Qt::CaseInsensitive))
             {
                 filterOK = true;
                 break;
@@ -162,6 +186,7 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
                     break;
                 }
             }
+
         } while (0);
 
         if (!filterOK)
@@ -196,7 +221,11 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
     item->setText(0, s->name());
     item->setData(0, Qt::UserRole, s->storageId());
 
-    m_appIds.insert(s->storageId());
+    // 搜索结果不做缓存
+    if (filter.isEmpty())
+    {
+        m_appIds.insert(s->storageId());
+    }
 }
 
 void AppsOverview::updateNewApp(QString key)
@@ -256,6 +285,13 @@ void AppsOverview::clearNewApp()
 void AppsOverview::updateApp()
 {
     KLOG_INFO(LCMenu) << "AppsOverview::updateApp";
+
+    if (!m_ui->lineEditSearch->text().isEmpty())
+    {
+        // 正在搜索，不处理应用列表变化，后续主动处理
+        m_isReayToloadNewApp = true;
+        return;
+    }
 
     auto oldAppIds = m_appIds;
     loadApps();
@@ -406,7 +442,6 @@ void AppsOverview::on_lineEditSearch_textChanged(const QString &arg1)
     }
 
     m_ui->treeWidgetApps->clear();
-    m_appIds.clear();
 
     QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
     item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
