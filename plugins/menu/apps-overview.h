@@ -80,7 +80,8 @@ signals:
 private:
     Ui::AppsOverview* m_ui;
 
-    QSet<QString> m_appIds;  // 缓存所有的应用id
+    QSet<QString> m_appIds;             // 缓存所有的应用id
+    bool m_isReayToloadNewApp = false;  // 已准备好载入新应用，下次载入应用列表时，先处理新应用
 
     QGSettings* m_gsettings;  // gsettings
 };

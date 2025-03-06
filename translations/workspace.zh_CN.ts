@@ -10,6 +10,19 @@
     </message>
 </context>
 <context>
+    <name>Kiran::Workspace::WindowPreviewer</name>
+    <message>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="41"/>
+        <source>Move to other desktop</source>
+        <translation>移动到其他工作区</translation>
+    </message>
+    <message>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="44"/>
+        <source>workspace</source>
+        <translation>工作区</translation>
+    </message>
+</context>
+<context>
     <name>WorkspaceThumbnail</name>
     <message>
         <location filename="../plugins/workspace/workspace-thumbnail.ui" line="25"/>
