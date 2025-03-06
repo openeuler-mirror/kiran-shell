@@ -20,7 +20,7 @@
 
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
-#include "lib/widgets/window-thumbnail.h"
+#include "window-previewer.h"
 #include "workspace-overview.h"
 
 static const int windowSpacing = 8;
@@ -50,6 +50,11 @@ WorkspaceOverview::WorkspaceOverview(int desktop, QWidget *parent)
     overallLayout->addWidget(m_scrollArea);
 
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &WorkspaceOverview::updateGridLayout);
+}
+
+void WorkspaceOverview::updateContent()
+{
+    updateGridLayout();
 }
 
 WorkspaceOverview::~WorkspaceOverview() = default;
@@ -151,7 +156,7 @@ void WorkspaceOverview::updateWindowItem()
     {
         if (!m_windows.contains(window))
         {
-            m_windows[window] = new WindowThumbnail(window, this);
+            m_windows[window] = new WindowPreviewer(window, this);
         }
     }
     for (auto window : m_windows.keys())
@@ -162,5 +167,6 @@ void WorkspaceOverview::updateWindowItem()
         }
     }
 }
+
 }  // namespace Workspace
 }  // namespace Kiran

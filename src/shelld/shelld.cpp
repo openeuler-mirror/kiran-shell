@@ -39,7 +39,8 @@ Shelld::Shelld()
     QObject::connect(m_dirWatch, &KDirWatch::dirty, this, &Shelld::update);
     QObject::connect(m_dirWatch, &KDirWatch::created, this, &Shelld::update);
     QObject::connect(m_dirWatch, &KDirWatch::deleted, this, &Shelld::update);
-    QStringList dataDirs = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    QStringList dataDirs = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
+
     for (auto &dir : dataDirs)
     {
         if (!m_dirWatch->contains(dir))
