@@ -17,6 +17,7 @@
 #include <QMouseEvent>
 
 #include "app-previewer.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "plugin-i.h"
@@ -118,6 +119,24 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
                           {
                               WindowInfoHelper::setKeepAbove(m_wid, true);
                           });
+    }
+
+    // 获取当前有多少个桌面
+    int desktopCount = DesktopHelper::numberOfDesktops();
+    if (desktopCount > 1)
+    {
+        auto *menuDesktop = m_menu->addMenu(tr("Move to other desktop"));
+        for (int i = 1; i <= desktopCount; i++)
+        {
+            auto action = menuDesktop->addAction(tr("workspace") + QString::number(i), this, [this, i]()
+                                                 {
+                                                     DesktopHelper::moveToDesktop(m_wid, i);
+                                                 });
+            if (WindowInfoHelper::getDesktopOfWindow(m_wid) == i)
+            {
+                action->setEnabled(false);
+            }
+        }
     }
 
     m_menu->exec(mapToGlobal(event->pos()));

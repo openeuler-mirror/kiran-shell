@@ -13,163 +13,163 @@
 <context>
     <name>Lunar</name>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="439"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="444"/>
         <source>元旦</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="442"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="447"/>
         <source>情人节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="445"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="450"/>
         <source>妇女节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="448"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="453"/>
         <source>植树节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="451"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="456"/>
         <source>消费者</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="454"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="459"/>
         <source>愚人节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="457"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="462"/>
         <source>地球日</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="460"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="465"/>
         <source>劳动节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="463"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="468"/>
         <source>青年节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="466"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="471"/>
         <source>护士节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="469"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="474"/>
         <source>儿童节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="472"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="477"/>
         <source>建党节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="475"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="480"/>
         <source>建军节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="478"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="483"/>
         <source>教师节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="481"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="486"/>
         <source>九一八</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="484"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="489"/>
         <source>国庆节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="487"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="492"/>
         <source>记者节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="490"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="495"/>
         <source>感恩节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="493"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="498"/>
         <source>平安夜</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="496"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="501"/>
         <source>圣诞节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="535"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="543"/>
         <source>春节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="538"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="546"/>
         <source>元宵节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="541"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="549"/>
         <source>龙抬头</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="544"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="552"/>
         <source>端午节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="547"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="555"/>
         <source>七夕节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="550"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="558"/>
         <source>中元节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="553"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="561"/>
         <source>中秋节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="556"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="564"/>
         <source>重阳节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="559"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="567"/>
         <source>腊八节</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="562"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="570"/>
         <source>北方小年</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="565"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="573"/>
         <source>南方小年</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/lunar.cpp" line="578"/>
-        <location filename="../plugins/calendar/lunar.cpp" line="582"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="586"/>
+        <location filename="../plugins/calendar/lunar.cpp" line="590"/>
         <source>除夕</source>
         <translation type="unfinished"></translation>
     </message>
@@ -186,14 +186,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/window.ui" line="78"/>
-        <location filename="../plugins/calendar/window.ui" line="233"/>
+        <location filename="../plugins/calendar/window.ui" line="81"/>
+        <location filename="../plugins/calendar/window.ui" line="236"/>
         <source>y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../plugins/calendar/window.ui" line="85"/>
-        <location filename="../plugins/calendar/window.ui" line="262"/>
+        <location filename="../plugins/calendar/window.ui" line="88"/>
+        <location filename="../plugins/calendar/window.ui" line="265"/>
         <source>m</source>
         <translation type="unfinished"></translation>
     </message>

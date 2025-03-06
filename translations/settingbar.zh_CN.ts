@@ -25,24 +25,24 @@
 <context>
     <name>Kiran::SettingBar::NetCommon</name>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="404"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="394"/>
         <source>Network unknow error</source>
         <translation>未知网络错误</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="405"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="407"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="395"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="397"/>
         <source>Network connected</source>
         <translation>网络已连接</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="406"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="408"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="396"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="398"/>
         <source>The network is connected, but you cannot access the Internet</source>
         <translation>网络已连接，但不能访问互联网</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="409"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="399"/>
         <source>Network disconnected</source>
         <translation>网络已断开</translation>
     </message>
@@ -50,12 +50,12 @@
 <context>
     <name>Kiran::SettingBar::NetConfItem</name>
     <message>
-        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="81"/>
+        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="80"/>
         <source>Wired network</source>
         <translation>有线网络</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="85"/>
+        <location filename="../plugins/settingbar/net/net-conf-item.cpp" line="84"/>
         <source>Wireless network</source>
         <translation>无线网络</translation>
     </message>

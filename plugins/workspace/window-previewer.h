@@ -14,45 +14,29 @@
 
 #pragma once
 
-#include <KWindowInfo>
-#include <QMap>
 #include <QWidget>
 
-class QScrollArea;
-class QVBoxLayout;
+#include "lib/widgets/window-thumbnail.h"
+
 namespace Kiran
 {
 namespace Workspace
 {
-class WindowPreviewer;
-
-// 工作区预览,包含工作区所管理的应用窗口
-class WorkspaceOverview : public QWidget
+class WindowPreviewer : public WindowThumbnail
 {
     Q_OBJECT
 public:
-    explicit WorkspaceOverview(int desktop, QWidget *parent = nullptr);
-    ~WorkspaceOverview() override;
-
-    void updateContent();
+    WindowPreviewer(WId wid, QWidget *parent = nullptr);
+    ~WindowPreviewer() override;
 
 protected:
-    void showEvent(QShowEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
-    void updateGridLayout();
-    void updateWindowItem();
-
-signals:
-
-private:
-    int m_workspaceIndex = 0;
-    QMap<WId, WindowPreviewer *> m_windows;
-
-    QScrollArea *m_scrollArea;
-    QWidget *m_containerWidget;
-    QVBoxLayout *m_mainLayout;
+    // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
+    QPoint m_pressPoint;
 };
 }  // namespace Workspace
 }  // namespace Kiran

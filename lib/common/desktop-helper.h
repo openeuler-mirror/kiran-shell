@@ -15,26 +15,28 @@
 #pragma once
 
 #include <QObject>
+#include <QWidgetList>  //For WId
 
-namespace Kiran
-{
-namespace Workspace
-{
+#define DesktopHelperInstance DesktopHelper::getInstance()
+
 // 操作工作区的接口,主要是对kf5关于工作区的封装,以及对x11和wayland一些工作区区别操作的封装
 class DesktopHelper : public QObject
 {
     Q_OBJECT
 public:
-    explicit DesktopHelper(QObject *parent = nullptr);
+    static DesktopHelper& getInstance();
 
     static int numberOfDesktops();
     static int currentDesktop();
     static void setCurrentDesktop(int desktop);
     static void createDesktop();
     static void removeDesktop(int deskToRemove);
+    static void moveToDesktop(WId wid, int desktop);
+
+private:
+    explicit DesktopHelper(QObject* parent = nullptr);
+
 signals:
     void currentDesktopChanged(int desktop);
     void numberOfDesktopsChanged(int num);
 };
-}  // namespace Workspace
-}  // namespace Kiran

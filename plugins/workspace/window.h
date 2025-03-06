@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <KWindowInfo>
 #include <QMap>
 #include <QWidget>
 
@@ -27,7 +28,6 @@ namespace Kiran
 {
 namespace Workspace
 {
-class DesktopHelper;
 class WorkspaceThumbnail;
 class WorkspaceOverview;
 
@@ -78,13 +78,16 @@ private:
     // 界面呈现的桌面数变化
     void changeNumberOfDesktops(int numOfDesk);
 
+    // 监测窗口变化
+    void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
+
 signals:
     void windowDeactivated();
+    void windowDesktopChanged();
 
 private:
     Ui::Window *m_ui;
 
-    DesktopHelper *m_desktopHelper;
     //    QList<WorkspaceThumbnail *> m_workspaces;
     QMap<int, QPair<WorkspaceThumbnail *, WorkspaceOverview *>> m_workspaces;  // 桌面编号, <桌面缩略图, 桌面预览图>
 };

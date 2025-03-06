@@ -19,15 +19,17 @@
 
 #include "desktop-helper.h"
 
-namespace Kiran
-{
-namespace Workspace
-{
 DesktopHelper::DesktopHelper(QObject *parent)
     : QObject{parent}
 {
     connect(KWindowSystem::self(), &KWindowSystem::currentDesktopChanged, this, &DesktopHelper::currentDesktopChanged);
     connect(KWindowSystem::self(), &KWindowSystem::numberOfDesktopsChanged, this, &DesktopHelper::numberOfDesktopsChanged);
+}
+
+DesktopHelper &DesktopHelper::getInstance()
+{
+    static DesktopHelper instance;
+    return instance;
 }
 
 int DesktopHelper::numberOfDesktops()
@@ -99,5 +101,8 @@ void DesktopHelper::removeDesktop(int deskToRemove)
     // 减少桌面数
     info.setNumberOfDesktops(info.numberOfDesktops() - 1);
 }
-}  // namespace Workspace
-}  // namespace Kiran
+
+void DesktopHelper::moveToDesktop(WId wid, int desktop)
+{
+    KWindowSystem::setOnDesktop(wid, desktop);
+}
