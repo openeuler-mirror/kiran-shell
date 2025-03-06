@@ -43,6 +43,8 @@ public:
     static void activateWindow(WId wid);
     static WId activeWindow();
 
+    static int getDesktopOfWindow(WId wid);
+
 private:
     WindowInfoHelper() {}
 

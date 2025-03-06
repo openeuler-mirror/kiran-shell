@@ -15,13 +15,15 @@
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
 #include <KWindowSystem/NETWM>
+#include <QDropEvent>
 #include <QGSettings>
+#include <QMimeData>
 #include <QPainter>
 #include <QScreen>
 #include <QtX11Extras/QX11Info>
 
-#include "desktop-helper.h"
 #include "ks-i.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
@@ -42,6 +44,8 @@ WorkspaceThumbnail::WorkspaceThumbnail(int desktop, QWidget* parent)
 
     // 启用悬浮事件
     setAttribute(Qt::WA_Hover);
+
+    setAcceptDrops(true);
 
     // FIXME:待主题开发好之后去掉
     QString style = "QPushButton{background:transparent; border:none; image:url(:/images/images/close_normal.png);} \
@@ -67,21 +71,9 @@ WorkspaceThumbnail::~WorkspaceThumbnail()
     delete m_ui;
 }
 
-void WorkspaceThumbnail::updatePreviewer()
+void WorkspaceThumbnail::updateContent()
 {
-    // FIXME: 如果使用kwin,可以通过kwin的dbus接口获取截图
-    // QDBusInterface interface("org.kde.KWin", "/Screenshot", "org.kde.kwin.Screenshot");
-
-    // 这种方式只有工作区显示时才能截图
-    //    QScreen* screen = QGuiApplication::primaryScreen();
-    //    if (screen)
-    //    {
-    //        QPixmap screenshot = screen->grabWindow(0);
-    //        m_ui->labelGrabWorkspace->setPixmap(screenshot.scaledToWidth(230));
-    //    }
-
-    // 参考kiran-menu的方式,先获取各个窗口的位置截图,跟桌面壁纸组合成工作区截图
-    // 见 paintEvent
+    update();
 }
 
 void WorkspaceThumbnail::on_btnClose_clicked()
@@ -107,6 +99,19 @@ void WorkspaceThumbnail::leaveEvent(QEvent* event)
     QWidget::leaveEvent(event);
 }
 
+// FIXME: 如果使用kwin,可以通过kwin的dbus接口获取截图
+// QDBusInterface interface("org.kde.KWin", "/Screenshot", "org.kde.kwin.Screenshot");
+
+// 这种方式只有工作区显示时才能截图
+//    QScreen* screen = QGuiApplication::primaryScreen();
+//    if (screen)
+//    {
+//        QPixmap screenshot = screen->grabWindow(0);
+//        m_ui->labelGrabWorkspace->setPixmap(screenshot.scaledToWidth(230));
+//    }
+
+// 参考kiran-menu的方式,先获取各个窗口的位置截图,跟桌面壁纸组合成工作区截图
+// 见 paintEvent
 void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
 {
     QWidget::paintEvent(event);
@@ -162,6 +167,40 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
         painter.drawRect(rect());  // 绘制背景
         painter.end();
     }
+}
+
+void WorkspaceThumbnail::dragEnterEvent(QDragEnterEvent* event)
+{
+    if (event->mimeData()->hasFormat("wid"))
+    {
+        event->accept();
+        return;
+    }
+
+    event->ignore();
+}
+
+void WorkspaceThumbnail::dropEvent(QDropEvent* event)
+{
+    KLOG_INFO(LCWorkspace) << "WorkspaceThumbnail dropEvent";
+
+    if (!event->mimeData()->hasFormat("wid"))
+    {
+        event->ignore();
+        return;
+    }
+
+    QByteArray mimeData = event->mimeData()->data("wid");
+    bool ok = false;
+    auto wid = mimeData.toULongLong(&ok);
+    if (!ok)
+    {
+        KLOG_WARNING(LCWorkspace) << "window move to desktop failed:"
+                                  << "can not cover mimedata to wid,"
+                                  << "mimedata:" << mimeData;
+    }
+
+    DesktopHelper::moveToDesktop(wid, m_workspaceIndex);
 }
 
 void WorkspaceThumbnail::getDesktopBackground()

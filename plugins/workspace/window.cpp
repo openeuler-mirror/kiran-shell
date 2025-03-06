@@ -21,8 +21,8 @@
 #include <QPainter>
 #include <QScreen>
 
-#include "desktop-helper.h"
 #include "ks-i.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/window-manager.h"
 #include "ui_window.h"
@@ -145,9 +145,9 @@ void Window::init()
     int numOfDesk = DesktopHelper::numberOfDesktops();
     changeNumberOfDesktops(numOfDesk);
 
-    m_desktopHelper = new DesktopHelper(this);
-    connect(m_desktopHelper, &DesktopHelper::currentDesktopChanged, this, &Window::changeCurrentDesktop);
-    connect(m_desktopHelper, &DesktopHelper::numberOfDesktopsChanged, this, &Window::changeNumberOfDesktops);
+    connect(&DesktopHelperInstance, &DesktopHelper::currentDesktopChanged, this, &Window::changeCurrentDesktop);
+    connect(&DesktopHelperInstance, &DesktopHelper::numberOfDesktopsChanged, this, &Window::changeNumberOfDesktops);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, this, &Window::changedWindow);
 
     changeCurrentDesktop(DesktopHelper::currentDesktop());
 
@@ -160,7 +160,6 @@ void Window::createDesktop()
     DesktopHelper::createDesktop();
     // KWindowSystem 没有提供工作区删除或创建的信号
     // KWindowSystem::numberOfDesktopsChanged 是异步信号,所以这里不需要添加界面元素,等信号来了再添加
-    // addWorkspace(m_desktopHelper->numberOfDesktops());
 }
 
 void Window::removeDesktop(int desktop)
@@ -172,6 +171,8 @@ void Window::addWorkspace(int desktop)
 {
     auto thumbnail = new WorkspaceThumbnail(desktop, this);
     auto overview = new WorkspaceOverview(desktop, this);
+    connect(this, &Window::windowDesktopChanged, thumbnail, &WorkspaceThumbnail::updateContent);
+    connect(this, &Window::windowDesktopChanged, overview, &WorkspaceOverview::updateContent);
 
     m_workspaces[desktop] = qMakePair(thumbnail, overview);
 
@@ -208,10 +209,7 @@ void Window::changeCurrentDesktop(int desktop)
     }
 
     auto workspace = m_workspaces[desktop];
-    auto thumbnail = workspace.first;
     auto overview = workspace.second;
-
-    thumbnail->updatePreviewer();
 
     QLayoutItem *item;
     while ((item = m_ui->layoutOverview->takeAt(0)) != nullptr)
@@ -240,6 +238,15 @@ void Window::changeNumberOfDesktops(int numOfDesk)
     }
 
     changeCurrentDesktop(DesktopHelper::currentDesktop());
+}
+
+void Window::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+{
+    // 窗口所属工作区变动
+    if (properties.testFlag(NET::WMDesktop))
+    {
+        emit windowDesktopChanged();
+    }
 }
 
 void Window::on_btnAddWorkspace_clicked()
