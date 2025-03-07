@@ -58,6 +58,7 @@ void Shell::initChildren()
         if (!m_panels.contains(panelUID))
         {
             auto* panel = new Panel(profilePanel);
+            panel->init();
             panelsNew.insert(panelUID, panel);
         }
         else

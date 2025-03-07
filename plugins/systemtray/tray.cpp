@@ -249,7 +249,8 @@ void Tray::startUpdateTrayExtendedPos()
 void Tray::updateTrayExtendedPos()
 {
     auto oriention = m_import->getPanel()->getOrientation();
-    Utility::updatePopWidgetPos(oriention, m_windowPopupButton, m_trayExtendedWindow);
+    auto *screen = m_import->getPanel()->getScreen();
+    Utility::updatePopWidgetPos(screen, oriention, m_windowPopupButton, m_trayExtendedWindow);
 
     m_updateWindowPopupPosInProgress = false;
 }
