@@ -16,6 +16,8 @@
 
 #include <QtPlugin>
 
+class QScreen;
+
 namespace Kiran
 {
 #define IAPPLET_IID "com.kylinsec.Kiran.Shell.IApplet"
@@ -33,6 +35,7 @@ class IPanel
 public:
     virtual int getSize() = 0;
     virtual int getOrientation() = 0;
+    virtual QScreen* getScreen() = 0;
 
     // 此接口实际作为信号用
     virtual void panelProfileChanged() = 0;

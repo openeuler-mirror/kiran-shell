@@ -91,27 +91,27 @@ QString Utility::getElidedText(QFontMetrics fontMetrics, QString text, int elide
     return fontMetrics.elidedText(text, Qt::ElideRight, elidedTextLen);
 }
 
-void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWidget *popWidget)
+void Utility::updatePopWidgetPos(QScreen *screen, int panelOriention, QWidget *triggerWidget, QWidget *popWidget)
 {
     auto windowSize = popWidget->frameSize();
     QPoint windowPosition(0, 0);
 
     // 获取当前屏幕坐标
-    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    QRect screenGeometry = screen->geometry();
     switch (panelOriention)
     {
     case Kiran::PanelOrientation::PANEL_ORIENTATION_TOP:
         // 以触发窗口下沿中心为弹窗上沿中心
         windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width() / 2, triggerWidget->height()));
         windowPosition.setX(windowPosition.x() - windowSize.width() / 2);
-        if (windowPosition.x() < 0)
+        if (windowPosition.x() < screenGeometry.left())
         {
-            windowPosition.setX(0);
+            windowPosition.setX(screenGeometry.left());
         }
         // 若超出屏幕，则将窗口定位到屏幕右侧
-        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
+        if (windowPosition.x() + windowSize.width() > screenGeometry.right())
         {
-            windowPosition.setX(screenGeometry.width() - windowSize.width());
+            windowPosition.setX(screenGeometry.right() - windowSize.width());
         }
         break;
     case Kiran::PanelOrientation::PANEL_ORIENTATION_RIGHT:
@@ -119,14 +119,14 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
         windowPosition = triggerWidget->mapToGlobal(QPoint(0, triggerWidget->height() / 2));
         windowPosition.setX(windowPosition.x() - windowSize.width());
         windowPosition.setY(windowPosition.y() - windowSize.height() / 2);
-        if (windowPosition.y() < 0)
+        if (windowPosition.y() < screenGeometry.top())
         {
-            windowPosition.setY(0);
+            windowPosition.setY(screenGeometry.top());
         }
         // 若超出屏幕，则将窗口定位到屏幕底部
-        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
+        if (windowPosition.y() + windowSize.height() > screenGeometry.bottom())
         {
-            windowPosition.setY(screenGeometry.height() - windowSize.height());
+            windowPosition.setY(screenGeometry.bottom() - windowSize.height());
         }
         break;
     case Kiran::PanelOrientation::PANEL_ORIENTATION_BOTTOM:
@@ -134,26 +134,26 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
         windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width() / 2, 0));
         windowPosition.setX(windowPosition.x() - windowSize.width() / 2);
         windowPosition.setY(windowPosition.y() - windowSize.height());
-        if (windowPosition.x() < 0)
+        if (windowPosition.x() < screenGeometry.left())
         {
-            windowPosition.setX(0);
+            windowPosition.setX(screenGeometry.left());
         }
-        if (windowPosition.x() + windowSize.width() > screenGeometry.width())
+        if (windowPosition.x() + windowSize.width() > screenGeometry.right())
         {
-            windowPosition.setX(screenGeometry.width() - windowSize.width());
+            windowPosition.setX(screenGeometry.right() - windowSize.width());
         }
         break;
     case Kiran::PanelOrientation::PANEL_ORIENTATION_LEFT:
         // 以触发窗口右沿中心为弹窗左沿中心
         windowPosition = triggerWidget->mapToGlobal(QPoint(triggerWidget->width(), triggerWidget->height() / 2));
         windowPosition.setY(windowPosition.y() - windowSize.height() / 2);
-        if (windowPosition.y() < 0)
+        if (windowPosition.y() < screenGeometry.top())
         {
-            windowPosition.setY(0);
+            windowPosition.setY(screenGeometry.top());
         }
-        if (windowPosition.y() + windowSize.height() > screenGeometry.height())
+        if (windowPosition.y() + windowSize.height() > screenGeometry.bottom())
         {
-            windowPosition.setY(screenGeometry.height() - windowSize.height());
+            windowPosition.setY(screenGeometry.bottom() - windowSize.height());
         }
         break;
     default:
@@ -173,13 +173,13 @@ void Utility::updatePopWidgetPos(int panelOriention, QWidget *triggerWidget, QWi
         {
             windowPosition.setY(windowPosition.y() + 4);
         }
-        if (windowPosition.x() + windowSize.width() == screenGeometry.width())
+        if (windowPosition.x() + windowSize.width() == screenGeometry.right())
         {
-            windowPosition.setX(screenGeometry.width() - windowSize.width() - 4);
+            windowPosition.setX(screenGeometry.right() - windowSize.width() - 4);
         }
-        if (windowPosition.y() + windowSize.height() == screenGeometry.height())
+        if (windowPosition.y() + windowSize.height() == screenGeometry.bottom())
         {
-            windowPosition.setY(screenGeometry.height() - windowSize.height() - 4);
+            windowPosition.setY(screenGeometry.bottom() - windowSize.height() - 4);
         }
     }
 
