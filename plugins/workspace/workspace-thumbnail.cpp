@@ -58,8 +58,6 @@ WorkspaceThumbnail::WorkspaceThumbnail(int desktop, QWidget* parent)
 
     m_ui->labelGrabWorkspace->clear();
 
-    getDesktopBackground();
-
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, [this]()
             {
                 update();
@@ -119,9 +117,12 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
     QPainter painter;
 
     getDesktopBackground();
-    QPixmap pixPaint = m_desktopBackground.copy();  // 桌面背景
+    QPixmap pixBg = m_desktopBackground.copy();  // 桌面背景
 
-    painter.begin(&pixPaint);
+    auto workAreaRect = KWindowSystem::workArea(m_workspaceIndex);
+    pixBg = pixBg.scaled(workAreaRect.width(), workAreaRect.height());
+
+    painter.begin(&pixBg);
 
     // 叠加当前桌面的窗口预览图
     QList<WId> windows = WindowManagerInstance.getAllWindow(m_workspaceIndex);
@@ -136,10 +137,8 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
     painter.begin(this);
     painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-    NETRootInfo ri(QX11Info::connection(), NET::DesktopGeometry);
-    auto geo = ri.desktopGeometry();
     auto paintRect = m_ui->labelGrabWorkspace->geometry();
-    painter.drawPixmap(paintRect, pixPaint, QRect(0, 0, geo.width, geo.height));
+    painter.drawPixmap(paintRect, pixBg, pixBg.rect());
     painter.end();
 
     auto palette = Kiran::Theme::Palette::getDefault();

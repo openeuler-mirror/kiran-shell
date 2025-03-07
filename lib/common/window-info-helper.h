@@ -39,6 +39,7 @@ public:
     static void maximizeWindow(WId wid, bool isMaximized);
     static void minimizeWindow(WId wid);
     static void restoredWindow(WId wid);
+    static void moveResize(WId wid);
 
     static void activateWindow(WId wid);
     static WId activeWindow();

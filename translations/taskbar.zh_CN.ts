@@ -76,5 +76,11 @@
         <source>workspace</source>
         <translation>工作区</translation>
     </message>
+    <message>
+        <location filename="../plugins/taskbar/window-previewer.cpp" line="144"/>
+        <source>move</source>
+        <translatorcomment>移动</translatorcomment>
+        <translation>移动</translation>
+    </message>
 </context>
 </TS>
