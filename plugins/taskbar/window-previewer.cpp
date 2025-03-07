@@ -139,6 +139,14 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
         }
     }
 
+    if (!WindowInfoHelper::isMinimized(m_wid))
+    {
+        m_menu->addAction(tr("move"), this, [=]()
+                          {
+                              WindowInfoHelper::moveResize(m_wid);
+                          });
+    }
+
     m_menu->exec(mapToGlobal(event->pos()));
 }
 

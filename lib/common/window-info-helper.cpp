@@ -21,9 +21,10 @@
 #include <QWindow>
 #include <QtX11Extras/QX11Info>
 
-#include "lib/common/logging-category.h"
+#include "logging-category.h"
 #include "utility.h"
 #include "window-info-helper.h"
+#include "window-manager.h"
 
 static const NET::Properties windowInfoFlags =
     NET::WMState | NET::XAWMState | NET::WMDesktop | NET::WMVisibleName | NET::WMGeometry | NET::WMFrameExtents | NET::WMWindowType | NET::WMPid;
@@ -189,6 +190,14 @@ void WindowInfoHelper::maximizeWindow(WId wid, bool isMaximized)
 void WindowInfoHelper::minimizeWindow(WId wid)
 {
     KWindowSystem::minimizeWindow(wid);
+}
+
+void WindowInfoHelper::moveResize(WId wid)
+{
+    auto rect = WindowManagerInstance.getWindowGeometry(wid);
+
+    NETRootInfo netRootInfo(QX11Info::connection(), NET::WMMoveResize);
+    netRootInfo.moveResizeRequest(wid, rect.center().x(), rect.center().y(), NET::KeyboardMove);
 }
 
 void WindowInfoHelper::activateWindow(WId wid)
