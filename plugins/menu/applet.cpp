@@ -22,8 +22,8 @@
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "window.h"
 #include "shell_menu_adaptor.h"
+#include "window.h"
 
 #define LAYOUT_MARGIN 4
 #define SHELL_BUS "com.kylinsec.Kiran.Shell"
@@ -135,7 +135,8 @@ void Applet::showMenu()
     m_appletButton->setChecked(true);
 
     auto oriention = m_import->getPanel()->getOrientation();
-    Utility::updatePopWidgetPos(oriention, this, m_window);
+    auto *screen = m_import->getPanel()->getScreen();
+    Utility::updatePopWidgetPos(screen, oriention, this, m_window);
 
     // 激活开始菜单
     m_window->raise();

@@ -142,7 +142,8 @@ void Applet::clickButton()
     m_calendarButton->setEnabled(false);
 
     auto oriention = m_import->getPanel()->getOrientation();
-    Utility::updatePopWidgetPos(oriention, this, m_window);
+    auto *screen = m_import->getPanel()->getScreen();
+    Utility::updatePopWidgetPos(screen, oriention, this, m_window);
 }
 
 void Applet::hideWindow()

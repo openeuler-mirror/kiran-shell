@@ -38,9 +38,12 @@ class Panel : public QWidget, public IPanel
 public:
     Panel(ProfilePanel* profilePanel);
 
+    void init();
+
     QString getUID();
     int getSize() override;
     int getOrientation() override;
+    QScreen* getScreen() override;
 
 protected:
     void contextMenuEvent(QContextMenuEvent* event) override;
@@ -49,13 +52,11 @@ protected:
     void leaveEvent(QEvent* event) override;
 
 private:
-    void init();
     void initChildren();
 
     int orientationStr2Enum(const QString& orientation);
     QString orientationEnum2Str(const int& orientation);
 
-    QScreen* getScreen();
     void updateGeometry(int size = 0);
     void updateLayout();
     QBoxLayout::Direction getLayoutDirection();

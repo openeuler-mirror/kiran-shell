@@ -223,7 +223,8 @@ void Window::hideHwConfWindow()
 void Window::updateWindowPosition()
 {
     auto oriention = m_import->getPanel()->getOrientation();
-    Utility::updatePopWidgetPos(oriention, this, m_hwConfWindow);
+    auto *screen = m_import->getPanel()->getScreen();
+    Utility::updatePopWidgetPos(screen, oriention, this, m_hwConfWindow);
 }
 
 }  // namespace SettingBar
