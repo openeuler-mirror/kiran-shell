@@ -19,6 +19,7 @@
 #include <QObject>
 
 class QLayout;
+class QScreen;
 
 class Utility : public QObject
 {
@@ -32,7 +33,7 @@ public:
     // 获取含省略号的字符串
     static QString getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen);
     // 调整弹窗显示位置
-    static void updatePopWidgetPos(int panelOriention, QWidget* triggerWidget, QWidget* popWidget);
+    static void updatePopWidgetPos(QScreen* screen, int panelOriention, QWidget* triggerWidget, QWidget* popWidget);
     // 检查dbus服务是否已注册
     static bool isDbusServiceRegistered(QString serviceName, QDBusConnection::BusType type = QDBusConnection::SessionBus);
     // 获取拼音猜测的汉字

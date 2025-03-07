@@ -49,8 +49,6 @@ Panel::Panel(ProfilePanel *profilePanel)
 {
     setAttribute(Qt::WA_X11NetWmWindowTypeDock);
     setAttribute(Qt::WA_TranslucentBackground, true);  // 透明
-
-    init();
 }
 
 QString Panel::getUID()
@@ -191,8 +189,9 @@ void Panel::leaveEvent(QEvent *event)
 void Panel::init()
 {
     // 分辨率变化
-    QObject::connect(getScreen(), &QScreen::geometryChanged, this,
-                     &Panel::updateLayout);
+    connect(getScreen(), &QScreen::geometryChanged, this,
+            &Panel::updateLayout);
+
     // 布局方向变化
     connect(m_profilePanel, &ProfilePanel::monitorChanged, this,
             &Panel::updateLayout);
@@ -342,7 +341,7 @@ QScreen *Panel::getScreen()
     auto monitorIndex = m_profilePanel->getMonitor();
 
     auto screens = QGuiApplication::screens();
-    QScreen *showingScreen = QApplication::primaryScreen();
+    QScreen *showingScreen = QGuiApplication::primaryScreen();
 
     if (monitorIndex > 0 && monitorIndex < screens.size())
     {
@@ -350,8 +349,7 @@ QScreen *Panel::getScreen()
     }
     else
     {
-        //        KLOG_WARNING("The monitor index exceeds the maximum number of
-        //        screens, so it will use primary screen.");
+        KLOG_WARNING(LCShell) << "The monitor index exceeds the maximum number of screens, so it will use primary screen.";
     }
 
     return showingScreen;
