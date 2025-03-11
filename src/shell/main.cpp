@@ -70,6 +70,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // 该环境变量会导致caja拉不起来
+    // 原因：caja代码中判断如果存在该环境变量，则为自启动，不显示文件管理器窗口
+    qunsetenv("DESKTOP_AUTOSTART_ID");
+
     Kiran::Profile::globalInit();
     Kiran::Shell::globalInit();
 
