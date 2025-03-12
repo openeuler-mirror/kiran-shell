@@ -14,7 +14,6 @@
 
 #include <qt5-log-i.h>
 #include <KActivities/ResourceInstance>
-#include <KIO/ApplicationLauncherJob>
 #include <KService/KService>
 #include <QDrag>
 #include <QFileInfo>
@@ -24,8 +23,13 @@
 #include <QMouseEvent>
 
 #include "app-item.h"
+#include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 
+namespace Kiran
+{
+namespace Menu
+{
 AppItem::AppItem(QWidget *parent)
     : StyledButton(parent),
       m_appId("")
@@ -129,11 +133,7 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
         }
         QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
                                          {
-                                             auto *job = new KIO::ApplicationLauncherJob(serviceAction);
-                                             job->start();
-
-                                             // 通知kactivitymanagerd
-                                             KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
+                                             Common::appLauncher(serviceAction, s->storageId());
                                          });
         if (serviceAction.isSeparator())
         {
@@ -191,3 +191,5 @@ void AppItem::mouseMoveEvent(QMouseEvent *event)
         drag->exec(Qt::CopyAction);
     }
 }
+}  // namespace Menu
+}  // namespace Kiran

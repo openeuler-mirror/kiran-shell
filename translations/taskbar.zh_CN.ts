@@ -6,7 +6,7 @@
     <message>
         <location filename="../plugins/taskbar/app-button.cpp" line="194"/>
         <source>Run app</source>
-        <translation>运行</translation>
+        <translation>启动</translation>
     </message>
     <message>
         <location filename="../plugins/taskbar/app-button.cpp" line="201"/>
