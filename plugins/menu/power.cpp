@@ -58,21 +58,24 @@ Power::Power(QObject *parent)
                                                 LOGIN_MANAGER_PATH,
                                                 QDBusConnection::systemBus(),
                                                 this);
+    m_freelogin1Manager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
 
     m_gnomeSessionManager = new GnomeSessionManager(SESSION_MANAGER_DBUS,
                                                     SESSION_MANAGER_PATH,
                                                     QDBusConnection::sessionBus(),
                                                     this);
-
-    m_seatManagerProxy = new QDBusInterface(DISPLAY_MANAGER_DBUS,
-                                            qgetenv("XDG_SEAT_PATH"),
-                                            DISPLAY_MANAGER_INTERFACE,
-                                            QDBusConnection::systemBus(),
-                                            this);
-
-    m_freelogin1Manager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
     m_gnomeSessionManager->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
-    m_seatManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+
+    QString xdgSeatPath = qgetenv("XDG_SEAT_PATH");
+    if (!xdgSeatPath.isEmpty())
+    {
+        m_seatManagerProxy = new QDBusInterface(DISPLAY_MANAGER_DBUS,
+                                                qgetenv("XDG_SEAT_PATH"),
+                                                DISPLAY_MANAGER_INTERFACE,
+                                                QDBusConnection::systemBus(),
+                                                this);
+        m_seatManagerProxy->setTimeout(DBUS_PROXY_TIMEOUT_MSEC);
+    }
 }
 
 Power::~Power()

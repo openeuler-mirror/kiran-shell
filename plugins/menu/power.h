@@ -63,10 +63,10 @@ private:
     static std::shared_ptr<Power> m_instance;
 
     //gsettings
-    QGSettings* m_gsettings;
+    QGSettings* m_gsettings = nullptr;
 
     //dbus相关
-    Freelogin1Manager* m_freelogin1Manager;
-    GnomeSessionManager* m_gnomeSessionManager;
-    QDBusInterface* m_seatManagerProxy;
+    Freelogin1Manager* m_freelogin1Manager = nullptr;
+    GnomeSessionManager* m_gnomeSessionManager = nullptr;
+    QDBusInterface* m_seatManagerProxy = nullptr;
 };
