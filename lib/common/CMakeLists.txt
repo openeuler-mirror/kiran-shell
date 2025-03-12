@@ -35,6 +35,8 @@ target_link_libraries(
           Qt5::DBus
           KF5::WindowSystem
           KF5::Service
+          KF5::KIOWidgets
+          KF5::Activities
           ${KLOG_QT5_LIBRARIES}
           ${LIBPINYIN_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}

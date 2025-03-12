@@ -17,7 +17,6 @@
 #include <KActivities/KActivities/ResourceInstance>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
-#include <KIO/ApplicationLauncherJob>
 #include <KIO/OpenUrlJob>
 #include <KService/KService>
 #include <KWindowSystem>
@@ -41,6 +40,7 @@
 #include "ks-i.h"
 #include "ks_accounts_interface.h"
 #include "ks_accounts_user_interface.h"
+#include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "power.h"
@@ -327,14 +327,7 @@ void Window::runApp(QString appId)
 
     KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
     // 启动应用
-    if (!QProcess::startDetached(service->exec(), QStringList()))  // service->exec()部分应用带有参数，如%U，导致无法启动
-    {
-        auto *job = new KIO::ApplicationLauncherJob(service);
-        job->start();
-    }
-
-    // 通知kactivitymanagerd
-    KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+    Common::appLauncher(service);
 
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
     QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();

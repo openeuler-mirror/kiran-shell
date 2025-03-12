@@ -17,7 +17,6 @@
 #include <KActivities/KActivities/ResourceInstance>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
-#include <KIO/ApplicationLauncherJob>
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <QDragEnterEvent>
@@ -32,6 +31,7 @@
 #include "app-previewer.h"
 #include "applet.h"
 #include "ks-i.h"
+#include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
@@ -944,7 +944,7 @@ int Window::getInsertedIndex(const QPoint &pos)
 
         return m_listAppGroupShow.size();
     }
-    
+
     // 纵向
     for (size_t i = 0; i < m_listAppGroupShow.size(); i++)
     {
@@ -1161,12 +1161,7 @@ void Window::openFileByDrop(QDropEvent *event)
         return;
     }
 
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    job->setUrls(urls);
-    job->start();
-
-    // 通知kactivitymanagerd
-    KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + service->storageId()));
+    Common::appLauncher(service, urls);
 }
 
 }  // namespace Taskbar
