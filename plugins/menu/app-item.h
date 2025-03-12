@@ -18,6 +18,10 @@
 
 #include "lib/widgets/styled-button.h"
 
+namespace Kiran
+{
+namespace Menu
+{
 class AppItem : public StyledButton
 {
     Q_OBJECT
@@ -58,3 +62,5 @@ private:
     // 右键拖动起始位置，用于防止误触，当移动坐标达到阈值之后才判定为拖拽
     QPoint m_pressPoint;
 };
+}  // namespace Menu
+}  // namespace Kiran
