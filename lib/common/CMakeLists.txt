@@ -25,6 +25,7 @@ target_include_directories(
           ${PROJECT_SOURCE_DIR}/include
           ${KLOG_QT5_INCLUDE_DIRS}
           ${LIBPINYIN_INCLUDE_DIRS}
+          ${LIBNOTIFY_INCLUDE_DIRS}
           ${GSETTINGS_QT_INCLUDE_DIRS}
           ${X11_XCB_INCLUDE_DIRS})
 
@@ -39,6 +40,7 @@ target_link_libraries(
           KF5::Activities
           ${KLOG_QT5_LIBRARIES}
           ${LIBPINYIN_LIBRARIES}
+          ${LIBNOTIFY_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
           XCB::XCB
           XCB::IMAGE)
