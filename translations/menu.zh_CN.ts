@@ -4,40 +4,34 @@
 <context>
     <name>AppItem</name>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="74"/>
         <source>Run app</source>
         <translatorcomment>运行</translatorcomment>
-        <translation>运行</translation>
+        <translation type="vanished">运行</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="78"/>
         <source>Add to desktop</source>
         <translatorcomment>添加到桌面</translatorcomment>
-        <translation>添加到桌面</translation>
+        <translation type="vanished">添加到桌面</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="86"/>
         <source>Add to favorite</source>
         <translatorcomment>添加到收藏夹</translatorcomment>
-        <translation>添加到收藏夹</translation>
+        <translation type="vanished">添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="93"/>
         <source>Remove from favorite</source>
         <translatorcomment>从收藏夹中移除</translatorcomment>
-        <translation>从收藏夹中移除</translation>
+        <translation type="vanished">从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="103"/>
         <source>Add to tasklist</source>
         <translatorcomment>固定到任务栏</translatorcomment>
-        <translation>固定到任务栏</translation>
+        <translation type="vanished">固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="110"/>
         <source>Remove from tasklist</source>
         <translatorcomment>取消固定到任务栏</translatorcomment>
-        <translation>取消固定到任务栏</translation>
+        <translation type="vanished">取消固定到任务栏</translation>
     </message>
 </context>
 <context>
@@ -51,6 +45,39 @@
         <location filename="../plugins/menu/apps-overview.ui" line="38"/>
         <source>Search application</source>
         <translation>搜索应用</translation>
+    </message>
+</context>
+<context>
+    <name>Kiran::Menu::AppItem</name>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="78"/>
+        <source>Run app</source>
+        <translation>启动</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="82"/>
+        <source>Add to desktop</source>
+        <translation>添加到桌面</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="90"/>
+        <source>Add to favorite</source>
+        <translation>添加到收藏夹</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="97"/>
+        <source>Remove from favorite</source>
+        <translation>从收藏夹中移除</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="107"/>
+        <source>Add to tasklist</source>
+        <translation>固定到任务栏</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/app-item.cpp" line="114"/>
+        <source>Remove from tasklist</source>
+        <translation>取消固定到任务栏</translation>
     </message>
 </context>
 <context>
@@ -152,7 +179,7 @@
         <translation>取消固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="450"/>
+        <location filename="../plugins/menu/apps-overview.cpp" line="446"/>
         <source>result</source>
         <translatorcomment>搜索结果</translatorcomment>
         <translation>搜索结果</translation>
@@ -210,7 +237,7 @@
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="436"/>
+        <location filename="../plugins/menu/window.cpp" line="429"/>
         <source>Hello,</source>
         <translatorcomment>你好，</translatorcomment>
         <translation>你好，</translation>

@@ -15,7 +15,6 @@
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
-#include <KIO/ApplicationLauncherJob>
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <KWindowSystem>
@@ -30,6 +29,7 @@
 #include "app-button.h"
 #include "app-group.h"
 #include "ks-i.h"
+#include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
@@ -260,12 +260,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                 QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this,
                 [=]()
                 {
-                    auto *job = new KIO::ApplicationLauncherJob(serviceAction);
-                    job->start();
-
-                    // 通知kactivitymanagerd
-                    KActivities::ResourceInstance::notifyAccessed(
-                        QUrl(QStringLiteral("applications:") + service->storageId()));
+                    Common::appLauncher(serviceAction, service->storageId());
                 });
             if (serviceAction.isSeparator())
             {
@@ -550,12 +545,7 @@ void AppButton::buttonClicked()
             KService::Ptr service =
                 KService::serviceByStorageId(m_appInfo.m_url.fileName());
             // 启动应用
-            auto *job = new KIO::ApplicationLauncherJob(service);
-            job->start();
-
-            // 通知kactivitymanagerd
-            KActivities::ResourceInstance::notifyAccessed(
-                QUrl(QStringLiteral("applications:") + service->storageId()));
+            Common::appLauncher(service);
         }
         else
         {

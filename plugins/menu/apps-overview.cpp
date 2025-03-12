@@ -16,7 +16,6 @@
 #include <KActivities/ResourceInstance>
 #include <KConfigCore/KConfigGroup>
 #include <KConfigCore/KDesktopFile>
-#include <KIO/ApplicationLauncherJob>
 #include <KService/KServiceGroup>
 #include <KSycoca>
 #include <QAction>
@@ -29,6 +28,7 @@
 
 #include "apps-overview.h"
 #include "ks-i.h"
+#include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "ui_apps-overview.h"
@@ -417,11 +417,7 @@ void AppsOverview::on_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int colu
             }
             QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
                                              {
-                                                 auto *job = new KIO::ApplicationLauncherJob(serviceAction);
-                                                 job->start();
-
-                                                 // 通知kactivitymanagerd
-                                                 KActivities::ResourceInstance::notifyAccessed(QUrl(QStringLiteral("applications:") + s->storageId()));
+                                                 Common::appLauncher(serviceAction, s->storageId());
                                              });
             if (serviceAction.isSeparator())
             {
