@@ -28,6 +28,7 @@ pkg_search_module(KIRAN_WIDGETS_QT5 REQUIRED kiranwidgets-qt5)
 pkg_search_module(KIRAN_DESKTOP REQUIRED kiran-desktop)
 pkg_search_module(GSETTINGS_QT REQUIRED gsettings-qt)
 pkg_search_module(LIBPINYIN REQUIRED libpinyin)
+pkg_search_module(LIBNOTIFY REQUIRED libnotify)
 
 configure_file(ks-config.h.in ${PROJECT_BINARY_DIR}/ks-config.h)
 
