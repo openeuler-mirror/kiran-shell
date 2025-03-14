@@ -72,7 +72,9 @@ private:
     WifiSecurityType m_securityType;
 
     // 变动属性
-    bool m_isConnected;
+    bool m_isConnected = false;
+
+    bool m_firstUpdateFlag = true;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

@@ -25,6 +25,18 @@ namespace Kiran
 {
 namespace SettingBar
 {
+enum OpeartionType
+{
+    OPERTION_ACTIVATE,
+    OPERTION_DEACTIVATE
+};
+
+enum OpeartionResult
+{
+    OPERTION_SUCCEEDED,
+    OPERTION_FAILED
+};
+
 #define NetCommonInstance NetCommon::getInstance()
 
 class NetCommon : public QObject
@@ -55,6 +67,9 @@ public:
     // 获取当前网络图标 key:图标 value:tooltip
     static QPair<QString, QString> getNetworkIcon();
 
+    // 连接结果
+    void checkOpeartionResult(OpeartionType type, QString name, QDBusPendingCall& call);
+
 private:
     NetCommon();
 
@@ -71,6 +86,9 @@ private:
     static QPair<QString, QString> getNetworkIcon(const NetworkState& state);
     static QPair<QString, QString> getNetworkIcon(const NetworkManager::ActiveConnection::Ptr& connection);
     static NetworkManager::Connectivity checkConnectivity();
+
+    // 连接结果
+    void processPendingCallFinished(QDBusPendingCallWatcher* watcher);
 
 signals:
     void netStatusChanged();

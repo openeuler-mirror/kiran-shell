@@ -15,6 +15,29 @@
     </message>
 </context>
 <context>
+    <name>Kiran::SettingBar</name>
+    <message>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="95"/>
+        <source>connection succeeded</source>
+        <translation>连接成功</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="96"/>
+        <source>connection failure</source>
+        <translation>连接失败</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="98"/>
+        <source>disconnect succeeded</source>
+        <translation>断开成功</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="99"/>
+        <source>disconnect failure</source>
+        <translation>断开失败</translation>
+    </message>
+</context>
+<context>
     <name>Kiran::SettingBar::NetButton</name>
     <message>
         <location filename="../plugins/settingbar/net/net-button.cpp" line="51"/>
@@ -25,24 +48,30 @@
 <context>
     <name>Kiran::SettingBar::NetCommon</name>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="394"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="391"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="414"/>
+        <source>network</source>
+        <translation>网络</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="423"/>
         <source>Network unknow error</source>
         <translation>未知网络错误</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="395"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="397"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="424"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="426"/>
         <source>Network connected</source>
         <translation>网络已连接</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="396"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="398"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="425"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="427"/>
         <source>The network is connected, but you cannot access the Internet</source>
         <translation>网络已连接，但不能访问互联网</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="399"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="428"/>
         <source>Network disconnected</source>
         <translation>网络已断开</translation>
     </message>
@@ -77,35 +106,68 @@
     </message>
 </context>
 <context>
+    <name>Kiran::SettingBar::WiredConnectionWidget</name>
+    <message>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="66"/>
+        <source>wired network</source>
+        <translation>有线网络</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="66"/>
+        <source>connected</source>
+        <translation>已连接</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="66"/>
+        <source>disconnected</source>
+        <translation>已断开</translation>
+    </message>
+</context>
+<context>
     <name>Kiran::SettingBar::WirelessConnectionWidget</name>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="101"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="89"/>
+        <source>wireless network</source>
+        <translation>无线网络</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="89"/>
+        <source>connected</source>
+        <translation>已连接</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="89"/>
+        <source>disconnected</source>
+        <translation>已断开</translation>
+    </message>
+    <message>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="97"/>
         <source>please input password</source>
         <translation>请输入密码</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="102"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="98"/>
         <source>WI-FI(%1) requires password re-entry</source>
         <translation>WI-FI(%1)需要再次输入密码</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="107"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="103"/>
         <source>OK</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="108"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="104"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="123"/>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="193"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="119"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="189"/>
         <source>The password must be at least 8 characters long.</source>
         <translation>密码必须不少于8位。</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="178"/>
+        <location filename="../plugins/settingbar/net/wireless-connection-widget.cpp" line="174"/>
         <source>security type can not Support</source>
         <translation>安全类型不支持</translation>
     </message>
@@ -131,8 +193,8 @@
 <context>
     <name>WiredConnectionWidget</name>
     <message>
-        <location filename="../plugins/settingbar/net/wired-connection-widget.ui" line="63"/>
-        <location filename="../plugins/settingbar/net/wired-connection-widget.ui" line="70"/>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.ui" line="82"/>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.ui" line="89"/>
         <source>TextLabel</source>
         <translation></translation>
     </message>

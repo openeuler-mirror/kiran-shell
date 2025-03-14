@@ -24,6 +24,7 @@
 
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/notify.h"
 #include "ui_wireless-connection-widget.h"
 #include "wireless-connection-widget.h"
 #include "wireless-manager.h"
@@ -67,32 +68,27 @@ WirelessConnectionWidget::~WirelessConnectionWidget()
 void WirelessConnectionWidget::updateStatus()
 {
     auto device = NetworkManager::findNetworkInterface(m_deviceUni);
-    NetworkManager::WirelessDevice::Ptr wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
-    auto state = wirelessDevice->state();
-
-    auto activeConnection = wirelessDevice->activeConnection();
-    if (!activeConnection)
+    NetworkManager::ActiveConnection::State state = NetworkManager::ActiveConnection::Deactivated;
+    auto activeConnection = device->activeConnection();
+    if (activeConnection)
     {
-        resetStatus();
-        return;
+        auto connectionSettings = activeConnection->connection()->settings();
+        auto wifiSetting = connectionSettings->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
+        if (wifiSetting->ssid() == m_ssid)
+        {
+            state = activeConnection->state();
+        }
     }
 
-    auto connectionSettings = activeConnection->connection()->settings();
-    auto wifiSetting = connectionSettings->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
+    bool connectedFlag = m_isConnected;
+    setActiveStatus(state);
 
-    if (wifiSetting->ssid() != m_ssid)
+    if (!m_firstUpdateFlag && connectedFlag != m_isConnected)
     {
-        // 这个ssid不是激活的
-        // 重置状态
-        resetStatus();
-        return;
+        // 连接状态变化通知
+        Common::generalNotify(tr("wireless network"), m_ssid + " " + (m_isConnected ? tr("connected") : tr("disconnected")));
     }
-
-    KLOG_INFO(LCSettingbar) << "wireless device state:" << state;
-    KLOG_INFO(LCSettingbar) << "wireless device activing:" << wifiSetting->ssid();
-    KLOG_INFO(LCSettingbar) << "WirelessConnectionWidget::updateStatus" << state << activeConnection << activeConnection->state();
-
-    setActiveStatus(activeConnection->state());
+    m_firstUpdateFlag = false;
 }
 
 void WirelessConnectionWidget::requestPassword()

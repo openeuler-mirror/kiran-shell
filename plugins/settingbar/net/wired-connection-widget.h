@@ -44,6 +44,10 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private:
+    void setActiveStatus(NetworkManager::ActiveConnection::State state);
+    void resetStatus();
+
+private:
     Ui::WiredConnectionWidget *m_ui;
 
     // 固定属性
@@ -51,7 +55,9 @@ private:
     QString m_connectionUuid;
 
     // 变动属性
-    bool m_isConnected;
+    bool m_isConnected = false;
+
+    bool m_firstUpdateFlag = true;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

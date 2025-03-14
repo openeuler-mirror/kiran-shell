@@ -18,7 +18,12 @@
 
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/notify.h"
 #include "net-common.h"
+
+#define WATCHER_PROPERTY_PREFIX "_watcher_kiran_network"
+#define WATCHER_PROPERTY_NAME WATCHER_PROPERTY_PREFIX "_name_"
+#define WATCHER_PROPERTY_TYPE WATCHER_PROPERTY_PREFIX "_type_"
 
 static void DumpDeviceInfo(NetworkManager::Device::List devices)
 {
@@ -85,26 +90,38 @@ namespace Kiran
 {
 namespace SettingBar
 {
+static QMap<OpeartionType, QMap<OpeartionResult, QString>> opeartionMsgMap = {
+    {OPERTION_ACTIVATE,
+     {{OPERTION_SUCCEEDED, QT_TR_NOOP("connection succeeded")},
+      {OPERTION_FAILED, QT_TR_NOOP("connection failure")}}},
+    {OPERTION_DEACTIVATE,
+     {{OPERTION_SUCCEEDED, QT_TR_NOOP("disconnect succeeded")},
+      {OPERTION_FAILED, QT_TR_NOOP("disconnect failure")}}}};
+
 NetCommon::NetCommon()
 {
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::statusChanged, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceAdded, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceRemoved, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
-    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
+    // 备用信号，暂不启用，后续按需启用
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetCommon::activeConnectionAdded);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetCommon::activeConnectionRemoved);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::activatingConnectionChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::isStartingUpChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
+    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
 }
 
 NetCommon &NetCommon::getInstance()
@@ -221,25 +238,13 @@ bool NetCommon::activateConnection(const QString &deviceUni, const QString &conn
 {
     for (auto device : NetworkManager::networkInterfaces())
     {
-        for (const auto &availableConnection : device->availableConnections())
+        for (const auto &connection : device->availableConnections())
         {
-            if (availableConnection->uuid() == connectionUuid)
+            if (connection->uuid() == connectionUuid)
             {
                 // 连接网络
-                QDBusReply<QDBusObjectPath> reply = NetworkManager::activateConnection(availableConnection->path(), deviceUni, QString());
-                if (!reply.isValid())
-                {
-                    KLOG_ERROR(LCSettingbar) << "activate connection failed:"
-                                             << "device uni:" << deviceUni
-                                             << "connection uuid:" << connectionUuid
-                                             << "connection path:" << availableConnection->path()
-                                             << "error:" << reply.error().message();
-                    return false;
-                }
-
-                KLOG_INFO(LCSettingbar) << "activate connection success:"
-                                        << "device uni:" << deviceUni
-                                        << "connection uuid:" << connectionUuid;
+                auto pendingReply = NetworkManager::activateConnection(connection->path(), deviceUni, QString());
+                getInstance().checkOpeartionResult(OPERTION_DEACTIVATE, connection->name(), pendingReply);
                 return true;
             }
         }
@@ -257,22 +262,9 @@ bool NetCommon::deactivateConnection(const QString &connectionUuid)
     {
         if (active->uuid() == connectionUuid)
         {
-            QDBusReply<void> reply = NetworkManager::deactivateConnection(active->path());
-            if (!reply.isValid())
-            {
-                KLOG_ERROR(LCSettingbar) << "deactivate connection failed:"
-                                         << "connection uuid:" << connectionUuid
-                                         << "active connection path:" << active->path()
-                                         << "error:" << reply.error().message();
-                return false;
-            }
-
-            KLOG_INFO(LCSettingbar) << "deactivate connection success:"
-                                    << "connection uuid:" << connectionUuid;
-
+            auto pendingReply = NetworkManager::deactivateConnection(active->path());
+            getInstance().checkOpeartionResult(OPERTION_DEACTIVATE, active->connection()->name(), pendingReply);
             return true;
-
-            break;
         }
     }
 
@@ -386,6 +378,43 @@ QPair<QString, QString> NetCommon::getNetworkIcon()
     }
 
     return getNetworkIcon(DISCONNECTED);
+}
+
+void NetCommon::checkOpeartionResult(OpeartionType type, QString name, QDBusPendingCall &call)
+{
+    if (call.isFinished())
+    {
+        OpeartionResult result = call.isError() ? OPERTION_FAILED : OPERTION_SUCCEEDED;
+        KLOG_WARNING(LCSettingbar) << name << opeartionMsgMap[type][result];
+        if (OPERTION_FAILED == result)
+        {
+            Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result] + "\n" + call.error().message());
+        }
+    }
+    else
+    {
+        auto watcher = new QDBusPendingCallWatcher(call);
+        watcher->setProperty(WATCHER_PROPERTY_NAME, name);
+        watcher->setProperty(WATCHER_PROPERTY_TYPE, type);
+        connect(watcher, &QDBusPendingCallWatcher::finished, this, &NetCommon::processPendingCallFinished);
+    }
+}
+
+void NetCommon::processPendingCallFinished(QDBusPendingCallWatcher *watcher)
+{
+    auto reply = watcher->reply();
+    auto type = static_cast<OpeartionType>(watcher->property(WATCHER_PROPERTY_TYPE).toInt());
+    auto name = watcher->property(WATCHER_PROPERTY_NAME).toString();
+    auto replyType = reply.type();
+
+    OpeartionResult result = replyType == QDBusMessage::ErrorMessage ? OPERTION_FAILED : OPERTION_SUCCEEDED;
+    KLOG_WARNING(LCSettingbar) << name << opeartionMsgMap[type][result];
+    if (OPERTION_FAILED == result)
+    {
+        Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result] + "\n" + reply.errorMessage());
+    }
+
+    watcher->deleteLater();
 }
 
 QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
