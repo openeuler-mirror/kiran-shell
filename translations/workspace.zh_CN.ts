@@ -12,12 +12,12 @@
 <context>
     <name>Kiran::Workspace::WindowPreviewer</name>
     <message>
-        <location filename="../plugins/workspace/window-previewer.cpp" line="41"/>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="43"/>
         <source>Move to other desktop</source>
         <translation>移动到其他工作区</translation>
     </message>
     <message>
-        <location filename="../plugins/workspace/window-previewer.cpp" line="44"/>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="46"/>
         <source>workspace</source>
         <translation>工作区</translation>
     </message>

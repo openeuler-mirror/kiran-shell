@@ -44,6 +44,8 @@ private:
     void AddToManager(const QString& deviceUni);
     void RemoveFromManager(const QString& deviceUni);
 
+    void changeActiveConnection();
+
 signals:
     void netStatusChanged();
 
@@ -53,7 +55,7 @@ signals:
 
     // 设备状态
     void stateChanged(QString deviceUni, NetworkManager::Device::State state);
-    void activeConnectionChanged();
+    void activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state);
 
 private:
     QStringList m_deviceUnis;

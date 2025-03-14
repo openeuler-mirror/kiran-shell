@@ -79,7 +79,6 @@ signals:
 
 private:
     QMap<QString, WirelessNetworkManager*> m_deviceManagerMap;
-    QMap<QString, NetworkManager::ActiveConnection::Ptr> m_deviceActiveConnectMap;
     NMSecretAgent* m_secretAgent = nullptr;
 };
 }  // namespace SettingBar

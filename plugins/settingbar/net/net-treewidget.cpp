@@ -40,7 +40,6 @@ enum
 
 namespace Kiran
 {
-
 class ItemDelegate : public QStyledItemDelegate
 {
 public:
@@ -104,16 +103,17 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         connect(&WiredManagerInstance, &WiredManager::availableConnectionAppeared, this, &netTreeWidget::wiredNetworkAppeared);
         connect(&WiredManagerInstance, &WiredManager::availableConnectionDisappeared, this, &netTreeWidget::wiredNetworkDisappeared);
         connect(&WiredManagerInstance, &WiredManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
+        connect(&WiredManagerInstance, &WiredManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
     }
     else if (NetworkManager::Device::Type::Wifi == m_netType)
     {
         // 无线接入点变化信号
         connect(&WirelessManagerInstance, &WirelessManager::networkAppeared, this, &netTreeWidget::wirelessNetworkAppeared);
         connect(&WirelessManagerInstance, &WirelessManager::networkDisappeared, this, &netTreeWidget::wirelessNetworkDisappeared);
-        // 被动请求密码信号
-        connect(&WirelessManagerInstance, &WirelessManager::requestPassword, this, &netTreeWidget::requestPassword);
         connect(&WirelessManagerInstance, &WirelessManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
         connect(&WirelessManagerInstance, &WirelessManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
+        // 被动请求密码信号
+        connect(&WirelessManagerInstance, &WirelessManager::requestPassword, this, &netTreeWidget::requestPassword);
     }
 
     // 初始化网络状态
@@ -141,18 +141,18 @@ void netTreeWidget::updateNetworkStatus()
     }
 
     // 移除不存在的网卡
-    for (const auto &uni : m_netDeviceItems.keys())
+    for (const auto &uni : m_deviceItems.keys())
     {
         if (!deviceUnis.contains(uni))
         {
-            QTreeWidgetItem *item = m_netDeviceItems[uni].first;
-            QWidget *widget = m_netDeviceItems[uni].second;
+            QTreeWidgetItem *item = m_deviceItems[uni].first;
+            QWidget *widget = m_deviceItems[uni].second;
             takeTopLevelItem(indexOfTopLevelItem(item));
 
             delete item;
             delete widget;
 
-            m_netDeviceItems.remove(uni);
+            m_deviceItems.remove(uni);
         }
     }
 }
@@ -161,13 +161,13 @@ void netTreeWidget::updateNetDevice(const QString &deviceUni)
 {
     KLOG_INFO(LCSettingbar) << "netTreeWidget::updateNetDevice" << deviceUni;
 
-    if (!m_netDeviceItems.contains(deviceUni))
+    if (!m_deviceItems.contains(deviceUni))
     {
         auto *netDeviceItem = new DeviceWidget(m_netType, deviceUni, this);
         auto *treeWidgetItem = new QTreeWidgetItem(this);
         setItemWidget(treeWidgetItem, 0, netDeviceItem);
 
-        m_netDeviceItems[deviceUni] = qMakePair(treeWidgetItem, netDeviceItem);
+        m_deviceItems[deviceUni] = qMakePair(treeWidgetItem, netDeviceItem);
 
         netDeviceItem->Init();
     }
@@ -197,7 +197,7 @@ void netTreeWidget::updateNetDevice(const QString &deviceUni)
     }
 
     // 移除不存在的连接
-    auto connectionMap = m_netConnectionItem[deviceUni];
+    auto connectionMap = m_connectionItems[deviceUni];
     for (const QString &connectUuid : connectionMap.keys())
     {
         if (!connecttionUuids.contains(connectUuid))
@@ -212,17 +212,17 @@ void netTreeWidget::updateWiredConnection(const QString &deviceUni, const QStrin
     KLOG_INFO(LCSettingbar) << "netTreeWidget::updateNetConnection" << deviceUni << connectionUuid;
 
     WiredConnectionWidget *netConnectionItem;
-    if (!m_netConnectionItem[deviceUni].contains(connectionUuid))
+    if (!m_connectionItems[deviceUni].contains(connectionUuid))
     {
         netConnectionItem = new WiredConnectionWidget(deviceUni, connectionUuid, this);
-        auto *treeWidgetItem = new QTreeWidgetItem(m_netDeviceItems[deviceUni].first);
+        auto *treeWidgetItem = new QTreeWidgetItem(m_deviceItems[deviceUni].first);
         setItemWidget(treeWidgetItem, 0, netConnectionItem);
 
-        m_netConnectionItem[deviceUni][connectionUuid] = qMakePair(treeWidgetItem, netConnectionItem);
+        m_connectionItems[deviceUni][connectionUuid] = qMakePair(treeWidgetItem, netConnectionItem);
     }
     else
     {
-        netConnectionItem = (WiredConnectionWidget *)m_netConnectionItem[deviceUni][connectionUuid].second;
+        netConnectionItem = (WiredConnectionWidget *)m_connectionItems[deviceUni][connectionUuid].second;
     }
 
     netConnectionItem->updateStatus();
@@ -232,13 +232,13 @@ void netTreeWidget::updateWirelessConnection(const QString &deviceUni, const QSt
 {
     WirelessConnectionWidget *netConnectionItem;
 
-    if (!m_netConnectionItem[deviceUni].contains(ssid))
+    if (!m_connectionItems[deviceUni].contains(ssid))
     {
         netConnectionItem = new WirelessConnectionWidget(deviceUni, ssid, this);
-        auto *treeWidgetItem = new QTreeWidgetItem(m_netDeviceItems[deviceUni].first);
+        auto *treeWidgetItem = new QTreeWidgetItem(m_deviceItems[deviceUni].first);
         setItemWidget(treeWidgetItem, 0, netConnectionItem);
 
-        m_netConnectionItem[deviceUni][ssid] = qMakePair(treeWidgetItem, netConnectionItem);
+        m_connectionItems[deviceUni][ssid] = qMakePair(treeWidgetItem, netConnectionItem);
 
         connect(netConnectionItem, &WirelessConnectionWidget::respondPasswdRequest,
                 &WirelessManagerInstance, &WirelessManager::respondPasswdRequest);
@@ -255,7 +255,7 @@ void netTreeWidget::updateWirelessConnection(const QString &deviceUni, const QSt
     }
     else
     {
-        netConnectionItem = (WirelessConnectionWidget *)m_netConnectionItem[deviceUni][ssid].second;
+        netConnectionItem = (WirelessConnectionWidget *)m_connectionItems[deviceUni][ssid].second;
     }
 
     netConnectionItem->updateStatus();
@@ -293,48 +293,45 @@ void netTreeWidget::removeConnection(const QString &deviceUni, const QString &co
 {
     KLOG_INFO(LCSettingbar) << "netTreeWidget::removeConnection" << deviceUni << connectUuid;
 
-    if (m_netConnectionItem.contains(deviceUni) && m_netConnectionItem[deviceUni].contains(connectUuid))
+    if (m_connectionItems.contains(deviceUni) && m_connectionItems[deviceUni].contains(connectUuid))
     {
-        QTreeWidgetItem *item = m_netConnectionItem[deviceUni][connectUuid].first;
-        QWidget *widget = m_netConnectionItem[deviceUni][connectUuid].second;
+        QTreeWidgetItem *item = m_connectionItems[deviceUni][connectUuid].first;
+        QWidget *widget = m_connectionItems[deviceUni][connectUuid].second;
         item->parent()->removeChild(item);
 
         delete item;
         delete widget;
 
-        m_netConnectionItem[deviceUni].remove(connectUuid);
+        m_connectionItems[deviceUni].remove(connectUuid);
     }
 }
 
 void netTreeWidget::updateActiveStatus(const QString &deviceUni, NetworkManager::Device::State state)
 {
-    if (!m_netConnectionItem.contains(deviceUni))
+    if (!m_connectionItems.contains(deviceUni))
     {
         KLOG_ERROR(LCSettingbar) << "!m_netConnectionItem.contains(deviceUni)" << deviceUni;
         return;
     }
 
-    for (const auto &connection : m_netConnectionItem)
+    for (const auto &connection : m_connectionItems[deviceUni])
     {
-        for (auto itemWithWidget : connection)
+        if (NetworkManager::Device::Type::Ethernet == m_netType)
         {
-            if (NetworkManager::Device::Type::Ethernet == m_netType)
-            {
-                auto *item = (WiredConnectionWidget *)itemWithWidget.second;
-                item->updateStatus();
-            }
-            else if (NetworkManager::Device::Type::Wifi == m_netType)
-            {
-                auto *item = (WirelessConnectionWidget *)itemWithWidget.second;
-                item->updateStatus();
-            }
+            auto *item = (WiredConnectionWidget *)connection.second;
+            item->updateStatus();
+        }
+        else if (NetworkManager::Device::Type::Wifi == m_netType)
+        {
+            auto *item = (WirelessConnectionWidget *)connection.second;
+            item->updateStatus();
         }
     }
 }
 
 void netTreeWidget::activeConnectionStateChanged(const QString &deviceUni, NetworkManager::ActiveConnection::State state)
 {
-    if (!m_netConnectionItem.contains(deviceUni))
+    if (!m_connectionItems.contains(deviceUni))
     {
         KLOG_ERROR(LCSettingbar) << "!m_netConnectionItem.contains(deviceUni)" << deviceUni;
         return;
@@ -342,7 +339,7 @@ void netTreeWidget::activeConnectionStateChanged(const QString &deviceUni, Netwo
 
     KLOG_INFO(LCSettingbar) << "activeConnectionStateChanged" << deviceUni << state;
 
-    for (auto connection : m_netConnectionItem[deviceUni])
+    for (auto connection : m_connectionItems[deviceUni])
     {
         if (NetworkManager::Device::Type::Ethernet == m_netType)
         {
@@ -361,9 +358,9 @@ void netTreeWidget::requestPassword(const QString &devicePath, const QString &ss
 {
     KLOG_INFO(LCSettingbar) << "netTreeWidget::requestPassword" << devicePath << ssid << wait;
 
-    if (m_netConnectionItem.contains(devicePath) && m_netConnectionItem[devicePath].contains(ssid))
+    if (m_connectionItems.contains(devicePath) && m_connectionItems[devicePath].contains(ssid))
     {
-        auto *netConnectionItem = (WirelessConnectionWidget *)m_netConnectionItem[devicePath][ssid].second;
+        auto *netConnectionItem = (WirelessConnectionWidget *)m_connectionItems[devicePath][ssid].second;
         netConnectionItem->requestPassword();
     }
 }

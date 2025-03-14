@@ -61,8 +61,8 @@ private:
     void requestPassword(const QString &devicePath, const QString &ssid, bool wait);
 
 private:
-    QMap<QString, QPair<QTreeWidgetItem *, QWidget *>> m_netDeviceItems;                    // <device uuid,<>>
-    QMap<QString, QMap<QString, QPair<QTreeWidgetItem *, QWidget *>>> m_netConnectionItem;  // <device uuid, <connectuuid/ssid, <>>>
+    QMap<QString, QPair<QTreeWidgetItem *, QWidget *>> m_deviceItems;                     // <device uuid,<>>
+    QMap<QString, QMap<QString, QPair<QTreeWidgetItem *, QWidget *>>> m_connectionItems;  // <device uuid, <connectuuid/ssid, <>>>
 
     NetworkManager::Device::Type m_netType;
 };

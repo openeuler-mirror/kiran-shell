@@ -177,10 +177,6 @@
 <context>
     <name>Window</name>
     <message>
-        <source>Today</source>
-        <translation type="obsolete">今天</translation>
-    </message>
-    <message>
         <location filename="../plugins/calendar/window.ui" line="17"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
