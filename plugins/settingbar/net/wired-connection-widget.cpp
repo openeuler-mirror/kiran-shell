@@ -12,9 +12,11 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <kiran-log/qt5-log-i.h>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/Settings>
 
+#include "lib/common/notify.h"
 #include "net-common.h"
 #include "ui_wired-connection-widget.h"
 #include "wired-connection-widget.h"
@@ -27,10 +29,11 @@ WiredConnectionWidget::WiredConnectionWidget(QString deviceUni, QString connecti
     : QWidget(parent),
       m_ui(new Ui::WiredConnectionWidget),
       m_deviceUni(deviceUni),
-      m_connectionUuid(connectionUuid),
-      m_isConnected(false)
+      m_connectionUuid(connectionUuid)
 {
     m_ui->setupUi(this);
+
+    resetStatus();
 }
 
 WiredConnectionWidget::~WiredConnectionWidget()
@@ -40,30 +43,61 @@ WiredConnectionWidget::~WiredConnectionWidget()
 
 void WiredConnectionWidget::updateStatus()
 {
-    NetworkManager::Device::Ptr device = NetworkManager::findNetworkInterface(m_deviceUni);
+    auto device = NetworkManager::findNetworkInterface(m_deviceUni);
+    NetworkManager::ActiveConnection::State state = NetworkManager::ActiveConnection::Deactivated;
     auto activeConnection = device->activeConnection();
-    NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(m_connectionUuid);
-    QString connectionName = connection->name();
-    QString activeConnectionUuid = activeConnection ? activeConnection->uuid() : "";
-    if (activeConnectionUuid == m_connectionUuid)
+    if (activeConnection)
     {
-        m_isConnected = true;
-    }
-    else
-    {
-        m_isConnected = false;
+        if (activeConnection->uuid() == m_connectionUuid)
+        {
+            state = activeConnection->state();
+        }
     }
 
+    NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(m_connectionUuid);
+    QString connectionName = connection->name();
     m_ui->labelName->setText(connectionName);
-    m_ui->labelInfo->clear();
-    if (m_isConnected)
+
+    bool connectedFlag = m_isConnected;
+    setActiveStatus(state);
+    if (!m_firstUpdateFlag && connectedFlag != m_isConnected)
     {
-        m_ui->toolButtonConnectStatu->setVisible(true);
+        // 连接状态变化通知
+        Common::generalNotify(tr("wired network"), connectionName + " " + (m_isConnected ? tr("connected") : tr("disconnected")));
     }
-    else
+    m_firstUpdateFlag = false;
+}
+
+void WiredConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state)
+{
+    KLOG_INFO() << "WiredConnectionWidget::setActiveStatus" << state;
+    switch (state)
     {
+    case NetworkManager::ActiveConnection::State::Activating:
+    case NetworkManager::ActiveConnection::State::Deactivating:
+        // 载入状态
+        m_ui->labelLoading->setVisible(true);
         m_ui->toolButtonConnectStatu->setVisible(false);
+        break;
+    case NetworkManager::ActiveConnection::State::Activated:
+        m_ui->labelLoading->setVisible(false);
+        m_ui->toolButtonConnectStatu->setVisible(true);
+        m_isConnected = true;
+        break;
+    default:
+        // 重置状态
+        resetStatus();
+        break;
     }
+
+    m_ui->labelInfo->clear();
+}
+
+void WiredConnectionWidget::resetStatus()
+{
+    m_ui->labelLoading->setVisible(false);
+    m_ui->toolButtonConnectStatu->setVisible(false);
+    m_isConnected = false;
 }
 
 void WiredConnectionWidget::mouseDoubleClickEvent(QMouseEvent *event)

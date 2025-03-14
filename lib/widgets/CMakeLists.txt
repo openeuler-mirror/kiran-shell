@@ -9,7 +9,7 @@ file(GLOB_RECURSE UI_FILES ./*.ui)
 set(ALL_FILES ${H_FILES} ${CPP_FILES} ${UI_FILES})
 
 # 更新ts文件
-execute_process(COMMAND lupdate-qt5 ${ALL_FILES} -ts ${TRANSLATION_FILES})
+execute_process(COMMAND lupdate-qt5 -no-obsolete ${ALL_FILES} -ts ${TRANSLATION_FILES})
 
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})

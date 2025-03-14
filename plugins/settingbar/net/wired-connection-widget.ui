@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,1,0">
      <property name="leftMargin">
       <number>4</number>
      </property>
@@ -54,6 +54,25 @@
        <property name="icon">
         <iconset theme="ks-net-connected">
          <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="LoadingLabel" name="labelLoading">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -93,6 +112,11 @@
    <class>StyledButton</class>
    <extends>QToolButton</extends>
    <header>lib/widgets/styled-button.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LoadingLabel</class>
+   <extends>QLabel</extends>
+   <header>lib/widgets/loading-label.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

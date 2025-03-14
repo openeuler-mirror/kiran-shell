@@ -12,23 +12,42 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <libnotify/notify.h>
+#include <QDBusConnection>
+#include <QDBusInterface>
 
+#include "logging-category.h"
 #include "notify.h"
+
+#define NOTIFICATION_SERVICE "org.freedesktop.Notifications"
+#define NOTIFICATION_PATH "/org/freedesktop/Notifications"
+#define NOTIFICATION_INTERFACE "org.freedesktop.Notifications"
 
 namespace Kiran
 {
 namespace Common
 {
-void generalNotify(const QString &summary, const QString &body, const QString &icon)
+void generalNotify(const QString &title, const QString &desc)
 {
-    notify_init("kiran-shell");
+    QDBusInterface notifyInterface(NOTIFICATION_SERVICE,
+                                   NOTIFICATION_PATH,
+                                   NOTIFICATION_INTERFACE,
+                                   QDBusConnection::sessionBus());
+    notifyInterface.setTimeout(500);
+    QVariantList args;
+    args << "kiran-shell";  // 应用名称
+    args << (uint)0;        // 替换现有通知的ID（0表示新通知）
+    args << "";             // 图标路径（可选）
+    args << title;          // 标题
+    args << desc;           // 内容
+    args << QStringList();  // 按钮列表（可选）
+    args << QVariantMap();  // 附加属性（如紧急程度）
+    args << (int)2000;      // 超时时间（毫秒）
 
-    NotifyNotification *notify = notify_notification_new(summary.toStdString().c_str(), body.toStdString().c_str(), icon.toStdString().c_str());
-    notify_notification_show(notify, nullptr);
-    g_object_unref(G_OBJECT(notify));
-
-    notify_uninit();
+    auto reply = notifyInterface.callWithArgumentList(QDBus::AutoDetect, "Notify", args);
+    if (reply.type() == QDBusMessage::ErrorMessage)
+    {
+        KLOG_WARNING(LCLib) << "send notify failed," << reply.errorMessage();
+    }
 }
 
 }  // namespace Common

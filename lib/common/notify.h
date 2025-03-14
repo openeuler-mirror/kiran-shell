@@ -20,7 +20,7 @@ namespace Kiran
 {
 namespace Common
 {
-void generalNotify(const QString& summary, const QString& body = "", const QString& icon = "");
+void generalNotify(const QString& title, const QString& desc = "");
 
 }  // namespace Common
 }  // namespace Kiran
