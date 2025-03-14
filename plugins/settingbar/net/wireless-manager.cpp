@@ -48,21 +48,10 @@ void WirelessManager::changeActiveConnection()
     auto activeConnection = device->activeConnection();
     if (activeConnection)
     {
-        if (!m_deviceActiveConnectMap.contains(deviceUni))
-        {
-            m_deviceActiveConnectMap[deviceUni] = activeConnection;
-            connect(activeConnection.data(), &NetworkManager::ActiveConnection::stateChanged, [this, deviceUni](NetworkManager::ActiveConnection::State state)
-                    {
-                        emit activeConnectionStateChanged(deviceUni, state);
-                    });
-        }
-    }
-    else
-    {
-        if (m_deviceActiveConnectMap.contains(deviceUni))
-        {
-            m_deviceActiveConnectMap.remove(deviceUni);
-        }
+        connect(activeConnection.data(), &NetworkManager::ActiveConnection::stateChanged, [this, deviceUni](NetworkManager::ActiveConnection::State state)
+                {
+                    emit activeConnectionStateChanged(deviceUni, state);
+                });
     }
 }
 
@@ -115,8 +104,9 @@ void WirelessManager::AddToManager(const QString &deviceUni)
         auto wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
         m_deviceManagerMap[deviceUni] = new WirelessNetworkManager(wirelessDevice);
 
+        // 连接过程状态
         connect(device.data(), &NetworkManager::Device::activeConnectionChanged, this, &WirelessManager::changeActiveConnection);
-
+        // 连接点增加、减少
         connect(m_deviceManagerMap[deviceUni], &WirelessNetworkManager::networkAppeared, [this, deviceUni](const QString &ssid)
                 {
                     emit networkAppeared(deviceUni, ssid);
@@ -126,11 +116,11 @@ void WirelessManager::AddToManager(const QString &deviceUni)
                     emit networkDisappeared(deviceUni, ssid);
                 });
 
-        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
-                {
-                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
-                    emit stateChanged(deviceUni, newstate);
-                });
+        //        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
+        //                {
+        //                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
+        //                    emit stateChanged(deviceUni, newstate);
+        //                });
 
         for (const auto &networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())
         {
@@ -173,7 +163,8 @@ void WirelessManager::activateNetowrk(const QString &deviceUni, const QString &s
 {
     KLOG_INFO(LCSettingbar) << "wireless activate network" << deviceUni << ssid;
 
-    m_deviceManagerMap[deviceUni]->activateNetowrk(ssid);
+    auto pendingReply = m_deviceManagerMap[deviceUni]->activateNetowrk(ssid);
+    NetCommonInstance.checkOpeartionResult(OPERTION_ACTIVATE, ssid, pendingReply);
 }
 
 void WirelessManager::addAndActivateNetwork(const QString &deviceUni, const QString &ssid, const QString &password)
@@ -185,7 +176,8 @@ void WirelessManager::addAndActivateNetwork(const QString &deviceUni, const QStr
 
     KLOG_INFO(LCSettingbar) << "wireless add and activate network" << deviceUni << ssid;
 
-    m_deviceManagerMap[deviceUni]->addAndActivateNetwork(ssid, password);
+    auto pendingReply = m_deviceManagerMap[deviceUni]->addAndActivateNetwork(ssid, password);
+    NetCommonInstance.checkOpeartionResult(OPERTION_ACTIVATE, ssid, pendingReply);
 }
 
 void WirelessManager::respondPasswdRequest(const QString &ssid, const QString &password, bool isCancel)

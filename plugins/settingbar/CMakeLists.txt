@@ -8,7 +8,7 @@ set(TRANSLATION_FILES
     "${PROJECT_SOURCE_DIR}/translations/${TARGET_NAME}.zh_CN.ts")
 
 # 更新ts文件
-execute_process(COMMAND lupdate-qt5 ${SRC_FILES} -ts ${TRANSLATION_FILES})
+execute_process(COMMAND lupdate-qt5 -no-obsolete ${SRC_FILES} -ts ${TRANSLATION_FILES})
 # 生成qm文件
 qt5_add_translation(QM_FILES ${TRANSLATION_FILES})
 

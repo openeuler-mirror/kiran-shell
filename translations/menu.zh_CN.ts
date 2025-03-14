@@ -2,39 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
-    <name>AppItem</name>
-    <message>
-        <source>Run app</source>
-        <translatorcomment>运行</translatorcomment>
-        <translation type="vanished">运行</translation>
-    </message>
-    <message>
-        <source>Add to desktop</source>
-        <translatorcomment>添加到桌面</translatorcomment>
-        <translation type="vanished">添加到桌面</translation>
-    </message>
-    <message>
-        <source>Add to favorite</source>
-        <translatorcomment>添加到收藏夹</translatorcomment>
-        <translation type="vanished">添加到收藏夹</translation>
-    </message>
-    <message>
-        <source>Remove from favorite</source>
-        <translatorcomment>从收藏夹中移除</translatorcomment>
-        <translation type="vanished">从收藏夹中移除</translation>
-    </message>
-    <message>
-        <source>Add to tasklist</source>
-        <translatorcomment>固定到任务栏</translatorcomment>
-        <translation type="vanished">固定到任务栏</translation>
-    </message>
-    <message>
-        <source>Remove from tasklist</source>
-        <translatorcomment>取消固定到任务栏</translatorcomment>
-        <translation type="vanished">取消固定到任务栏</translation>
-    </message>
-</context>
-<context>
     <name>AppsOverview</name>
     <message>
         <location filename="../plugins/menu/apps-overview.ui" line="14"/>
@@ -92,51 +59,6 @@
 <context>
     <name>Kiran::Menu::AppsOverview</name>
     <message>
-        <source>Search application</source>
-        <translatorcomment>搜索应用</translatorcomment>
-        <translation type="vanished">搜索应用</translation>
-    </message>
-    <message>
-        <source>Accessories</source>
-        <translatorcomment>辅助程序</translatorcomment>
-        <translation type="vanished">辅助程序</translation>
-    </message>
-    <message>
-        <source>Development</source>
-        <translatorcomment>开发</translatorcomment>
-        <translation type="vanished">开发</translation>
-    </message>
-    <message>
-        <source>Graphics</source>
-        <translatorcomment>图像</translatorcomment>
-        <translation type="vanished">图像</translation>
-    </message>
-    <message>
-        <source>Internet</source>
-        <translatorcomment>互联网</translatorcomment>
-        <translation type="vanished">互联网</translation>
-    </message>
-    <message>
-        <source>Multimedia</source>
-        <translatorcomment>多媒体</translatorcomment>
-        <translation type="vanished">多媒体</translation>
-    </message>
-    <message>
-        <source>Office</source>
-        <translatorcomment>办公</translatorcomment>
-        <translation type="vanished">办公</translation>
-    </message>
-    <message>
-        <source>System Tools</source>
-        <translatorcomment>系统工具</translatorcomment>
-        <translation type="vanished">系统工具</translation>
-    </message>
-    <message>
-        <source>Other</source>
-        <translatorcomment>其他</translatorcomment>
-        <translation type="vanished">其他</translation>
-    </message>
-    <message>
         <location filename="../plugins/menu/apps-overview.cpp" line="241"/>
         <location filename="../plugins/menu/apps-overview.cpp" line="254"/>
         <source>New App</source>
@@ -183,14 +105,6 @@
         <source>result</source>
         <translatorcomment>搜索结果</translatorcomment>
         <translation>搜索结果</translation>
-    </message>
-</context>
-<context>
-    <name>Kiran::Menu::RecentFilesOverview</name>
-    <message>
-        <source>Search file</source>
-        <translatorcomment>搜索文件</translatorcomment>
-        <translation type="vanished">搜索文件</translation>
     </message>
 </context>
 <context>
