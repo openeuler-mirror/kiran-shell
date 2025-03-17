@@ -186,6 +186,11 @@ void Panel::leaveEvent(QEvent *event)
     QWidget::leaveEvent(event);
 }
 
+void Panel::closeEvent(QCloseEvent *event)
+{
+    event->ignore();
+}
+
 void Panel::init()
 {
     // 分辨率变化
