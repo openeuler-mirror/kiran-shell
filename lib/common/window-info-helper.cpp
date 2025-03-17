@@ -255,9 +255,88 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return desktopFile;
     }
 
+    QStringList classNames = {info.windowClassName(), info.windowClassClass()};
+
+    desktopFile = getDesktopFileByWmClass(classNames);
+    if (!desktopFile.isEmpty())
+    {
+        return desktopFile;
+    }
+
     KLOG_WARNING(LCLib) << "can't find url by Wid:" << wid << getAppNameByWId(wid);
 
     return desktopFile;
+}
+
+QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
+{
+    if (info.isEmpty())
+    {
+        return "";
+    }
+
+    // 按优先级一遍一遍过滤，不能在一个循环中做所有的过滤，不然优先级低的可能会命中
+    // 1.service->desktopEntryName()
+    // 2.service->name()
+    // 3.service->exec()
+
+    auto allKService = KService::allServices();
+
+    for (auto service : allKService)
+    {
+        auto desktopEntryName = service->desktopEntryName();
+        if (desktopEntryName.isEmpty())
+        {
+            continue;
+        }
+        if (info == desktopEntryName)
+        {
+            return service->entryPath().toLocal8Bit();
+        }
+    }
+
+    for (auto service : allKService)
+    {
+        auto serviceName = service->name();
+        if (serviceName.isEmpty())
+        {
+            continue;
+        }
+        if (info == serviceName)
+        {
+            return service->entryPath().toLocal8Bit();
+        }
+    }
+
+    for (auto service : allKService)
+    {
+        auto exec = service->exec();
+        if (exec.isEmpty())
+        {
+            continue;
+        }
+        if (info == exec)
+        {
+            return service->entryPath().toLocal8Bit();
+        }
+    }
+
+    for (auto service : allKService)
+    {
+        auto exec = service->exec();
+        if (exec.isEmpty())
+        {
+            continue;
+        }
+        auto exec_simple = exec.mid(0, exec.indexOf(" "));
+
+        if (info == exec_simple || info.startsWith(exec_simple) || exec_simple.startsWith(info))
+        {
+            return service->entryPath().toLocal8Bit();
+        }
+    }
+
+    return "";
 }
 
 QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
@@ -289,63 +368,17 @@ QByteArray WindowInfoHelper::getDesktopFileByCmdline(int pid)
     }
     QString cmd_simple = QFileInfo(cmd).fileName();
 
-    // 按优先级一遍一遍过滤，不能在一个循环中做所有的过滤，不然优先级低的可能会命中
-    // 1.service->desktopEntryName()
-    // 2.service->name()
-    // 3.service->exec()
-    auto allKService = KService::allServices();
-    for (auto service : allKService)
-    {
-        //        KLOG_INFO(LCLib) << service->storageId() << service->desktopEntryName() << service->entryPath() << service->keywords() << service->name();
-        QString desktopEntryName = service->desktopEntryName();
-        if (desktopEntryName.isEmpty())
-        {
-            continue;
-        }
-        if (cmd_simple == desktopEntryName)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
+    return getDesktopFileByInfoStr(cmd_simple);
+}
 
-    for (auto service : allKService)
+QByteArray WindowInfoHelper::getDesktopFileByWmClass(QStringList classNames)
+{
+    for (auto className : classNames)
     {
-        QString serviceName = service->name();
-        if (serviceName.isEmpty())
+        auto desktopFile = getDesktopFileByInfoStr(className);
+        if (!desktopFile.isEmpty())
         {
-            continue;
-        }
-        if (cmd_simple == serviceName)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
-    for (auto service : allKService)
-    {
-        QString exec = service->exec();
-        if (exec.isEmpty())
-        {
-            continue;
-        }
-        if (cmd_simple == exec)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
-    for (auto service : allKService)
-    {
-        QString exec = service->exec();
-        if (exec.isEmpty())
-        {
-            continue;
-        }
-        QString exec_simple = exec.mid(0, exec.indexOf(" "));
-
-        if (cmd_simple == exec_simple || cmd_simple.startsWith(exec_simple) || exec_simple.startsWith(cmd_simple))
-        {
-            return service->entryPath().toLocal8Bit();
+            return desktopFile;
         }
     }
 
