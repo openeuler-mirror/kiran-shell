@@ -21,6 +21,7 @@
 #include <QWindow>
 #include <QtX11Extras/QX11Info>
 
+#include "ks-i.h"
 #include "logging-category.h"
 #include "utility.h"
 #include "window-info-helper.h"
@@ -256,7 +257,6 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
     }
 
     QStringList classNames = {info.windowClassName(), info.windowClassClass()};
-
     desktopFile = getDesktopFileByWmClass(classNames);
     if (!desktopFile.isEmpty())
     {
@@ -341,16 +341,13 @@ QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
 
 QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
 {
-    // /proc/${pid}/enviorn GIO_LAUNCHED_DESKTOP_FILE
-    QByteArray desktopFileEnv = "GIO_LAUNCHED_DESKTOP_FILE=";
-
     QByteArray environ = Utility::runCmd("cat", {QString("/proc/%1/environ").arg(pid)});
     QByteArrayList envsList = environ.split('\0');
     for (const auto& env : envsList)
     {
-        if (env.startsWith(desktopFileEnv))
+        if (env.startsWith(APP_LAUNCHED_PREFIX))
         {
-            return env.mid(desktopFileEnv.length());
+            return env.mid(APP_LAUNCHED_PREFIX.length());
         }
     }
 

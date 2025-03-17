@@ -16,6 +16,7 @@
 #include <KIO/ApplicationLauncherJob>
 
 #include "app-launcher.h"
+#include "ks-i.h"
 
 namespace Kiran
 {
@@ -37,13 +38,18 @@ static void appStart(KIO::ApplicationLauncherJob *job, QString storageId, QList<
 
 void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
 {
+    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + service->exec());
+
     auto *job = new KIO::ApplicationLauncherJob(service);
     appStart(job, service->storageId(), urls);
 }
 
 void appLauncher(const KServiceAction &serviceAction, QString storageId, QList<QUrl> urls)
 {
-    auto *job = new KIO::ApplicationLauncherJob(serviceAction);
+    auto service = serviceAction.service();
+    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + serviceAction.exec());
+
+    auto *job = new KIO::ApplicationLauncherJob(service);
     appStart(job, storageId, urls);
 }
 
