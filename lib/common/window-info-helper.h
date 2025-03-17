@@ -51,6 +51,8 @@ private:
 
     static QByteArray getUrlByWIdPrivate(WId wid);
 
+    static QByteArray getDesktopFileByInfoStr(QString info);
     static QByteArray getDesktopFileByEnviorn(int pid);
     static QByteArray getDesktopFileByCmdline(int pid);
+    static QByteArray getDesktopFileByWmClass(QStringList classNames);
 };
