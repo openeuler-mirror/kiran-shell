@@ -98,6 +98,9 @@ namespace Kiran
 // 面板上的应用图标的像素大小
 #define PANEL_APP_ICON_SIZE 24
 
+// 通过 KiranShell 启动的应用，增加环境变量
+#define APP_LAUNCHED_PREFIX QByteArray("KIRAN_SHELL_LAUNCHED_DESKTOP_FILE=")
+
 enum PanelOrientation
 {
     PANEL_ORIENTATION_TOP,
