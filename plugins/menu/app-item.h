@@ -43,14 +43,14 @@ signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString &appId, bool &checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(const QUrl &url, bool &checkResult);
+    void isInFixedApps(const QUrl &url, bool &checkResult);
 
     // 添加到×/从×移除 桌面、收藏夹、任务栏
     void addToDesktop(const QString &appId);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    void addToTasklist(const QUrl &url);
-    void removeFromTasklist(const QUrl &url);
+    void addToFixedApps(const QUrl &url);
+    void removeFromFixedApps(const QUrl &url);
 
     // 运行应用
     void runApp(const QString &appId);

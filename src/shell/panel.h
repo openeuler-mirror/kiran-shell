@@ -20,7 +20,6 @@
 #include "plugin-i.h"
 
 class QFrame;
-class QMenu;
 class QGSettings;
 
 namespace Kiran
@@ -46,7 +45,6 @@ public:
     QScreen* getScreen() override;
 
 protected:
-    void contextMenuEvent(QContextMenuEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void enterEvent(QEvent* event) override;
     void leaveEvent(QEvent* event) override;
@@ -80,8 +78,6 @@ private:
     QMap<QString, Applet*> m_applets;
 
     QList<LineFrame*> m_lineFrames;
-
-    QMenu* m_menu = nullptr;
 
     // 显示模式相关
     bool m_isPersonalityMode = false;
