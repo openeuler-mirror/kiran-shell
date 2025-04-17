@@ -65,14 +65,14 @@ signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString& appId, bool& checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(const QUrl& url, bool& checkResult);
+    void isInFixedApps(const QUrl& url, bool& checkResult);
 
     // 添加到×/从×移除 桌面、收藏夹、任务栏
     void addToDesktop(const QString& appId);
     void addToFavorite(const QString& appId);
     void removeFromFavorite(const QString& appId);
-    void addToTasklist(const QUrl& url);
-    void removeFromTasklist(const QUrl& url);
+    void addToFixedApps(const QUrl& url);
+    void removeFromFixedApps(const QUrl& url);
 
     // 运行应用
     void runApp(const QString& appId);
@@ -82,6 +82,8 @@ private:
 
     QSet<QString> m_appIds;             // 缓存所有的应用id
     bool m_isReayToloadNewApp = false;  // 已准备好载入新应用，下次载入应用列表时，先处理新应用
+
+    QSet<QString> m_searchAppIds;  // 缓存应用搜索结果
 
     QGSettings* m_gsettings;  // gsettings
 };

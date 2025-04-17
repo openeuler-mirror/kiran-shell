@@ -79,12 +79,12 @@ signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString &appId, bool &checkResult);
     // 查询是否已固定到任务栏
-    void isInTasklist(const QUrl &url, bool &checkResult);
+    void isInFixedApps(const QUrl &url, bool &checkResult);
     // 添加到×/从×移除 x:桌面、收藏夹、任务栏
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    void addToTasklist(const QUrl &url, AppButton *appButton);
-    void removeFromTasklist(const QUrl &url);
+    void addToFixedApps(const QUrl &url, AppButton *appButton);
+    void removeFromFixedApps(const QUrl &url);
 
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &result);

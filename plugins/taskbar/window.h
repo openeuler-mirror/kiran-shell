@@ -83,9 +83,12 @@ private:
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
     // 固定到任务栏信息 查询、增加、删除
-    void isInTasklist(const QUrl &url, bool &checkResult);
-    void addToTasklist(const QUrl &url, AppGroup *appGroup);
-    void removeFromTasklist(const QUrl &url);
+    void isInFixedApps(const QUrl &url, bool &checkResult);
+    void addToFixedApps(const QUrl &url, AppGroup *appGroup);
+    void removeFromFixedApps(const QUrl &url);
+
+    QList<QUrl> getFixedApps();
+    void setFixedApps(QList<QUrl> urls);
 
     // 窗口关闭
     void removeGroup(AppGroup *group);
