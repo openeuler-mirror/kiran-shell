@@ -72,9 +72,9 @@ private:
     void removeFromFavorite(const QString& appId);
 
     // 添加到任务栏操作
-    void isInTasklist(const QUrl& url, bool& checkResult);
-    void addToTasklist(const QUrl& url);
-    void removeFromTasklist(const QUrl& url);
+    void isInFixedApps(const QUrl& url, bool& checkResult);
+    void addToFixedApps(const QUrl& url);
+    void removeFromFixedApps(const QUrl& url);
 
     // 添加到桌面操作
     void addToDesktop(const QString& appId);

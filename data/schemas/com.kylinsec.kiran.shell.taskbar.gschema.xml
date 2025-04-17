@@ -8,7 +8,7 @@
         </key>
 
         <key name="fixed-apps" type="as">
-            <default>[]</default>
+            <default>['org.gnome.Software.desktop', 'firefox.desktop', 'caja.desktop', 'mate-terminal.desktop']</default>
             <description>The list of applications that are fixed on the taskbar.</description>
         </key>
 

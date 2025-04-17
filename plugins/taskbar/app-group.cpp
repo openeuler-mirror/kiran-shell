@@ -347,14 +347,14 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::windowCloseAll, this, &AppGroup::windowCloseAll);
 
     connect(appButton, &AppButton::isInFavorite, this, &AppGroup::isInFavorite, Qt::DirectConnection);
-    connect(appButton, &AppButton::isInTasklist, this, &AppGroup::isInTasklist, Qt::DirectConnection);
+    connect(appButton, &AppButton::isInFixedApps, this, &AppGroup::isInFixedApps, Qt::DirectConnection);
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
-    connect(appButton, &AppButton::addToTasklist, this, [this](const QUrl &url)
+    connect(appButton, &AppButton::addToFixedApps, this, [this](const QUrl &url)
             {
-                emit addToTasklist(url, this);
+                emit addToFixedApps(url, this);
             });
-    connect(appButton, &AppButton::removeFromTasklist, this, &AppGroup::removeFromTasklist);
+    connect(appButton, &AppButton::removeFromFixedApps, this, &AppGroup::removeFromFixedApps);
     connect(appButton, &AppButton::getRelationAppSize, this, &AppGroup::getRelationAppSize, Qt::DirectConnection);
 
     // 点击反向穿透，用于支持拖拽

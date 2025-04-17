@@ -111,11 +111,11 @@ void Window::initUI()
 
     AppsOverview *appsOverview = new AppsOverview(this);
     connect(appsOverview, &AppsOverview::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
-    connect(appsOverview, &AppsOverview::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appsOverview, &AppsOverview::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
     connect(appsOverview, &AppsOverview::addToFavorite, this, &Window::addToFavorite);
     connect(appsOverview, &AppsOverview::removeFromFavorite, this, &Window::removeFromFavorite);
-    connect(appsOverview, &AppsOverview::addToTasklist, this, &Window::addToTasklist);
-    connect(appsOverview, &AppsOverview::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appsOverview, &AppsOverview::addToFixedApps, this, &Window::addToFixedApps);
+    connect(appsOverview, &AppsOverview::removeFromFixedApps, this, &Window::removeFromFixedApps);
     connect(appsOverview, &AppsOverview::addToDesktop, this, &Window::addToDesktop);
     connect(appsOverview, &AppsOverview::runApp, this, &Window::runApp);
     m_ui->widgetOverviewStack->addWidget(appsOverview);
@@ -305,11 +305,11 @@ AppItem *Window::newAppItem(QString appId)
     AppItem *appItem = new AppItem(this);
     appItem->setAppId(appId);
     connect(appItem, &AppItem::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
-    connect(appItem, &AppItem::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appItem, &AppItem::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
     connect(appItem, &AppItem::addToFavorite, this, &Window::addToFavorite);
     connect(appItem, &AppItem::removeFromFavorite, this, &Window::removeFromFavorite);
-    connect(appItem, &AppItem::addToTasklist, this, &Window::addToTasklist);
-    connect(appItem, &AppItem::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appItem, &AppItem::addToFixedApps, this, &Window::addToFixedApps);
+    connect(appItem, &AppItem::removeFromFixedApps, this, &Window::removeFromFixedApps);
     connect(appItem, &AppItem::addToDesktop, this, &Window::addToDesktop);
     connect(appItem, &AppItem::runApp, this, &Window::runApp);
 
@@ -364,14 +364,14 @@ void Window::removeFromFavorite(const QString &appId)
     m_actStatsWatcher->unlinkFromActivity(QUrl(appIdTemp), Activity::global(), Agent::global());
 }
 
-void Window::isInTasklist(const QUrl &url, bool &checkResult)
+void Window::isInFixedApps(const QUrl &url, bool &checkResult)
 {
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
     QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
     checkResult = data.contains(url);
 }
 
-void Window::addToTasklist(const QUrl &url)
+void Window::addToFixedApps(const QUrl &url)
 {
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
     QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
@@ -382,7 +382,7 @@ void Window::addToTasklist(const QUrl &url)
     }
 }
 
-void Window::removeFromTasklist(const QUrl &url)
+void Window::removeFromFixedApps(const QUrl &url)
 {
     auto gsettings = QSharedPointer<QGSettings>(new QGSettings(TASKBAR_SCHEMA_ID));
     QVariantList data = gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
