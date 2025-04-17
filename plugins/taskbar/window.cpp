@@ -268,7 +268,7 @@ void Window::dropEvent(QDropEvent *event)
                 }
             }
             m_listAppGroupLocked = listAppGroupLocked;
-            addToTasklist(appUrl, appGroup);
+            addToFixedApps(appUrl, appGroup);
         }
     }
     else
@@ -283,7 +283,7 @@ void Window::dropEvent(QDropEvent *event)
             m_listAppGroupShow.insert(m_currentDropIndex, appGroup);
         }
 
-        addToTasklist(appUrl, appGroup);
+        addToFixedApps(appUrl, appGroup);
     }
 
     updateLayout();
@@ -359,11 +359,11 @@ AppGroup *Window::genAppGroup(const AppInfo &appInfo)
     appGroup = new AppGroup(m_import, appInfo, this);
 
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
-    connect(appGroup, &AppGroup::isInTasklist, this, &Window::isInTasklist, Qt::DirectConnection);
+    connect(appGroup, &AppGroup::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
     connect(appGroup, &AppGroup::addToFavorite, this, &Window::addToFavorite);
     connect(appGroup, &AppGroup::removeFromFavorite, this, &Window::removeFromFavorite);
-    connect(appGroup, &AppGroup::addToTasklist, this, &Window::addToTasklist);
-    connect(appGroup, &AppGroup::removeFromTasklist, this, &Window::removeFromTasklist);
+    connect(appGroup, &AppGroup::addToFixedApps, this, &Window::addToFixedApps);
+    connect(appGroup, &AppGroup::removeFromFixedApps, this, &Window::removeFromFixedApps);
     connect(appGroup, &AppGroup::emptyGroup, this, &Window::removeGroup);
 
     connect(appGroup, &AppGroup::moveGroupStarted, this, &Window::startMoveGroup, Qt::QueuedConnection);
@@ -652,7 +652,7 @@ void Window::updatePageButtons(QBoxLayout::Direction direction, Qt::AlignmentFla
 
 void Window::updateLockApp()
 {
-    QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    auto appUrls = getFixedApps();
     for (auto *appGroup : m_listAppGroupLocked)
     {
         auto info = appGroup->getAppInfo();
@@ -661,9 +661,9 @@ void Window::updateLockApp()
             removeLockApp(info);
         }
     }
-    for (const auto &appUrl : appUrls)
+    for (const auto &url : appUrls)
     {
-        addLockApp(appUrl.toUrl());
+        addLockApp(url);
     }
 }
 
@@ -765,14 +765,16 @@ void Window::removeFromFavorite(const QString &appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void Window::isInTasklist(const QUrl &url, bool &checkResult)
+void Window::isInFixedApps(const QUrl &url, bool &checkResult)
 {
-    QVariantList appUrls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
-    checkResult = appUrls.contains(url);
+    auto fixedApps = getFixedApps();
+    checkResult = fixedApps.contains(url);
 }
 
-void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
+void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
 {
+    auto fixedApps = getFixedApps();
+
     int inserIndex = 0;
     int indexShow = m_listAppGroupShow.indexOf(appGroup);
     appGroup->setLocked(true);
@@ -781,13 +783,11 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
     {
         // 本来就是锁定应用
         // 锁定应用调整位置
-        QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
-
         int newIndex = m_listAppGroupLocked.indexOf(appGroup);
-        int oldIndex = valuesList.indexOf(url);
-        valuesList.move(oldIndex, newIndex);
-        KLOG_INFO(LCTaskbar) << "addToTasklist move" << oldIndex << newIndex;
-        m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
+        int oldIndex = fixedApps.indexOf(url);
+        fixedApps.move(oldIndex, newIndex);
+        KLOG_INFO(LCTaskbar) << "addToFixedApps move" << oldIndex << newIndex;
+        setFixedApps(fixedApps);
 
         return;
     }
@@ -808,26 +808,64 @@ void Window::addToTasklist(const QUrl &url, AppGroup *appGroup)
         }
     }
 
-    QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
-    if (inserIndex >= valuesList.size())
+    if (inserIndex >= fixedApps.size())
     {
-        valuesList.append(url);
+        fixedApps.append(url.toString());
         m_listAppGroupLocked.append(appGroup);
     }
     else
     {
-        valuesList.insert(inserIndex, url);
+        fixedApps.insert(inserIndex, url.toString());
         m_listAppGroupLocked.insert(inserIndex, appGroup);
     }
-    KLOG_INFO(LCTaskbar) << "addToTasklist" << inserIndex << valuesList.size();
-    m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
+    KLOG_INFO(LCTaskbar) << "addToFixedApps" << inserIndex << fixedApps.size();
+    setFixedApps(fixedApps);
 }
 
-void Window::removeFromTasklist(const QUrl &url)
+void Window::removeFromFixedApps(const QUrl &url)
 {
-    QVariantList valuesList = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
-    valuesList.removeAll(url);
-    m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, valuesList);
+    auto fixedApps = getFixedApps();
+    fixedApps.removeAll(url);
+    setFixedApps(fixedApps);
+}
+
+QList<QUrl> Window::getFixedApps()
+{
+    QList<QUrl> fixedApps;
+    QVariantList urls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    // desktop_id转化为绝对路径
+    for (auto &url : urls)
+    {
+        if (url.toString().endsWith(".desktop"))
+        {
+            KService::Ptr s = KService::serviceByStorageId(url.toString());
+            if (!s || !s->isValid())
+            {
+                continue;
+            }
+            fixedApps.append(QUrl::fromLocalFile(s->entryPath()).toString());
+        }
+        else
+        {
+            QUrl qurl = QUrl(url.toString());
+            if (qurl.isValid())
+            {
+                fixedApps.append(qurl);
+            }
+        }
+    }
+
+    return fixedApps;
+}
+
+void Window::setFixedApps(QList<QUrl> urls)
+{
+    QStringList fixedApps;
+    for (auto url : urls)
+    {
+        fixedApps.append(url.toString());
+    }
+    m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, fixedApps);
 }
 
 void Window::removeGroup(AppGroup *group)

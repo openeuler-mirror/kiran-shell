@@ -101,19 +101,19 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     }
 
     QUrl url = QUrl::fromLocalFile(s->entryPath());
-    emit isInTasklist(url, check_result);
+    emit isInFixedApps(url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this, [=]()
                        {
-                           emit addToTasklist(url);
+                           emit addToFixedApps(url);
                        });
     }
     else
     {
         menu.addAction(tr("Remove from tasklist"), this, [=]()
                        {
-                           emit removeFromTasklist(url);
+                           emit removeFromFixedApps(url);
                        });
     }
 

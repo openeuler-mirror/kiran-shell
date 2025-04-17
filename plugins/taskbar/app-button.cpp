@@ -109,7 +109,9 @@ void AppButton::getInfoFromUrl()
     setIcon(icon);  // 图标正确，除了桌面的计算机、主文件夹、回收站等
     if (fileItem.isDesktopFile())
     {
-        setToolTip(fileItem.mimeComment());
+        KService::Ptr service =
+            KService::serviceByStorageId(m_appInfo.m_url.fileName());
+        setToolTip(service->name());
     }
     // 普通文件
     else
@@ -221,13 +223,13 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                        });
     }
 
-    emit isInTasklist(m_appInfo.m_url, check_result);
+    emit isInFixedApps(m_appInfo.m_url, check_result);
     if (!check_result)
     {
         menu.addAction(tr("Add to tasklist"), this,
                        [=]()
                        {
-                           emit addToTasklist(m_appInfo.m_url, this);
+                           emit addToFixedApps(m_appInfo.m_url, this);
                        });
     }
     else
@@ -235,7 +237,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
         menu.addAction(tr("Remove from tasklist"), this,
                        [=]()
                        {
-                           emit removeFromTasklist(m_appInfo.m_url);
+                           emit removeFromFixedApps(m_appInfo.m_url);
                        });
     }
 

@@ -137,8 +137,8 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
     KDesktopFile desktopFile(entry->entryPath());
     const auto desktopGroup = desktopFile.desktopGroup();
     auto untranslatedName = desktopGroup.readEntryUntranslated("Name");
-
-    // 过滤不需要显示的APP
+    // 优先排除不需要显示的APP，减少搜索计算量
+    // 不需要显示的APP
     if (s->noDisplay())
     {
         return;
@@ -149,10 +149,27 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
     {
         return;
     }
+    // 无图标不显示
+    QIcon icon = QIcon::fromTheme(s->icon());
+    if (icon.isNull())
+    {
+        // 支持某些desktop文件不规范的情况，如 icon=xx.png
+        icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName() /*, QIcon::fromTheme(QStringLiteral("unknown"))*/);
+    }
+    if (icon.isNull())
+    {
+        return;
+    }
 
     // 不重复载入应用，一个应用可能属于多个分类，这里只载入一次
     // 第一个分类可能是新应用，其中应用允许与其他分类重复
     if (m_ui->treeWidgetApps->topLevelItem(0) != parent && m_appIds.contains(s->storageId()))
+    {
+        return;
+    }
+
+    // 搜索结果不重复
+    if (!filter.isEmpty() && m_searchAppIds.contains(s->storageId()))
     {
         return;
     }
@@ -195,18 +212,6 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
         }
     }
 
-    // 无图标不显示
-    QIcon icon = QIcon::fromTheme(s->icon());
-    if (icon.isNull())
-    {
-        // 支持某些desktop文件不规范的情况，如 icon=xx.png
-        icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName(), QIcon::fromTheme(QStringLiteral("unknown")));
-    }
-    if (icon.isNull())
-    {
-        return;
-    }
-
     if (!parent)
     {
         parent = m_ui->treeWidgetApps->topLevelItem(m_ui->treeWidgetApps->topLevelItemCount() - 1);
@@ -225,6 +230,10 @@ void AppsOverview::addItem(KSycocaEntry *entry, QString filter, QTreeWidgetItem 
     if (filter.isEmpty())
     {
         m_appIds.insert(s->storageId());
+    }
+    else
+    {
+        m_searchAppIds.insert(s->storageId());
     }
 }
 
@@ -381,14 +390,14 @@ void AppsOverview::on_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int colu
         isCheckOK = false;
         KService::Ptr s = KService::serviceByMenuId(appId);
         QUrl url = QUrl::fromLocalFile(s->entryPath());
-        emit isInTasklist(url, isCheckOK);
+        emit isInFixedApps(url, isCheckOK);
         if (!isCheckOK)
         {
             menu.addAction(tr("Add to tasklist"), this, [=]()
                            {
                                KService::Ptr s = KService::serviceByMenuId(appId);
                                QUrl url = QUrl::fromLocalFile(s->entryPath());
-                               emit addToTasklist(url);
+                               emit addToFixedApps(url);
                            });
         }
         else
@@ -397,7 +406,7 @@ void AppsOverview::on_treeWidgetApps_itemPressed(QTreeWidgetItem *item, int colu
                            {
                                KService::Ptr s = KService::serviceByMenuId(appId);
                                QUrl url = QUrl::fromLocalFile(s->entryPath());
-                               emit removeFromTasklist(url);
+                               emit removeFromFixedApps(url);
                            });
         }
 
@@ -438,6 +447,7 @@ void AppsOverview::on_lineEditSearch_textChanged(const QString &arg1)
     }
 
     m_ui->treeWidgetApps->clear();
+    m_searchAppIds.clear();
 
     QTreeWidgetItem *item = new QTreeWidgetItem(m_ui->treeWidgetApps);
     item->setIcon(0, QIcon::fromTheme(KS_ICON_MENU_GROUP_SYMBOLIC));
