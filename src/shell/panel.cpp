@@ -22,7 +22,6 @@
 #include <QEvent>
 #include <QFrame>
 #include <QGSettings>
-#include <QMenu>
 #include <QPainter>
 #include <QScreen>
 #include <QTimer>
@@ -64,51 +63,6 @@ int Panel::getSize()
 int Panel::getOrientation()
 {
     return int(orientationStr2Enum(m_profilePanel->getOrientation()));
-}
-
-void Panel::contextMenuEvent(QContextMenuEvent *event)
-{
-    m_menu->clear();
-
-    {
-        QMenu *menuLevel1 = m_menu->addMenu(tr("Position"));
-        QAction *actTop = menuLevel1->addAction(tr("Top"));
-        QAction *actBottom = menuLevel1->addAction(tr("Bottom"));
-        QAction *actLeft = menuLevel1->addAction(tr("Left"));
-        QAction *actRight = menuLevel1->addAction(tr("Right"));
-        actTop->setCheckable(true);
-        actBottom->setCheckable(true);
-        actLeft->setCheckable(true);
-        actRight->setCheckable(true);
-
-        QActionGroup *menuLevel1Group = new QActionGroup(m_menu);
-        menuLevel1Group->addAction(actTop);
-        menuLevel1Group->addAction(actRight);
-        menuLevel1Group->addAction(actBottom);
-        menuLevel1Group->addAction(actLeft);
-
-        int orientation = getOrientation();
-        if (orientation >= menuLevel1Group->actions().size())
-        {
-            menuLevel1Group->actions()
-                .at(menuLevel1Group->actions().size() - 1)
-                ->setChecked(true);
-        }
-        else
-        {
-            menuLevel1Group->actions().at(orientation)->setChecked(true);
-        }
-
-        connect(menuLevel1Group, &QActionGroup::triggered, this,
-                [=](QAction *action)
-                {
-                    PanelOrientation orientation =
-                        (PanelOrientation)menuLevel1Group->actions().indexOf(action);
-                    m_profilePanel->setOrientation(orientationEnum2Str(orientation));
-                });
-    }
-
-    m_menu->exec(mapToGlobal(event->pos()));
 }
 
 void Panel::paintEvent(QPaintEvent *event)
@@ -216,16 +170,13 @@ void Panel::init()
     initChildren();
     updateLayout();
 
-    m_menu = new QMenu(this);
-
     m_leaveDetectTimer = new QTimer(this);
     m_leaveDetectTimer->setInterval(500);
     connect(m_leaveDetectTimer, &QTimer::timeout, this, [this]()
             {
                 // 检查鼠标是否仍在窗口或其子窗口上，处理右键菜单和子窗口
                 bool result = isMouseInsideWidgetTree(this);
-
-                if (!result && !m_menu->isVisible())
+                if (!result)
                 {
                     // 如果鼠标不在窗口内，则隐藏窗口或调整大小
                     updateGeometry(1);  // 显示一个像素
