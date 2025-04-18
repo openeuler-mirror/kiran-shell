@@ -45,6 +45,7 @@ public:
     static WId activeWindow();
 
     static int getDesktopOfWindow(WId wid);
+    static bool isOnCurrentDesktop(WId wid);
 
 private:
     WindowInfoHelper() {}

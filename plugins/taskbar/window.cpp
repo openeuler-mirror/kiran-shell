@@ -32,6 +32,7 @@
 #include "applet.h"
 #include "ks-i.h"
 #include "lib/common/app-launcher.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
@@ -492,6 +493,14 @@ void Window::updateLayout(int showPageIndex)
 
     for (auto *appGroup : m_listAppGroupShow)
     {
+        // 不是当前工作区的不显示
+        if (!appGroup->hasWidOnCurrentDesktop() && !appGroup->isLocked())
+        {
+            continue;
+        }
+
+        //        KLOG_INFO(LCTaskbar) << KWindowSystem::currentDesktop() << appGroup->getAppInfo();
+
         int addSize = 0;
         adjustAndGetSize(appGroup, direction, addSize);
 
@@ -510,6 +519,7 @@ void Window::updateLayout(int showPageIndex)
     // 显示对应页
     for (auto *appGroup : m_appPage[m_curPageIndex])
     {
+        appGroup->updateLayout();
         appGroup->show();
         m_layout->addWidget(appGroup);
     }
