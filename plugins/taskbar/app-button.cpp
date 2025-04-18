@@ -560,14 +560,7 @@ void AppButton::buttonClicked()
     }
     else if (1 == relationAppSize)
     {
-        if (WindowInfoHelper::isActived(m_wid))
-        {
-            WindowInfoHelper::minimizeWindow(m_wid);
-        }
-        else
-        {
-            WindowInfoHelper::activateWindow(m_wid);
-        }
+        emit activeRelationApp();
     }
     else
     {

@@ -49,6 +49,8 @@ protected:
     void enterEvent(QEvent* event) override;
     void leaveEvent(QEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+    bool event(QEvent* event) override;
 
 private:
     void initChildren();

@@ -88,6 +88,7 @@ signals:
 
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &result);
+    void activeRelationApp();
 
     void mousePressed(QMouseEvent *event);
     void mouseMoved(QMouseEvent *event);

@@ -115,6 +115,8 @@ public:
 
     bool isOpened() const;
 
+    bool hasWidOnCurrentDesktop();
+
     // 由父控件统一调用
     void updateLayout();
 
@@ -130,6 +132,7 @@ private:
 
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &size);
+    void activeRelationApp();
 
     void showPreviewer(WId wid);
     void changePreviewerShow(WId wid);

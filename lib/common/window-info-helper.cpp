@@ -222,6 +222,17 @@ int WindowInfoHelper::getDesktopOfWindow(WId wid)
     return 0;
 }
 
+bool WindowInfoHelper::isOnCurrentDesktop(WId wid)
+{
+    KWindowInfo info(wid, NET::WMDesktop);
+    if (info.valid())
+    {
+        return info.isOnCurrentDesktop();
+    }
+
+    return false;
+}
+
 QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
 {
     QByteArray desktopFile;
