@@ -81,15 +81,59 @@ bool AppGroup::isOpened() const
     return !m_mapWidButton.isEmpty();
 }
 
+bool AppGroup::hasWidOnCurrentDesktop()
+{
+    bool hasWid = false;
+    for (auto wid : m_mapWidButton.keys())
+    {
+        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        {
+            hasWid = true;
+            break;
+        }
+    }
+    return hasWid;
+}
+
 void AppGroup::getRelationAppSize(int &size)
 {
-    if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool() && !m_mapWidButton.empty())
+    // 获取应用组在当前桌面的应用个数
+    int curDesktopWidSize = 0;
+    for (auto wid : m_mapWidButton.keys())
     {
-        size = 1;
+        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        {
+            curDesktopWidSize++;
+        }
+    }
+
+    if (!m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
+    {
+        size = qMin(curDesktopWidSize, 1);
     }
     else
     {
-        size = m_mapWidButton.size();
+        size = curDesktopWidSize;
+    }
+}
+
+void AppGroup::activeRelationApp()
+{
+    // 当应用组在多个桌面分别打开了窗口，需要激活当前桌面的窗口
+    for (auto wid : m_mapWidButton.keys())
+    {
+        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        {
+            if (WindowInfoHelper::isActived(wid))
+            {
+                WindowInfoHelper::minimizeWindow(wid);
+            }
+            else
+            {
+                WindowInfoHelper::activateWindow(wid);
+            }
+            break;
+        }
     }
 }
 
@@ -305,29 +349,38 @@ void AppGroup::updateLayout()
     m_layout->setAlignment(alignment);
 
     QList<AppButton *> appButtons;
-    if (m_mapWidButton.isEmpty() && m_isLocked)
+    // 1.没有任何窗口，必定是固定应用
+    // 2.在当前桌面没有窗口，如果是固定应用
+    if (m_mapWidButton.isEmpty() ||
+        (!hasWidOnCurrentDesktop() && m_isLocked))
     {
         appButtons.append(m_buttonFixed);
         m_buttonFixed->setShowVisualName(false);
     }
-    else
+    else  // 3.当前桌面有窗口，无论是否固定应用，逻辑都一样
     {
         // 根据当前模式，显示不一样的结果
+        // a. 窗口分离显示
         if (m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
         {
-            for (auto *iter : m_mapWidButton)
+            auto iter = m_mapWidButton.begin();
+            while (iter != m_mapWidButton.end())
             {
-                appButtons.append(iter);
-                iter->setShowVisualName(true);
+                auto wid = iter.key();
+                if (WindowInfoHelper::isOnCurrentDesktop(wid))
+                {
+                    appButtons.append(iter.value());
+                    iter.value()->setShowVisualName(true);
+                }
+
+                ++iter;
             }
         }
+        // b. 窗口合并显示
         else
         {
-            if (!m_mapWidButton.isEmpty())
-            {
-                appButtons.append(m_mapWidButton.first());
-                m_mapWidButton.first()->setShowVisualName(false);
-            }
+            appButtons.append(m_mapWidButton.first());
+            m_mapWidButton.first()->setShowVisualName(false);
         }
     }
 
@@ -335,6 +388,13 @@ void AppGroup::updateLayout()
     {
         btn->show();
         m_layout->addWidget(btn);
+    }
+    for (auto *btn : m_mapWidButton)
+    {
+        if (!appButtons.contains(btn))
+        {
+            btn->hide();
+        }
     }
 }
 
@@ -356,6 +416,7 @@ AppButton *AppGroup::newAppBtn()
             });
     connect(appButton, &AppButton::removeFromFixedApps, this, &AppGroup::removeFromFixedApps);
     connect(appButton, &AppButton::getRelationAppSize, this, &AppGroup::getRelationAppSize, Qt::DirectConnection);
+    connect(appButton, &AppButton::activeRelationApp, this, &AppGroup::activeRelationApp);
 
     // 点击反向穿透，用于支持拖拽
     // 当子控件能点击时，父控件无法收到点击事件

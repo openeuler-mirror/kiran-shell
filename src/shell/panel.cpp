@@ -29,6 +29,7 @@
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
@@ -43,11 +44,14 @@
 namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
-    : QWidget(nullptr, Qt::FramelessWindowHint),
+    : QWidget(nullptr),
       m_profilePanel(profilePanel)
 {
-    setAttribute(Qt::WA_X11NetWmWindowTypeDock);
-    setAttribute(Qt::WA_TranslucentBackground, true);  // 透明
+    setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setAttribute(Qt::WA_TranslucentBackground);  // 透明
+                                                 //    setAttribute(Qt::WA_X11NetWmWindowTypeDock);
+    KWindowSystem::setType(winId(), NET::Dock);
+    KWindowSystem::setOnAllDesktops(winId(), true);
 }
 
 QString Panel::getUID()
@@ -145,6 +149,37 @@ void Panel::closeEvent(QCloseEvent *event)
     event->ignore();
 }
 
+void Panel::showEvent(QShowEvent *event)
+{
+    KLOG_INFO() << "Panel::showEvent";
+    QWidget::showEvent(event);
+
+    updateLayout();
+}
+
+bool Panel::event(QEvent *event)
+{
+    switch (event->type())
+    {
+    case QEvent::WinIdChange:
+    {
+        // Sometimes Qt needs to re-create the underlying window of the widget and
+        // the winId() may be changed at runtime. So we need to reset all X11 properties
+        // when this happens.
+        if (effectiveWinId() == 0)
+            break;
+        KLOG_INFO() << "Panel::event QEvent::WinIdChange";
+        KWindowSystem::setType(effectiveWinId(), NET::Dock);
+        KWindowSystem::setOnAllDesktops(effectiveWinId(), true);
+        updateLayout();
+    }
+    default:
+        break;
+    }
+
+    return QWidget::event(event);
+}
+
 void Panel::init()
 {
     // 分辨率变化
@@ -163,6 +198,9 @@ void Panel::init()
                 initChildren();
                 updateLayout();
             });
+
+    connect(&DesktopHelperInstance, &DesktopHelper::currentDesktopChanged, this, &Panel::updateLayout);
+    connect(&DesktopHelperInstance, &DesktopHelper::numberOfDesktopsChanged, this, &Panel::updateLayout);
 
     m_gsettings = new QGSettings(SHELL_SCHEMA_ID, "", this);
     connect(m_gsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
@@ -324,9 +362,9 @@ void Panel::updateGeometry(int size)
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
-    //    KLOG_INFO(LCShell) << "orientation: " << orientation
-    //                << "screen geometry: " << showingScreen->geometry()
-    //                << "panel size: " << getSize();
+    KLOG_INFO(LCShell) << "desktop:" << DesktopHelper::currentDesktop() << "orientation: " << orientation
+                       << "screen geometry: " << showingScreen->geometry()
+                       << "panel size: " << getSize();
 
     QRect rect;
     switch (orientation)
@@ -351,7 +389,7 @@ void Panel::updateGeometry(int size)
                      showingScreen->geometry().width(), panelSize);
     }
 
-    //    KLOG_INFO(LCShell) << "panel geometry:" << rect;
+    KLOG_INFO(LCShell) << "panel geometry:" << rect;
     //    setGeometry(rect);
     move(rect.topLeft());
     setMinimumSize(rect.size());
@@ -386,6 +424,10 @@ void Panel::updateGeometry(int size)
 
 void Panel::updateLayout()
 {
+    if (!m_appletsLayout)
+    {
+        return;
+    }
     updatePersonalityMode();
     updateAutoHide();
 

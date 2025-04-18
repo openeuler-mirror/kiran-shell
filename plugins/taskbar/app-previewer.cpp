@@ -80,11 +80,6 @@ Qt::AlignmentFlag AppPreviewer::getLayoutAlignment()
 
 void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 {
-    if (windowPreviewerShow.isEmpty())
-    {
-        return;
-    }
-
     Utility::clearLayout(m_layout, false, true);
 
     // 横竖摆放
@@ -147,10 +142,16 @@ void AppPreviewer::showPreviewer(const QList<WId> &wids, QWidget *triggerWidget)
 
     for (auto wid : wids)
     {
-        if (m_mapWindowPreviewers.contains(wid))
+        // 只显示当前桌面的窗口
+        if (m_mapWindowPreviewers.contains(wid) && WindowInfoHelper::isOnCurrentDesktop(wid))
         {
             windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
         }
+    }
+
+    if (windowPreviewerShow.isEmpty())
+    {
+        return;
     }
 
     updateLayout(windowPreviewerShow);
