@@ -35,20 +35,33 @@ static void appStart(const KService::Ptr &service, QList<QUrl> urls)
     job->start();
 }
 
-static bool appStart(QString exec, QString entryPath, QList<QUrl> urls)
+static bool appStart(QString exec, QString entryPath, QList<QUrl> urls, bool isTerminal = false)
 {
+    QProcess p;
     QStringList args;
+
+    if (isTerminal)
+    {
+        p.setProgram("mate-terminal");
+        args.append("-e");
+        args.append(exec);
+    }
+    else
+    {
+        p.setProgram(exec);
+    }
+
     for (auto url : urls)
     {
         args.append(url.toString());
     }
 
+    p.setArguments(args);
+
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert(APP_LAUNCHED_PREFIX, entryPath);
-
-    QProcess p;
-    p.setProgram(exec);
     p.setProcessEnvironment(env);
+
     return p.startDetached();
 }
 
@@ -56,7 +69,7 @@ void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
 {
     QString storageId = service->storageId();
 
-    if (!appStart(service->exec(), service->entryPath(), urls))
+    if (!appStart(service->exec(), service->entryPath(), urls, service->terminal()))
     {
         service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + service->exec());
         appStart(service, urls);
@@ -71,7 +84,7 @@ void appLauncher(const KServiceAction &serviceAction, QString storageId, QList<Q
 {
     auto service = serviceAction.service();
 
-    if (!appStart(serviceAction.exec(), service->entryPath(), urls))
+    if (!appStart(serviceAction.exec(), service->entryPath(), urls, service->terminal()))
     {
         service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + serviceAction.exec());
         appStart(service, urls);
