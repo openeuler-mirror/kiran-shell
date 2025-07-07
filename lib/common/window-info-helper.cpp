@@ -358,7 +358,7 @@ QByteArray WindowInfoHelper::getDesktopFileByEnviorn(int pid)
     {
         if (env.startsWith(APP_LAUNCHED_PREFIX))
         {
-            return env.mid(APP_LAUNCHED_PREFIX.length());
+            return env.mid(APP_LAUNCHED_PREFIX.length() + 1);
         }
     }
 
