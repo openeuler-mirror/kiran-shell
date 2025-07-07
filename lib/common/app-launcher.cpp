@@ -14,6 +14,8 @@
 
 #include <KActivities/KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>
+#include <QDebug>
+#include <QProcess>
 
 #include "app-launcher.h"
 #include "ks-i.h"
@@ -22,35 +24,62 @@ namespace Kiran
 {
 namespace Common
 {
-static void appStart(KIO::ApplicationLauncherJob *job, QString storageId, QList<QUrl> urls)
+static void appStart(const KService::Ptr &service, QList<QUrl> urls)
 {
+    auto *job = new KIO::ApplicationLauncherJob(service);
     if (!urls.isEmpty())
     {
         job->setUrls(urls);
     }
 
     job->start();
+}
+
+static bool appStart(QString exec, QString entryPath, QList<QUrl> urls)
+{
+    QStringList args;
+    for (auto url : urls)
+    {
+        args.append(url.toString());
+    }
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert(APP_LAUNCHED_PREFIX, entryPath);
+
+    QProcess p;
+    p.setProgram(exec);
+    p.setProcessEnvironment(env);
+    return p.startDetached();
+}
+
+void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
+{
+    QString storageId = service->storageId();
+
+    if (!appStart(service->exec(), service->entryPath(), urls))
+    {
+        service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + service->exec());
+        appStart(service, urls);
+    }
 
     // 通知kactivitymanagerd
     KActivities::ResourceInstance::notifyAccessed(
         QUrl(QStringLiteral("applications:") + storageId));
 }
 
-void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
-{
-    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + service->exec());
-
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    appStart(job, service->storageId(), urls);
-}
-
 void appLauncher(const KServiceAction &serviceAction, QString storageId, QList<QUrl> urls)
 {
     auto service = serviceAction.service();
-    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + serviceAction.exec());
 
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    appStart(job, storageId, urls);
+    if (!appStart(serviceAction.exec(), service->entryPath(), urls))
+    {
+        service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + serviceAction.exec());
+        appStart(service, urls);
+    }
+
+    // 通知kactivitymanagerd
+    KActivities::ResourceInstance::notifyAccessed(
+        QUrl(QStringLiteral("applications:") + storageId));
 }
 
 }  // namespace Common
