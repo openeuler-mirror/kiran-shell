@@ -12,9 +12,9 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>
-#include <QDebug>
 #include <QProcess>
 
 #include "app-launcher.h"
@@ -69,8 +69,12 @@ void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
 {
     QString storageId = service->storageId();
 
+    // 兼容desktop带-的应用，不符合dbus规范，无法打开
+    // 兼容命令行程序打开：kio只能使用kconsole打开命令行程序，kylinsecOS中没有预装kconsole
     if (!appStart(service->exec(), service->entryPath(), urls, service->terminal()))
     {
+        KLOG_WARNING() << "can not start from QProcess:" << service->exec() << service->entryPath() << urls;
+
         service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + service->exec());
         appStart(service, urls);
     }
@@ -86,6 +90,8 @@ void appLauncher(const KServiceAction &serviceAction, QString storageId, QList<Q
 
     if (!appStart(serviceAction.exec(), service->entryPath(), urls, service->terminal()))
     {
+        KLOG_WARNING() << "can not start from QProcess:" << service->exec() << service->entryPath() << urls;
+
         service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + serviceAction.exec());
         appStart(service, urls);
     }
