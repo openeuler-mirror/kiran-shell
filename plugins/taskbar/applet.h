@@ -36,6 +36,7 @@ signals:
     void windowAdded(WId wid);
     void windowRemoved(WId wid);
     void activeWindowChanged(WId wid);
+    void windowChanged(WId, NET::Properties, NET::Properties2);
 
 private:
     IAppletImport *m_import;
