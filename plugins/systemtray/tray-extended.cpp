@@ -13,6 +13,7 @@
  */
 
 #include <qt5-log-i.h>
+#include <KWindowSystem>
 #include <QDragEnterEvent>
 #include <QGSettings>
 
@@ -162,6 +163,14 @@ void TrayExtended::hideEvent(QHideEvent *event)
     m_indicatorWidget->hide();
 
     updateItemLayout();
+}
+
+void TrayExtended::showEvent(QShowEvent *event)
+{
+    // 任务栏不显示
+    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+
+    QDialog::showEvent(event);
 }
 
 int TrayExtended::getInsertIndex(const QPoint &pos)

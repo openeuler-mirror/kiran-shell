@@ -13,6 +13,7 @@
  */
 
 #include <kiran-integration/theme/palette.h>
+#include <KWindowSystem>
 #include <QDate>
 #include <QPainter>
 #include <QProcess>
@@ -102,6 +103,9 @@ void Window::wheelEvent(QWheelEvent *event)
 
 void Window::showEvent(QShowEvent *event)
 {
+    // 任务栏不显示
+    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+
     gotoToday();
 }
 
