@@ -108,7 +108,32 @@ bool WindowInfoHelper::hasState(WId wid, NET::States states)
 
 bool WindowInfoHelper::isSkipTaskbar(WId wid)
 {
-    return WindowInfoHelper::hasState(wid, NET::SkipTaskbar);
+    // 桌面、停靠窗口、启动窗口、工具栏窗口、菜单窗口、弹出菜单窗口、通知窗口
+    // 均任务栏均不显示
+    QFlags<NET::WindowTypeMask> ignoreList;
+    ignoreList |= NET::DesktopMask;
+    ignoreList |= NET::DockMask;
+    ignoreList |= NET::SplashMask;
+    ignoreList |= NET::ToolbarMask;
+    ignoreList |= NET::MenuMask;
+    ignoreList |= NET::PopupMenuMask;
+    ignoreList |= NET::NotificationMask;
+
+    KWindowInfo info(wid, NET::WMWindowType | NET::WMState, NET::WM2TransientFor);
+    if (!info.valid())
+    {
+        return true;
+    }
+
+    if (NET::typeMatchesMask(info.windowType(NET::AllTypesMask), ignoreList))
+    {
+        return true;
+    }
+
+    // 明确指定任务栏不显示的窗口也不显示
+    return WindowInfoHelper::hasState(wid, NET::SkipTaskbar) ||
+           WindowInfoHelper::hasState(wid, NET::SkipPager) ||
+           WindowInfoHelper::hasState(wid, NET::SkipSwitcher);
 }
 
 bool WindowInfoHelper::isMinimized(WId wid)

@@ -59,6 +59,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
 
     void hideEvent(QHideEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     // 拖拽相关，计算位置

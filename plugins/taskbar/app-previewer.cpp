@@ -210,6 +210,13 @@ void AppPreviewer::leaveEvent(QEvent *event)
     }
 }
 
+void AppPreviewer::showEvent(QShowEvent *event)
+{
+    // 任务栏不显示
+    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    QWidget::showEvent(event);
+}
+
 }  // namespace Taskbar
 
 }  // namespace Kiran

@@ -52,6 +52,7 @@ private:
 
 protected:
     void leaveEvent(QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 signals:
     // 窗口属性变化
