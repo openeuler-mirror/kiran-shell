@@ -13,6 +13,7 @@
  */
 
 #include <qt5-log-i.h>
+#include <KWindowSystem>
 #include <QKeyEvent>
 #include <QProcess>
 #include <QTimer>
@@ -200,6 +201,9 @@ void SettingWindow::keyPressEvent(QKeyEvent *event)
 
 void SettingWindow::showEvent(QShowEvent *event)
 {
+    // 任务栏不显示
+    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+
     QDialog::showEvent(event);
 }
 

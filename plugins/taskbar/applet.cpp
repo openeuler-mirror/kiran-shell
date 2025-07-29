@@ -53,7 +53,7 @@ Applet::Applet(IAppletImport *import)
     connect(&WindowManagerInstance, &Common::WindowManager::windowAdded, this, &Applet::windowAdded);
     connect(&WindowManagerInstance, &Common::WindowManager::windowRemoved, this, &Applet::windowRemoved);
     connect(&WindowManagerInstance, &Common::WindowManager::activeWindowChanged, this, &Applet::activeWindowChanged);
-    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, m_window, &Window::windowChanged);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, this, &Applet::windowChanged);
 }
 
 Applet::~Applet()
