@@ -67,6 +67,9 @@ private:
     QBoxLayout *m_layout;
 
     QTimer *m_hideTimer;
+
+    QList<WId> m_widsCurrentShow;
+    QWidget *m_triggerWidget;
 };
 
 }  // namespace Taskbar

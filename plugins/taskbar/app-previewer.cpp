@@ -113,7 +113,9 @@ void AppPreviewer::addWindow(WId wid)
             {
                 // 关闭窗口
                 WindowInfoHelper::closeWindow(wid);
-                setVisible(false);
+
+                m_widsCurrentShow.removeAll(wid);
+                showPreviewer(m_widsCurrentShow, m_triggerWidget);
             });
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, [this]()
             {
@@ -136,6 +138,9 @@ void AppPreviewer::removeWindow(WId wid)
 
 void AppPreviewer::showPreviewer(const QList<WId> &wids, QWidget *triggerWidget)
 {
+    m_widsCurrentShow = wids;
+    m_triggerWidget = triggerWidget;
+
     m_hideTimer->stop();
 
     QList<WindowPreviewer *> windowPreviewerShow;

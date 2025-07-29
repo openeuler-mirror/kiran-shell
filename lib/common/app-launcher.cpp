@@ -12,8 +12,10 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
+#include <qt5-log-i.h>
 #include <KActivities/KActivities/ResourceInstance>
 #include <KIO/ApplicationLauncherJob>
+#include <QProcess>
 
 #include "app-launcher.h"
 #include "ks-i.h"
@@ -22,35 +24,81 @@ namespace Kiran
 {
 namespace Common
 {
-static void appStart(KIO::ApplicationLauncherJob *job, QString storageId, QList<QUrl> urls)
+static void appStart(const KService::Ptr &service, QList<QUrl> urls)
 {
+    auto *job = new KIO::ApplicationLauncherJob(service);
     if (!urls.isEmpty())
     {
         job->setUrls(urls);
     }
 
     job->start();
+}
+
+static bool appStart(QString exec, QString entryPath, QList<QUrl> urls, bool isTerminal = false)
+{
+    QProcess p;
+    QStringList args;
+
+    if (isTerminal)
+    {
+        p.setProgram("mate-terminal");
+        args.append("-e");
+        args.append(exec);
+    }
+    else
+    {
+        p.setProgram(exec);
+    }
+
+    for (auto url : urls)
+    {
+        args.append(url.toString());
+    }
+
+    p.setArguments(args);
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert(APP_LAUNCHED_PREFIX, entryPath);
+    p.setProcessEnvironment(env);
+
+    return p.startDetached();
+}
+
+void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
+{
+    QString storageId = service->storageId();
+
+    // 兼容desktop带-的应用，不符合dbus规范，无法打开
+    // 兼容命令行程序打开：kio只能使用kconsole打开命令行程序，kylinsecOS中没有预装kconsole
+    if (!appStart(service->exec(), service->entryPath(), urls, service->terminal()))
+    {
+        KLOG_WARNING() << "can not start from QProcess:" << service->exec() << service->entryPath() << urls;
+
+        service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + service->exec());
+        appStart(service, urls);
+    }
 
     // 通知kactivitymanagerd
     KActivities::ResourceInstance::notifyAccessed(
         QUrl(QStringLiteral("applications:") + storageId));
 }
 
-void appLauncher(const KService::Ptr &service, QList<QUrl> urls)
-{
-    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + service->exec());
-
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    appStart(job, service->storageId(), urls);
-}
-
 void appLauncher(const KServiceAction &serviceAction, QString storageId, QList<QUrl> urls)
 {
     auto service = serviceAction.service();
-    service->setExec(APP_LAUNCHED_PREFIX + service->entryPath() + " " + serviceAction.exec());
 
-    auto *job = new KIO::ApplicationLauncherJob(service);
-    appStart(job, storageId, urls);
+    if (!appStart(serviceAction.exec(), service->entryPath(), urls, service->terminal()))
+    {
+        KLOG_WARNING() << "can not start from QProcess:" << service->exec() << service->entryPath() << urls;
+
+        service->setExec(APP_LAUNCHED_PREFIX + "=" + service->entryPath() + " " + serviceAction.exec());
+        appStart(service, urls);
+    }
+
+    // 通知kactivitymanagerd
+    KActivities::ResourceInstance::notifyAccessed(
+        QUrl(QStringLiteral("applications:") + storageId));
 }
 
 }  // namespace Common
