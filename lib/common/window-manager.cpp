@@ -177,9 +177,7 @@ WindowManager::WindowManager()
 {
     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &WindowManager::addWindow);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &WindowManager::removeWindow);
-
     connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &WindowManager::changedActiveWindow);
-
     connect(KWindowSystem::self(),
             QOverload<WId, NET::Properties, NET::Properties2>::of(
                 &KWindowSystem::windowChanged),
@@ -249,19 +247,15 @@ void WindowManager::addWindow(WId wid)
 
 void WindowManager::removeWindow(WId wid)
 {
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
+    if (m_windows.contains(wid))
     {
-        if (m_windows.contains(wid))
+        auto* window = m_windows.take(wid);
+        if (window)
         {
-            auto* window = m_windows.take(wid);
-            if (window)
-            {
-                delete window;
-                window = nullptr;
-            }
-
-            emit windowRemoved(wid);
+            delete window;
+            window = nullptr;
         }
+        emit windowRemoved(wid);
     }
 }
 
@@ -278,8 +272,25 @@ void WindowManager::changedActiveWindow(WId wid)
 
 void WindowManager::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
 {
-    emit windowChanged(wid, properties, properties2);
-}
+    if (WindowInfoHelper::isSkipTaskbar(wid))
+    {
+        if (m_windows.contains(wid))
+        {
+            removeWindow(wid);
+        }
+    }
+    else
+    {
+        if (!m_windows.contains(wid))
+        {
+            addWindow(wid);
+        }
+    }
 
+    if( m_windows.contains(wid) )
+    {
+        emit windowChanged(wid, properties, properties2);
+    }
+}
 }  // namespace Common
 }  // namespace Kiran
