@@ -107,37 +107,7 @@ void Window::initWindowManager()
 {
     connect((Applet *)parent(), &Applet::windowAdded, this, &Window::addWindow);
     connect((Applet *)parent(), &Applet::windowRemoved, this, &Window::removeWindow);
-    connect((Applet *)parent(), &Applet::windowChanged, [this](WId wid, NET::Properties properties, NET::Properties2 properties2)
-            {
-                // 窗口打开后，运行过程中标志变更
-                bool hasContains = false;
-                for (auto &appGroups : m_mapAppGroupOpened)
-                {
-                    if (appGroups.second.contains(wid))
-                    {
-                        hasContains = true;
-                        break;
-                    }
-                }
-                if (!hasContains)
-                {
-                    if (!WindowInfoHelper::isSkipTaskbar(wid))
-                    {
-                        addWindow(wid);
-                        return;
-                    }
-                }
-                else
-                {
-                    if (WindowInfoHelper::isSkipTaskbar(wid))
-                    {
-                        removeWindow(wid);
-                        return;
-                    }
-                }
-
-                emit windowChanged(wid, properties, properties2);
-            });
+    connect((Applet *)parent(), &Applet::windowChanged, this, &Window::windowChanged);
     connect((Applet *)parent(), &Applet::activeWindowChanged, [this](WId wid)
             {
                 static WId lastWid = 0;
