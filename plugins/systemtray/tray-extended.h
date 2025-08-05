@@ -50,6 +50,9 @@ public slots:
     // 原来保存在traybox中的托盘项，注册时，直接放到traybox
     void AddItem(QString serviceAndPath);
 
+    // 移除托盘项
+    void itemRemove(const QString &serviceAndPath);
+
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;
 
@@ -70,9 +73,8 @@ private:
     // 托盘项位置更新
     void updateItemLayout();
 
-    // 添加 移除托盘项
+    // 添加托盘项
     TrayItem *itemAdd(QString serviceAndPath);
-    void itemRemove(const QString &serviceAndPath);
 
     // 保存到配置
     void addFoldingItem(const QString &serviceAndPath);
