@@ -33,14 +33,14 @@
     <widget class="KiranColorBlock" name="widget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="KiranSearchBox" name="lineEditSearch">
+       <widget class="KiranSearchBox" name="edit_search">
         <property name="placeholderText">
          <string>Search application</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="StyledTreeWidget" name="treeWidgetApps">
+       <widget class="Kiran::Menu::AppsView" name="treeview_apps">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -78,9 +78,9 @@
    <header>kiran-search-box.h</header>
   </customwidget>
   <customwidget>
-   <class>StyledTreeWidget</class>
-   <extends>QTreeWidget</extends>
-   <header>styled-tree-widget.h</header>
+   <class>Kiran::Menu::AppsView</class>
+   <extends>QTreeView</extends>
+   <header>tree-view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

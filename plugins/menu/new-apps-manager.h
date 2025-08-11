@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
+ * Copyright (c) 2020 ~ 2025 KylinSec Co., Ltd.
  * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -9,41 +9,34 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  *
- * Author:     tangjie02 <tangjie02@kylinos.com.cn>
+ * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
-
 #pragma once
+#include <QObject>
 
-#include <QTreeWidgetItem>
-#include <QWidget>
-
-#include <KActivities/Stats/ResultModel>
-#include <KActivities/Stats/ResultSet>
-#include <KActivities/Stats/ResultWatcher>
-#include <KService/KService>
-
-namespace Ui
-{
-class RecentFilesOverview;
-};  // namespace Ui
-
+class QGSettings;
 namespace Kiran
 {
 namespace Menu
 {
-class RecentFilesOverview : public QWidget
+class NewAppsManager : public QObject
 {
     Q_OBJECT
-
 public:
-    RecentFilesOverview(QWidget* parent = nullptr);
-    ~RecentFilesOverview() override;
+    static NewAppsManager& getInstance();
+    ~NewAppsManager();
+
+    QSet<QString> getAllNewApps() const;
+    void markAppsAsRead(const QSet<QString>& appIds);
+    void updateNewApps(const QSet<QString>& newAppIds);
 
 signals:
-    void fileItemClicked(QString filePath);
+    // 外部更改新应用配置或新应用被打开后触发
+    void newAppsConfigUpdated();
 
 private:
-    Ui::RecentFilesOverview* m_ui;
+    NewAppsManager(QObject* parent = nullptr);
+    QGSettings* m_gsettings = nullptr;
 };
 }  // namespace Menu
 }  // namespace Kiran
