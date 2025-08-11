@@ -274,14 +274,14 @@ void SettingWindow::on_toolButtonVolumeSetting_clicked()
 
 void SettingWindow::on_toolButtonBrightness_clicked()
 {
-    KLOG_INFO(LCSettingbar) << "start detached: kiran-control-panel";
-    QProcess::startDetached("kiran-control-panel", {});
+    KLOG_INFO(LCSettingbar) << "start detached: kiran-control-panel -c power-management";
+    QProcess::startDetached("kiran-control-panel", {"-c","power-management"});
 }
 
 void SettingWindow::on_toolButtonBattery_clicked()
 {
-    KLOG_INFO(LCSettingbar) << "start detached: kiran-control-panel";
-    QProcess::startDetached("kiran-control-panel", {});
+    KLOG_INFO(LCSettingbar) << "start detached: kiran-control-panel -c power-management";
+    QProcess::startDetached("kiran-control-panel", {"-c", "power-management"});
 }
 
 void SettingWindow::on_toolButtonSettingPanel_clicked()
