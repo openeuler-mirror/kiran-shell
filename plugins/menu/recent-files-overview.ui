@@ -33,14 +33,14 @@
     <widget class="KiranColorBlock" name="widget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="KiranSearchBox" name="lineEditSearch">
+       <widget class="KiranSearchBox" name="edit_search">
         <property name="placeholderText">
          <string>Search file</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="StyledTreeWidget" name="treeWidgetShowFiles">
+       <widget class="Kiran::Menu::RecentFilesView" name="tree_recentFiles">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -53,14 +53,6 @@
         <property name="expandsOnDoubleClick">
          <bool>false</bool>
         </property>
-        <property name="columnCount">
-         <number>1</number>
-        </property>
-        <column>
-         <property name="text">
-          <string notr="true">1</string>
-         </property>
-        </column>
        </widget>
       </item>
      </layout>
@@ -81,9 +73,9 @@
    <header>kiran-search-box.h</header>
   </customwidget>
   <customwidget>
-   <class>StyledTreeWidget</class>
-   <extends>QTreeWidget</extends>
-   <header>styled-tree-widget.h</header>
+   <class>Kiran::Menu::RecentFilesView</class>
+   <extends>QTreeView</extends>
+   <header>tree-view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

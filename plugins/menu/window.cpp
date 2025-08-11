@@ -47,6 +47,7 @@
 #include "recent-files-overview.h"
 #include "ui_window.h"
 #include "window.h"
+#include "new-apps-manager.h"
 
 #define KIRAN_ACCOUNTS_BUS "com.kylinsec.Kiran.SystemDaemon.Accounts"
 #define KIRAN_ACCOUNTS_PATH "/com/kylinsec/Kiran/SystemDaemon/Accounts"
@@ -329,13 +330,7 @@ void Window::runApp(QString appId)
     // 启动应用
     Common::appLauncher(service);
 
-    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(MENU_SCHEMA_ID));
-    QVariantList newApps = gsettings->get(MENU_SCHEMA_KEY_NEW_APPS).toList();
-    if (newApps.contains(appId))
-    {
-        newApps.removeAll(appId);
-        gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, newApps);
-    }
+    NewAppsManager::getInstance().markAppsAsRead(QSet<QString>() << appId);
 }
 
 void Window::openFile(QString filePath)
