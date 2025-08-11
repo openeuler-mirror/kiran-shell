@@ -57,54 +57,49 @@
     </message>
 </context>
 <context>
-    <name>Kiran::Menu::AppsOverview</name>
+    <name>Kiran::Menu::AppsModel</name>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="241"/>
-        <location filename="../plugins/menu/apps-overview.cpp" line="254"/>
-        <source>New App</source>
-        <translation>新应用</translation>
+        <location filename="../plugins/menu/apps-model.cpp" line="91"/>
+        <source>Search Result</source>
+        <translation>搜索结果</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="356"/>
+        <location filename="../plugins/menu/apps-model.cpp" line="258"/>
+        <source>New Apps</source>
+        <translation>新应用</translation>
+    </message>
+</context>
+<context>
+    <name>Kiran::Menu::AppsView</name>
+    <message>
+        <location filename="../plugins/menu/tree-view.cpp" line="184"/>
         <source>Run app</source>
-        <translatorcomment>启动</translatorcomment>
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="360"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="188"/>
         <source>Add to desktop</source>
-        <translatorcomment>添加到桌面</translatorcomment>
         <translation>添加到桌面</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="368"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="198"/>
         <source>Add to favorite</source>
-        <translatorcomment>添加到收藏夹</translatorcomment>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="375"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="205"/>
         <source>Remove from favorite</source>
-        <translatorcomment>从收藏夹中移除</translatorcomment>
         <translation>从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="387"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="218"/>
         <source>Add to tasklist</source>
-        <translatorcomment>固定到任务栏</translatorcomment>
         <translation>固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="396"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="227"/>
         <source>Remove from tasklist</source>
-        <translatorcomment>取消固定到任务栏</translatorcomment>
         <translation>取消固定到任务栏</translation>
-    </message>
-    <message>
-        <location filename="../plugins/menu/apps-overview.cpp" line="446"/>
-        <source>result</source>
-        <translatorcomment>搜索结果</translatorcomment>
-        <translation>搜索结果</translation>
     </message>
 </context>
 <context>
