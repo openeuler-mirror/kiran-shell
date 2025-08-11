@@ -190,6 +190,7 @@ void Tray::statusNotifierItemRegister(const QString &serviceAndPath)
 void Tray::statusNotifierItemUnregister(const QString &serviceAndPath)
 {
     itemRemove(serviceAndPath);
+    m_trayExtendedWindow->itemRemove(serviceAndPath);
 }
 
 TrayItem *Tray::itemAdd(QString serviceAndPath)

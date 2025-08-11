@@ -41,26 +41,6 @@ public:
 protected:
     void showEvent(QShowEvent* event) override;
 
-private slots:
-    // 应用项点击
-    void on_treeWidgetApps_itemClicked(QTreeWidgetItem* item, int column);
-    // 应用项右键
-    void on_treeWidgetApps_itemPressed(QTreeWidgetItem* item, int column);
-    // 应用搜索
-    void on_lineEditSearch_textChanged(const QString& arg1);
-    // 应用更新
-    void updateApp();
-
-private:
-    // 应用加载和管理
-    void loadApps();
-    void addGroup(KSycocaEntry* entry, QString filter = "", QTreeWidgetItem* parent = nullptr);
-    void addItem(KSycocaEntry* entry, QString filter = "", QTreeWidgetItem* parent = nullptr);
-
-    // 新应用更新
-    void updateNewApp(QString key = "");
-    void clearNewApp();
-
 signals:
     // 查询是否在收藏夹中
     void isInFavorite(const QString& appId, bool& checkResult);
@@ -79,12 +59,6 @@ signals:
 
 private:
     Ui::AppsOverview* m_ui;
-
-    QSet<QString> m_appIds;             // 缓存所有的应用id
-    bool m_isReayToloadNewApp = false;  // 已准备好载入新应用，下次载入应用列表时，先处理新应用
-
-    QSet<QString> m_searchAppIds;  // 缓存应用搜索结果
-
     QGSettings* m_gsettings;  // gsettings
 };
 }  // namespace Menu
