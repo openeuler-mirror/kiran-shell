@@ -32,6 +32,7 @@ CalendarButton::CalendarButton(IAppletImport *import, QWidget *parent)
 {
     setFlat(true);
     setCheckable(true);
+    setFont(QFont("Noto Sans CJK SC", 9));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 }
 
