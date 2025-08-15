@@ -45,6 +45,9 @@ TreeView::TreeView(QWidget *parent)
     // 隐藏根节点
     setRootIsDecorated(false);
     setHeaderHidden(true);
+
+    // 按像素滚动，隐藏最下方空白
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 }
 
 TreeView::~TreeView()
