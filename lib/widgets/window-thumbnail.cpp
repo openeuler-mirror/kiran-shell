@@ -21,6 +21,7 @@
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
+#include "lib/common/desktop-helper.h"
 #include "ui_window-thumbnail.h"
 #include "window-thumbnail.h"
 
@@ -75,6 +76,12 @@ void WindowThumbnail::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
+        if( !WindowInfoHelper::isOnCurrentDesktop(m_wid) )
+        {
+            // 切换到当前窗口所在的工作区并激活该窗口
+            int desktop = WindowInfoHelper::getDesktopOfWindow(m_wid);
+            DesktopHelper::setCurrentDesktop(desktop);
+        }
         WindowInfoHelper::activateWindow(m_wid);
     }
 
