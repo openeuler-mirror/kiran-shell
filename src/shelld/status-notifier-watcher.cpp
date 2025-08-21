@@ -139,7 +139,10 @@ void StatusNotifierWatcher::startXembedSniProxy()
 
     // 将标准输出和标准错误输出合并
     m_xembedSniProxy->setProcessChannelMode(QProcess::MergedChannels);
-    m_xembedSniProxy->start("xembedsniproxy", QStringList());
+
+    // 不需要与xembedsniproxy交互，关闭读写Channel,避免输出缓存在内存中堆积
+    m_xembedSniProxy->start("xembedsniproxy", QStringList(), QProcess::NotOpen);
+
     if (m_xembedSniProxy->waitForStarted())
     {
         KLOG_INFO(LCSystemtray) << "xembedsniproxy start ok";

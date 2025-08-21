@@ -29,6 +29,7 @@ namespace Kiran
 {
 namespace Systemtray
 {
+class TraySettings;
 class TrayExtended : public QDialog
 {
     Q_OBJECT
@@ -88,6 +89,7 @@ signals:
 
 private:
     IAppletImport *m_import;
+    TraySettings* m_settings;
 
     QGridLayout *m_layout;
 
