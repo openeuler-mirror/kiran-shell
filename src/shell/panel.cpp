@@ -182,6 +182,10 @@ bool Panel::event(QEvent *event)
 
 void Panel::init()
 {
+    // 主屏变化
+    connect(qGuiApp, &QGuiApplication::primaryScreenChanged, this,
+            &Panel::updateLayout);
+
     // 分辨率变化
     connect(getScreen(), &QScreen::geometryChanged, this,
             &Panel::updateLayout);
@@ -337,7 +341,20 @@ QScreen *Panel::getScreen()
     auto screens = QGuiApplication::screens();
     QScreen *showingScreen = QGuiApplication::primaryScreen();
 
-    if (monitorIndex > 0 && monitorIndex < screens.size())
+    /**
+     * NOTE:
+     * monitorIndex为-1，则使用primaryScreen, 主屏变化时，会自动更新
+     * monitorIndex为有效显示器索引，则根据显示器索引走，如果索引超出范围，则使用primaryScreen
+     * monitorIndex为其他异常值，则使用primaryScreen
+     *
+     * 当主屏幕变化时，未显式指定有效显示器索引的底部面板需更随主屏变化
+     * 如果有多个屏幕显示底部面板的需求，使用monitorIndex指定有效显示器索引，去除monitorIndex为-1的默认配置
+     */
+    if (monitorIndex == -1)
+    {
+        showingScreen = QGuiApplication::primaryScreen();
+    }
+    else if (monitorIndex >= 0 && monitorIndex < screens.size())
     {
         showingScreen = screens.at(monitorIndex);
     }

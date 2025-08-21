@@ -21,6 +21,7 @@
 #include "lib/common/utility.h"
 #include "status_notifier_item_interface.h"
 #include "tray-extended.h"
+#include "tray-settings.h"
 
 namespace Kiran
 {
@@ -31,6 +32,8 @@ TrayExtended::TrayExtended(IAppletImport *import, QWidget *parent)
       m_import(import),
       m_currentDropIndex(0)
 {
+    m_settings = new TraySettings();
+
     m_layout = new QGridLayout(this);
     m_layout->setMargin(0);
     m_layout->setSpacing(0);
@@ -52,6 +55,7 @@ TrayExtended::TrayExtended(IAppletImport *import, QWidget *parent)
 
 TrayExtended::~TrayExtended()
 {
+    delete m_settings;
 }
 
 QList<TrayItem *> TrayExtended::getTrayItems()
@@ -308,13 +312,7 @@ void TrayExtended::addFoldingItem(const QString &serviceAndPath)
         return;
     }
 
-    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
-    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
-    if (!foldingApps.contains(itemId))
-    {
-        foldingApps.append(itemId);
-        gsettings->set(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS, foldingApps);
-    }
+    m_settings->addFoldingApp(itemId);
 }
 
 void TrayExtended::removeFoldingItem(const QString &serviceAndPath)
@@ -325,13 +323,7 @@ void TrayExtended::removeFoldingItem(const QString &serviceAndPath)
         return;
     }
 
-    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
-    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
-    if (foldingApps.contains(itemId))
-    {
-        foldingApps.removeAll(itemId);
-        gsettings->set(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS, foldingApps);
-    }
+    m_settings->removeFoldingApp(itemId);
 }
 
 bool TrayExtended::isWindowPopupItem(const QString &serviceAndPath)
@@ -342,9 +334,12 @@ bool TrayExtended::isWindowPopupItem(const QString &serviceAndPath)
         return false;
     }
 
-    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SYSTEMTRAY_SCHEMA_ID));
-    QVariantList foldingApps = gsettings->get(SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS).toList();
-    return foldingApps.contains(itemId);
+    if( m_settings->isFoldingApp(itemId) )
+    {
+        return true;
+    }
+    
+    return false;
 }
 
 QString TrayExtended::getStatusNotifierItemId(const QString &serviceAndPath)
