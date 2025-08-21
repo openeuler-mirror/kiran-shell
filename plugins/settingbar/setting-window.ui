@@ -47,7 +47,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="sliderBrightness">
+           <widget class="HoverSlider" name="sliderBrightness">
             <property name="minimum">
              <number>20</number>
             </property>
@@ -83,7 +83,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="sliderVolume">
+           <widget class="HoverSlider" name="sliderVolume">
             <property name="maximum">
              <number>100</number>
             </property>
@@ -218,15 +218,20 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>StyledButton</class>
+   <extends>QToolButton</extends>
+   <header>lib/widgets/styled-button.h</header>
+  </customwidget>
+  <customwidget>
    <class>KiranColorBlock</class>
    <extends>QWidget</extends>
    <header>kiran-color-block.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>StyledButton</class>
-   <extends>QToolButton</extends>
-   <header>lib/widgets/styled-button.h</header>
+   <class>HoverSlider</class>
+   <extends>QSlider</extends>
+   <header>lib/widgets/hover-slider.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
