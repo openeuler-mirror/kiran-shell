@@ -31,6 +31,8 @@ StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
 {
     new StatusNotifierWatcherAdaptor(this);
 
+    registerServer();
+
     m_serviceWatcher = new QDBusServiceWatcher(this);
     m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
@@ -38,8 +40,6 @@ StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
 
     connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
     DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
-
-    registerServer();
 }
 
 StatusNotifierWatcher::~StatusNotifierWatcher()
