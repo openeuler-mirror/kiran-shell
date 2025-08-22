@@ -103,25 +103,25 @@ NetCommon::NetCommon()
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::statusChanged, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceAdded, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceRemoved, this, &NetCommon::netStatusChanged);
-    // 备用信号，暂不启用，后续按需启用
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetCommon::activeConnectionAdded);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetCommon::activeConnectionRemoved);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::activatingConnectionChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::isStartingUpChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
+    // 后续按需细分
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::isStartingUpChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
 }
 
 NetCommon &NetCommon::getInstance()
