@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <NetworkManagerQt/WirelessSetting>
 #include <QDBusReply>
+#include <QGSettings>
 
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
@@ -433,26 +434,36 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
 QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveConnection::Ptr &connection)
 {
     NetworkManager::Connectivity connectivity = checkConnectivity();
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SETTINGBAR_SCHEMA_ID));
+    bool isCheckNetConnectivity = gsettings && gsettings->get(SETTINGBAR_SCHEMA_KEY_CHECK_NET).toBool();
 
     switch (connection->type())
     {
     case NetworkManager::ConnectionSettings::Wired:
     {
-        if (connectivity == NetworkManager::Connectivity::Full)
+        if (isCheckNetConnectivity)
         {
-            return getNetworkIcon(WIRED_CONNECTED);
-        }
+            if (connectivity == NetworkManager::Connectivity::Full)
+            {
+                return getNetworkIcon(WIRED_CONNECTED);
+            }
 
-        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+        }
+        return getNetworkIcon(WIRED_CONNECTED);
     }
     case NetworkManager::ConnectionSettings::Wireless:
     {
-        if (connectivity == NetworkManager::Connectivity::Full)
+        if (isCheckNetConnectivity)
         {
-            return getNetworkIcon(WIRELESS_CONNECTED);
-        }
+            if (connectivity == NetworkManager::Connectivity::Full)
+            {
+                return getNetworkIcon(WIRELESS_CONNECTED);
+            }
 
-        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+        }
+        return getNetworkIcon(WIRELESS_CONNECTED);
     }
     default:
     {

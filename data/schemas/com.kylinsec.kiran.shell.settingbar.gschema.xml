@@ -1,0 +1,11 @@
+<schemalist gettext-domain="kiran-shell">
+
+    <schema id="com.kylinsec.kiran.shell.settingbar" path="/com/kylinsec/kiran/shell/settingbar/">
+
+        <key name="check-net-connectivity" type="b">
+            <default>false</default>
+            <description>If it's true, display the net limited status.</description>
+        </key>
+
+    </schema>
+</schemalist>
