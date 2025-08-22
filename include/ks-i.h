@@ -77,6 +77,9 @@ namespace Kiran
 #define SYSTEMTRAY_SCHEMA_ID "com.kylinsec.kiran.shell.systemtray"
 #define SYSTEMTRAY_SCHEMA_KEY_FOLDING_APPS "foldingApps"
 
+#define SETTINGBAR_SCHEMA_ID "com.kylinsec.kiran.shell.settingbar"
+#define SETTINGBAR_SCHEMA_KEY_CHECK_NET "checkNetConnectivity"
+
 #define APPEARANCE_SCHEMA_ID "com.kylinsec.kiran.appearance"
 #define APPEARANCE_SCHEMA_KEY_DESKTOP_BACKGROUND "desktopBackground"
 
