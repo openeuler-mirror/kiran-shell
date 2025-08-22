@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <NetworkManagerQt/WirelessSetting>
 #include <QDBusReply>
+#include <QGSettings>
 
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
@@ -103,25 +104,25 @@ NetCommon::NetCommon()
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::statusChanged, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceAdded, this, &NetCommon::netStatusChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceRemoved, this, &NetCommon::netStatusChanged);
-    // 备用信号，暂不启用，后续按需启用
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetCommon::activeConnectionAdded);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetCommon::activeConnectionRemoved);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::activatingConnectionChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::isStartingUpChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
-    //    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
+    // 后续按需细分
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wwanHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::wimaxHardwareEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::networkingEnabledChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceDisappeared, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::serviceAppeared, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectivityChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::activatingConnectionChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::primaryConnectionTypeChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::isStartingUpChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::meteredChanged, this, &NetCommon::netStatusChanged);
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::globalDnsConfigurationChanged, this, &NetCommon::netStatusChanged);
 }
 
 NetCommon &NetCommon::getInstance()
@@ -433,26 +434,36 @@ QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkState &state)
 QPair<QString, QString> NetCommon::getNetworkIcon(const NetworkManager::ActiveConnection::Ptr &connection)
 {
     NetworkManager::Connectivity connectivity = checkConnectivity();
+    auto gsettings = QSharedPointer<QGSettings>(new QGSettings(SETTINGBAR_SCHEMA_ID));
+    bool isCheckNetConnectivity = gsettings && gsettings->get(SETTINGBAR_SCHEMA_KEY_CHECK_NET).toBool();
 
     switch (connection->type())
     {
     case NetworkManager::ConnectionSettings::Wired:
     {
-        if (connectivity == NetworkManager::Connectivity::Full)
+        if (isCheckNetConnectivity)
         {
-            return getNetworkIcon(WIRED_CONNECTED);
-        }
+            if (connectivity == NetworkManager::Connectivity::Full)
+            {
+                return getNetworkIcon(WIRED_CONNECTED);
+            }
 
-        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+        }
+        return getNetworkIcon(WIRED_CONNECTED);
     }
     case NetworkManager::ConnectionSettings::Wireless:
     {
-        if (connectivity == NetworkManager::Connectivity::Full)
+        if (isCheckNetConnectivity)
         {
-            return getNetworkIcon(WIRELESS_CONNECTED);
-        }
+            if (connectivity == NetworkManager::Connectivity::Full)
+            {
+                return getNetworkIcon(WIRELESS_CONNECTED);
+            }
 
-        return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+            return getNetworkIcon(WIRED_CONNECTED_BUT_NOT_ACCESS_INTERNET);
+        }
+        return getNetworkIcon(WIRELESS_CONNECTED);
     }
     default:
     {
