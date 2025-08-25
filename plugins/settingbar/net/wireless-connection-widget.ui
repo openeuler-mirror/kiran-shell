@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>68</height>
+    <width>382</width>
+    <height>59</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,53 +31,59 @@
    </property>
    <item row="0" column="0">
     <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,1,1">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0">
       <property name="spacing">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="leftMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="topMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="bottomMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <item>
-       <widget class="StyledButton" name="toolButtonConnectStatu">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="ks-net-connected">
-          <normaloff>.</normaloff>.</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="LoadingLabel" name="labelLoading">
+       <widget class="QFrame" name="frame">
         <property name="minimumSize">
          <size>
-          <width>16</width>
-          <height>16</height>
+          <width>24</width>
+          <height>24</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16</width>
-          <height>16</height>
+          <width>24</width>
+          <height>24</height>
          </size>
         </property>
-        <property name="text">
-         <string/>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
         </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="layoutNetStatu">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+        </layout>
        </widget>
       </item>
       <item>
@@ -94,17 +100,44 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="labelName">
+       <widget class="ElidedLabel" name="labelName">
         <property name="text">
          <string>TextLabel</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="labelInfo">
-        <property name="text">
-         <string>TextLabel</string>
+       <widget class="QFrame" name="frame_2">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="StyledButton" name="toolButtonDisconnect">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
@@ -167,9 +200,9 @@
    <header>lib/widgets/styled-button.h</header>
   </customwidget>
   <customwidget>
-   <class>LoadingLabel</class>
+   <class>ElidedLabel</class>
    <extends>QLabel</extends>
-   <header>lib/widgets/loading-label.h</header>
+   <header>lib/widgets/elided-label.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

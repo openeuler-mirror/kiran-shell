@@ -25,6 +25,9 @@
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/notify.h"
+#include "lib/common/utility.h"
+#include "lib/widgets/loading-label.h"
+#include "lib/widgets/styled-button.h"
 #include "ui_wireless-connection-widget.h"
 #include "wireless-connection-widget.h"
 #include "wireless-manager.h"
@@ -38,14 +41,25 @@ WirelessConnectionWidget::WirelessConnectionWidget(QString deviceUni, QString ss
       m_ui(new Ui::WirelessConnectionWidget),
       m_deviceUni(deviceUni),
       m_ssid(ssid),
-      m_isConnected(false)
+      m_status(NetStatus::DISCONNECTED)
 {
     m_ui->setupUi(this);
 
+    m_connectStatu = new StyledButton(this);
+    m_connectStatu->setEnabled(false);
+    m_connectStatu->hide();
+
+    m_loadingLabel = new LoadingLabel(this);
+    m_loadingLabel->hide();
+
+    m_ui->toolButtonDisconnect->setIcon(QIcon::fromTheme("ksvg-ks-network-disconnect"));
+
+    m_connectedIcon = QIcon::fromTheme("ks-net-connected");
+    QSize iconSize = m_connectedIcon.availableSizes().isEmpty() ? QSize(24, 24) : m_connectedIcon.availableSizes().first();
+    m_connectedHoverIcon = Utility::convertOpacity(m_connectedIcon.pixmap(iconSize), 0.2);
+
     // ui 初始化
     setPasswordEditorVisible(false);
-    m_ui->labelName->setText(ssid);
-    m_ui->labelInfo->clear();
 
     m_securityType = WirelessManagerInstance.networkBestSecurityType(m_deviceUni, m_ssid);
 
@@ -56,8 +70,10 @@ WirelessConnectionWidget::WirelessConnectionWidget(QString deviceUni, QString ss
     connect(wirelessNetwork.data(), &NetworkManager::WirelessNetwork::signalStrengthChanged, this, &WirelessConnectionWidget::signalStrengthChanged);
     signalStrengthChanged(wirelessNetwork->signalStrength());
 
-    // 状态重置
-    resetStatus();
+    m_status = NetStatus::DISCONNECTED;
+    updateShowStatus();
+
+    m_ui->labelName->setShowText(m_ssid);
 }
 
 WirelessConnectionWidget::~WirelessConnectionWidget()
@@ -69,6 +85,8 @@ void WirelessConnectionWidget::updateStatus()
 {
     auto device = NetworkManager::findNetworkInterface(m_deviceUni);
     NetworkManager::ActiveConnection::State state = NetworkManager::ActiveConnection::Deactivated;
+    bool isLoading = false;
+
     auto activeConnection = device->activeConnection();
     if (activeConnection)
     {
@@ -77,16 +95,24 @@ void WirelessConnectionWidget::updateStatus()
         if (wifiSetting->ssid() == m_ssid)
         {
             state = activeConnection->state();
+            isLoading = device->state() > NetworkManager::Device::State::Disconnected && device->state() < NetworkManager::Device::State::Activated;
         }
     }
 
-    bool connectedFlag = m_isConnected;
-    setActiveStatus(state);
+    NetStatus connectedFlag = m_status;
+    setActiveStatus(state, isLoading);
 
-    if (!m_firstUpdateFlag && connectedFlag != m_isConnected)
+    if (!m_firstUpdateFlag && connectedFlag != m_status)
     {
         // 连接状态变化通知
-        Common::generalNotify(tr("wireless network"), m_ssid + " " + (m_isConnected ? tr("connected") : tr("disconnected")));
+        if (m_status == CONNECTED)
+        {
+            Common::generalNotify(tr("wireless network"), m_ssid + " " + tr("connected"));
+        }
+        else if (m_status == DISCONNECTED)
+        {
+            Common::generalNotify(tr("wireless network"), m_ssid + " " + tr("disconnected"));
+        }
     }
     m_firstUpdateFlag = false;
 }
@@ -132,7 +158,7 @@ void WirelessConnectionWidget::requestPassword()
     emit respondPasswdRequest(m_ssid, passwd, !isOK);
 }
 
-void WirelessConnectionWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void WirelessConnectionWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     // 密码输入框已显示，则隐藏
     if (m_ui->widgetPassword->isVisible())
@@ -140,16 +166,12 @@ void WirelessConnectionWidget::mouseDoubleClickEvent(QMouseEvent *event)
         setPasswordEditorVisible(false);
     }
 
-    if (m_isConnected)
+    if (NetStatus::CONNECTED == m_status)
     {
-        auto connection = NetCommon::getAvailableConnectionBySsid(m_deviceUni, m_ssid);
-        if (!connection.isNull())
-        {
-            NetCommon::deactivateConnection(connection->uuid());
-        }
+        // on_toolButtonDisconnect_clicked();
         return;
     }
-    else
+    else if (NetStatus::DISCONNECTED == m_status)
     {
         bool canDirectConn = WirelessManagerInstance.checkNetworkCanDirectConn(m_deviceUni, m_ssid);
         KLOG_INFO(LCSettingbar) << m_deviceUni << m_ssid << "checkNetworkCanDirectConn" << canDirectConn;
@@ -177,6 +199,20 @@ void WirelessConnectionWidget::mouseDoubleClickEvent(QMouseEvent *event)
             return;
         }
     }
+}
+
+void WirelessConnectionWidget::enterEvent(QEvent *event)
+{
+    //    KLOG_INFO() << "WirelessConnectionWidget::enterEvent";
+
+    updateShowStatus();
+}
+
+void WirelessConnectionWidget::leaveEvent(QEvent *event)
+{
+    //    KLOG_INFO() << "WirelessConnectionWidget::leaveEvent";
+
+    updateShowStatus();
 }
 
 void WirelessConnectionWidget::on_btnOkPassword_clicked()
@@ -210,35 +246,33 @@ void WirelessConnectionWidget::setPasswordEditorVisible(bool isVisible)
     emit resizeShow();
 }
 
-void WirelessConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state)
+void WirelessConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state, bool isLoading)
 {
     KLOG_INFO(LCSettingbar) << "set active ui status:" << m_ssid << state;
-
-    switch (state)
+    if (isLoading)
     {
-    case NetworkManager::ActiveConnection::State::Activating:
-    case NetworkManager::ActiveConnection::State::Deactivating:
         // 载入状态
-        m_ui->labelLoading->setVisible(true);
-        m_ui->toolButtonConnectStatu->setVisible(false);
-        break;
-    case NetworkManager::ActiveConnection::State::Activated:
-        m_ui->labelLoading->setVisible(false);
-        m_ui->toolButtonConnectStatu->setVisible(true);
-        m_isConnected = true;
-        break;
-    default:
-        // 重置状态
-        resetStatus();
-        break;
+        m_status = NetStatus::LOADING;
+        updateShowStatus();
     }
-}
-
-void WirelessConnectionWidget::resetStatus()
-{
-    m_ui->labelLoading->setVisible(false);
-    m_ui->toolButtonConnectStatu->setVisible(false);
-    m_isConnected = false;
+    else
+    {
+        switch (state)
+        {
+        case NetworkManager::ActiveConnection::State::Activating:
+        case NetworkManager::ActiveConnection::State::Deactivating:
+            // 载入状态
+            m_status = NetStatus::LOADING;
+            break;
+        case NetworkManager::ActiveConnection::State::Activated:
+            m_status = NetStatus::CONNECTED;
+            break;
+        default:  // Deactivated Unknown
+            m_status = NetStatus::DISCONNECTED;
+            break;
+        }
+        updateShowStatus();
+    }
 }
 
 void WirelessConnectionWidget::signalStrengthChanged(int strength)
@@ -259,9 +293,60 @@ void WirelessConnectionWidget::signalStrengthChanged(int strength)
     else if (75 <= strength && strength <= 100)
         themeIcon += "3";
 
-    //    KLOG_INFO(LCSettingbar) << "wireless signal strength changed" << m_ssid << strength;
+    KLOG_INFO(LCSettingbar) << "wireless signal strength changed" << m_ssid << strength;
 
     m_ui->toolButtonSignalStrength->setIcon(QIcon::fromTheme(themeIcon));
+}
+
+void WirelessConnectionWidget::updateShowStatus()
+{
+    //    KLOG_INFO() << "WirelessConnectionWidget::updateShowStatus" << m_status;
+    switch (m_status)
+    {
+    case NetStatus::LOADING:
+        m_loadingLabel->setVisible(true);
+        m_connectStatu->setVisible(false);
+        m_ui->layoutNetStatu->removeWidget(m_connectStatu);
+        m_ui->layoutNetStatu->addWidget(m_loadingLabel);
+        m_ui->toolButtonDisconnect->setVisible(false);
+        break;
+    case NetStatus::CONNECTED:
+        m_loadingLabel->setVisible(false);
+        m_connectStatu->setIcon(m_connectedIcon);
+        m_connectStatu->setVisible(true);
+        m_ui->layoutNetStatu->removeWidget(m_loadingLabel);
+        m_ui->layoutNetStatu->addWidget(m_connectStatu);
+        m_ui->toolButtonDisconnect->setVisible(true);
+        break;
+    default:
+        m_ui->toolButtonDisconnect->setVisible(false);
+        if (underMouse())
+        {
+            m_loadingLabel->setVisible(false);
+            m_connectStatu->setIcon(m_connectedHoverIcon);
+            m_connectStatu->setVisible(true);
+            m_ui->layoutNetStatu->removeWidget(m_loadingLabel);
+            m_ui->layoutNetStatu->addWidget(m_connectStatu);
+        }
+        else
+        {
+            m_loadingLabel->setVisible(false);
+            m_connectStatu->setVisible(false);
+            m_ui->layoutNetStatu->removeWidget(m_loadingLabel);
+            m_ui->layoutNetStatu->removeWidget(m_connectStatu);
+        }
+
+        break;
+    }
+}
+
+void WirelessConnectionWidget::on_toolButtonDisconnect_clicked()
+{
+    auto connection = NetCommon::getAvailableConnectionBySsid(m_deviceUni, m_ssid);
+    if (!connection.isNull())
+    {
+        NetCommon::deactivateConnection(connection->uuid());
+    }
 }
 
 }  // namespace SettingBar

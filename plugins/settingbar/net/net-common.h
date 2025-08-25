@@ -37,6 +37,13 @@ enum OpeartionResult
     OPERTION_FAILED
 };
 
+enum NetStatus
+{
+    LOADING,
+    CONNECTED,
+    DISCONNECTED
+};
+
 #define NetCommonInstance NetCommon::getInstance()
 
 class NetCommon : public QObject

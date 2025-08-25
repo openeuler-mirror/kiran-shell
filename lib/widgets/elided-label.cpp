@@ -12,30 +12,30 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#pragma once
+#include <QFontMetrics>
+#include <QResizeEvent>
 
-#include <QLabel>
+#include "elided-label.h"
 
-class QPropertyAnimation;
-class LoadingLabel : public QLabel
+ElidedLabel::ElidedLabel(QWidget *parent)
+    : QLabel(parent)
 {
-    Q_OBJECT
-    Q_PROPERTY(int loadingIndex READ loadingIndex WRITE changeIndex)
-public:
-    LoadingLabel(QWidget *parent = nullptr);
+}
 
-protected:
-    void showEvent(QShowEvent *event) override;
-    void hideEvent(QHideEvent *event) override;
+void ElidedLabel::setShowText(QString text)
+{
+    m_text = text;
+    showText();
+}
 
-private:
-    void changeIndex(const int &index);
-    int loadingIndex() const;
+void ElidedLabel::resizeEvent(QResizeEvent *event)
+{
+    QLabel::resizeEvent(event);
+    showText();
+}
 
-    void initPixmap();
-
-private:
-    int m_loadingIndex;
-    QPropertyAnimation *m_animation;
-    QVector<QPixmap> m_pixmaps;
-};
+void ElidedLabel::showText()
+{
+    QFontMetrics fm(font());
+    setText(fm.elidedText(m_text, Qt::ElideRight, width()));
+}
