@@ -76,6 +76,14 @@ void NewAppsManager::updateNewApps(const QSet<QString>& newAppIds)
 {
     QSignalBlocker blocker(this); // 内部更新新应用集合，不触发信号
     auto currentApps = getAllNewApps();
+
+    // 两个kiran-shell实例同时运行时，并存在两个新应用
+    // 两个实例反复更新"新应用"配置(配置内两个应用顺序不一样), 导致异常递归
+    if( currentApps.contains(newAppIds) )
+    {
+        return;
+    }
+
     currentApps.unite(newAppIds);
     m_gsettings->set(MENU_SCHEMA_KEY_NEW_APPS, set2List(currentApps));
 }
