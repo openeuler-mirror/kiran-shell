@@ -92,7 +92,7 @@ void WirelessConnectionWidget::updateStatus()
     {
         auto connectionSettings = activeConnection->connection()->settings();
         auto wifiSetting = connectionSettings->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
-        if (wifiSetting->ssid() == m_ssid)
+        if (wifiSetting && wifiSetting->ssid() == m_ssid)
         {
             state = activeConnection->state();
             isLoading = device->state() > NetworkManager::Device::State::Disconnected && device->state() < NetworkManager::Device::State::Activated;
