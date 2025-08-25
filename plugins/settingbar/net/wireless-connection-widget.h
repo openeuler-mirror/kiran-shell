@@ -15,6 +15,7 @@
 #pragma once
 
 #include <kiran-desktop/network-common.h>
+#include <QIcon>
 #include <QWidget>
 
 #include "net-common.h"
@@ -23,6 +24,9 @@ namespace Ui
 {
 class WirelessConnectionWidget;
 }
+
+class StyledButton;
+class LoadingLabel;
 
 // 连接树中的无线连接项
 // 使用设备uuid和连接ssid标识
@@ -44,18 +48,23 @@ public:
     void requestPassword();
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
 private slots:
     void on_btnOkPassword_clicked();
     void on_btnCancelPassword_clicked();
+    void on_toolButtonDisconnect_clicked();
 
 private:
     void setPasswordEditorVisible(bool isVisible);
 
-    void setActiveStatus(NetworkManager::ActiveConnection::State state);
+    void setActiveStatus(NetworkManager::ActiveConnection::State state, bool isLoading = false);
     void resetStatus();
     void signalStrengthChanged(int strength);
+
+    void updateShowStatus();
 
 signals:
     void addAndActivateNetwork(QString deviceUni, QString ssid, QString password);
@@ -66,15 +75,21 @@ signals:
 private:
     Ui::WirelessConnectionWidget *m_ui;
 
+    StyledButton *m_connectStatu;
+    LoadingLabel *m_loadingLabel;
+
     // 固定属性
     QString m_deviceUni;
     QString m_ssid;
     WifiSecurityType m_securityType;
 
-    // 变动属性
-    bool m_isConnected = false;
+    NetStatus m_status = NetStatus::DISCONNECTED;
 
+    // 第一次启动不需要通知
     bool m_firstUpdateFlag = true;
+
+    QIcon m_connectedIcon;
+    QIcon m_connectedHoverIcon;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

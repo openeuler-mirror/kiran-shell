@@ -20,6 +20,7 @@
 
 class QLayout;
 class QScreen;
+class QPixmap;
 
 class Utility : public QObject
 {
@@ -38,6 +39,8 @@ public:
     static bool isDbusServiceRegistered(QString serviceName, QDBusConnection::BusType type = QDBusConnection::SessionBus);
     // 获取拼音猜测的汉字
     static QStringList pinyinGuess(const QString& pinyinInput);
+
+    static QPixmap convertOpacity(const QPixmap& source, double opacity);
 
 private:
     Utility();
