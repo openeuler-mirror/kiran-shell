@@ -16,26 +16,22 @@
 
 #include <QLabel>
 
-class QPropertyAnimation;
-class LoadingLabel : public QLabel
+class QResizeEvent;
+class ElidedLabel : public QLabel
 {
     Q_OBJECT
-    Q_PROPERTY(int loadingIndex READ loadingIndex WRITE changeIndex)
 public:
-    LoadingLabel(QWidget *parent = nullptr);
+    ElidedLabel(QWidget *parent = nullptr);
+    ~ElidedLabel() = default;
+
+    void setShowText(QString text);
 
 protected:
-    void showEvent(QShowEvent *event) override;
-    void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void changeIndex(const int &index);
-    int loadingIndex() const;
-
-    void initPixmap();
+    void showText();
 
 private:
-    int m_loadingIndex;
-    QPropertyAnimation *m_animation;
-    QVector<QPixmap> m_pixmaps;
+    QString m_text;
 };
