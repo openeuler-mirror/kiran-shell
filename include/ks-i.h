@@ -40,7 +40,7 @@ namespace Kiran
 #define KS_ICON_WIRED_CONNECTED "ksvg-ks-wired-connected"
 #define KS_ICON_WIRED_ERROR "ksvg-ks-wired-error"
 #define KS_ICON_WIRELESS "ksvg-ks-wireless"
-#define KS_ICON_WIRELESS_PREFIX "ksvg-ks-wireless"
+#define KS_ICON_WIRELESS_PREFIX "krsvg-ks-wireless"
 #define KS_ICON_WIRELESS_SECURITY "security"
 #define KS_ICON_HWCONF_SETTING "ksvg-ks-hwconf-setting"
 #define KS_ICON_HWCONF_SETTING_BACK "ksvg-ks-hwconf-setting-back"

@@ -16,12 +16,18 @@
 
 #include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/Device>
+#include <QIcon>
 #include <QWidget>
+
+#include "net-common.h"
 
 namespace Ui
 {
 class WiredConnectionWidget;
 }
+
+class StyledButton;
+class LoadingLabel;
 
 // 连接树中的有线连接项
 // 使用设备uuid和连接uuid标识
@@ -41,23 +47,34 @@ public:
     void updateStatus();
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+
+private slots:
+    void on_toolButtonDisconnect_clicked();
 
 private:
     void setActiveStatus(NetworkManager::ActiveConnection::State state);
-    void resetStatus();
+    void updateShowStatus();
 
 private:
     Ui::WiredConnectionWidget *m_ui;
+
+    StyledButton *m_connectStatu;
+    LoadingLabel *m_loadingLabel;
 
     // 固定属性
     QString m_deviceUni;
     QString m_connectionUuid;
 
-    // 变动属性
-    bool m_isConnected = false;
+    NetStatus m_status = NetStatus::DISCONNECTED;
 
-    bool m_firstUpdateFlag = true;
+    // 第一次启动不需要通知
+    bool m_firstUpdateFlag;
+
+    QIcon m_connectedIcon;
+    QIcon m_connectedHoverIcon;
 };
 }  // namespace SettingBar
 }  // namespace Kiran

@@ -275,6 +275,27 @@ QStringList Utility::pinyinGuess(const QString &pinyinInput)
     return resultList.mid(0, 20);
 }
 
+QPixmap Utility::convertOpacity(const QPixmap &source, double opacity)
+{
+    QImage image = source.toImage();
+
+    for (int y = 0; y < image.height(); ++y)
+    {
+        for (int x = 0; x < image.width(); ++x)
+        {
+            auto pixelColor = image.pixelColor(x, y);
+            auto newPixelColor = pixelColor;
+            if (pixelColor.alpha() != 0)
+            {
+                newPixelColor.setAlpha(pixelColor.alpha() * opacity);
+            }
+            image.setPixelColor(x, y, newPixelColor);
+        }
+    }
+
+    return QPixmap::fromImage(image);
+}
+
 Utility::Utility()
 {
 }
