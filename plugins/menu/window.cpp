@@ -337,8 +337,7 @@ void Window::openFile(QString filePath)
 {
     //    auto job = new KIO::OpenUrlJob(file_path);
     //    job->start();
-
-    QDesktopServices::openUrl(filePath);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
 
 void Window::isInFavorite(const QString &appId, bool &isFavorite)
