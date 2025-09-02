@@ -11,19 +11,22 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
-#include "tree-view.h"
 #include <KService>
+#include <QDir>
 #include <QDrag>
+#include <QFileInfo>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
+
 #include "apps-model.h"
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
 #include "recent-files-model.h"
 #include "tree-delegate.h"
+#include "tree-view.h"
 
 namespace Kiran
 {
@@ -60,25 +63,26 @@ AppsView::AppsView(QWidget *parent)
     m_model = new AppsModel(this);
     setModel(m_model);
 
-    connect(this,&QAbstractItemView::clicked, this, [this](const QModelIndex &index)
-    {
-        if (index.isValid())
-        {
-            if (m_model->isCategory(index))
+    connect(this, &QAbstractItemView::clicked, this, [this](const QModelIndex &index)
             {
-                setExpanded(index, !isExpanded(index));
-            }
-            else
-            {
-                m_model->getID(index);
-                emit runApp(m_model->getID(index));
-            }
-        }
-    });
+                if (index.isValid())
+                {
+                    if (m_model->isCategory(index))
+                    {
+                        setExpanded(index, !isExpanded(index));
+                    }
+                    else
+                    {
+                        m_model->getID(index);
+                        emit runApp(m_model->getID(index));
+                    }
+                }
+            });
 
-    connect(m_model, &AppsModel::modelReset, this, [this](){
-        expandAll();
-    });
+    connect(m_model, &AppsModel::modelReset, this, [this]()
+            {
+                expandAll();
+            });
 }
 
 AppsView::~AppsView()
@@ -137,7 +141,7 @@ void AppsView::mouseMoveEvent(QMouseEvent *event)
             break;
         }
 
-        const auto& index = indexAt(event->pos());
+        const auto &index = indexAt(event->pos());
         if (!index.isValid())
         {
             break;
@@ -148,7 +152,7 @@ void AppsView::mouseMoveEvent(QMouseEvent *event)
             break;
         }
 
-        const auto& appStoragedID = m_model->getID(index);
+        const auto &appStoragedID = m_model->getID(index);
         if (appStoragedID.isEmpty())
         {
             break;
@@ -169,7 +173,7 @@ void AppsView::mouseMoveEvent(QMouseEvent *event)
 
 void AppsView::contextMenuEvent(QContextMenuEvent *event)
 {
-    const auto& index = indexAt(event->pos());
+    const auto &index = indexAt(event->pos());
     if (!index.isValid())
     {
         return;
@@ -273,7 +277,7 @@ RecentFilesView::~RecentFilesView()
 {
 }
 
-void RecentFilesView::setFilterText(const QString& text)
+void RecentFilesView::setFilterText(const QString &text)
 {
     m_model->setFilterText(text);
 }
@@ -296,16 +300,50 @@ void RecentFilesView::keyPressEvent(QKeyEvent *event)
 
 void RecentFilesView::mousePressEvent(QMouseEvent *event)
 {
-    const auto& pos = event->pos();
-    QModelIndex index = indexAt(pos);
-    if (index.isValid())
+    if (event->buttons() & Qt::LeftButton)
     {
-        const auto& filePath = m_model->getFilePath(index);
-        emit fileItemClicked(filePath);
-        event->accept();
+        const auto &pos = event->pos();
+        QModelIndex index = indexAt(pos);
+        if (index.isValid())
+        {
+            const auto &filePath = m_model->getFilePath(index);
+            emit fileItemClicked(filePath);
+            event->accept();
+            return;
+        }
+    }
+
+    TreeView::mousePressEvent(event);
+}
+
+void RecentFilesView::contextMenuEvent(QContextMenuEvent *event)
+{
+    const auto &index = indexAt(event->pos());
+    if (!index.isValid())
+    {
         return;
     }
-    TreeView::mousePressEvent(event);
+
+    auto filePath = m_model->getFilePath(index);
+
+    QMenu menu(this);
+    menu.addAction(tr("Open"), this, [=]()
+                   {
+                       emit fileItemClicked(filePath);
+                   });
+    menu.addAction(tr("Open file directory"), this, [=]()
+                   {
+                       emit fileItemClicked(QFileInfo(filePath).dir().path());
+                   });
+    menu.addAction(tr("Remove"), this, [=]()
+                   {
+                       m_model->removeFile(filePath);
+                   });
+    menu.addAction(tr("Remove all"), this, [=]()
+                   {
+                       m_model->removeAll();
+                   });
+    menu.exec(event->globalPos());
 }
 
 }  // namespace Menu

@@ -82,6 +82,7 @@ signals:
 protected:
     void keyPressEvent(QKeyEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
 
 private:
     RecentFilesModel* m_model = nullptr;
