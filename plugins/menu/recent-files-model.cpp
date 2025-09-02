@@ -12,6 +12,7 @@
  * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
 #include "recent-files-model.h"
+#include <KActivities/Stats/Cleaning>
 #include <KActivities/Stats/ResultModel>
 #include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
@@ -27,14 +28,15 @@ namespace KAStats = KActivities::Stats;
 using namespace KAStats;
 using namespace KAStats::Terms;
 
+static const Query RECENT_FILE_QUERY = UsedResources | RecentlyUsedFirst | Agent::any() | Type::files() | Activity::any() | Url::file();
+
 namespace Kiran
 {
 namespace Menu
 {
-    
 RecentFilesLoader::RecentFilesLoader(QObject *parent)
     : QObject(parent),
-      m_actStatsWatcher(new KActivities::Stats::ResultWatcher(UsedResources | RecentlyUsedFirst | Agent::any() | Type::files() | Activity::any(), this))
+      m_actStatsWatcher(new KActivities::Stats::ResultWatcher(RECENT_FILE_QUERY, this))
 {
     qRegisterMetaType<QVector<QMap<int, QVariant>>>("QVector<QMap<int, QVariant>>");
     m_reloadTimer.setInterval(5000);
@@ -58,16 +60,18 @@ void RecentFilesLoader::changeKeyword(const QString &keyword)
 
 void RecentFilesLoader::loadData()
 {
-    const auto query = UsedResources | RecentlyUsedFirst | Agent::any() | Type::files() | Activity::any() | Url::contains(m_keyword);
+    const auto query = RECENT_FILE_QUERY | Url::contains(m_keyword);
     QVector<QMap<int, QVariant>> recentFilesData;
     for (const ResultSet::Result &result : ResultSet(query))
     {
         QString filePath = QUrl(result.resource()).path();
-        if (!QFile::exists(filePath))
+        if (!QFile::exists(filePath) || QFileInfo(filePath).isDir())
         {
             continue;
         }
+
         QIcon icon = QFileIconProvider().icon(QFileInfo(filePath));
+
         QMap<int, QVariant> fileData;
         fileData.insert(RecentFilesModel::FileNameRole, result.title());
         fileData.insert(RecentFilesModel::FileIconRole, icon);
@@ -149,6 +153,8 @@ QVariant RecentFilesModel::data(const QModelIndex &index, int role) const
         return fileData.value(FileIconRole);
     case FilePathRole:
         return fileData.value(FilePathRole);
+    case Qt::ToolTipRole:
+        return fileData.value(FileNameRole).toString() + "\n" + fileData.value(FilePathRole).toString();
     default:
         return QVariant();
     }
@@ -184,6 +190,18 @@ int RecentFilesModel::rowCount(const QModelIndex &parent) const
 int RecentFilesModel::columnCount(const QModelIndex &parent) const
 {
     return 1;
+}
+
+void RecentFilesModel::removeFile(QString filePath)
+{
+    KAStats::forgetResource(Activity::any(), Agent::any(), filePath);
+    m_loader->loadData();
+}
+
+void RecentFilesModel::removeAll()
+{
+    KAStats::forgetResources(RECENT_FILE_QUERY);
+    m_loader->loadData();
 }
 
 }  // namespace Menu

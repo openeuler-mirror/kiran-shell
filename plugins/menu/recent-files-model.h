@@ -61,6 +61,7 @@ public:
     enum Roles
     {
         FileNameRole = Qt::DisplayRole,
+        FileToolTipRole = Qt::ToolTipRole,
         FileIconRole = Qt::DecorationRole,
         FilePathRole = Qt::UserRole + 1,
     };
@@ -79,6 +80,9 @@ public:
     QModelIndex parent(const QModelIndex &index) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    void removeFile(QString filePath);
+    void removeAll();
 
 signals:
     void changeKeyword(const QString &keyword);
