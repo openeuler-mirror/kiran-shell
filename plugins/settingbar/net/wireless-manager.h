@@ -64,8 +64,6 @@ private:
     void RemoveFromManager(const QString& deviceUni);
 
 signals:
-    void netStatusChanged();
-
     // 无线连接点变化
     void networkAppeared(QString deviceUni, QString ssid);
     void networkDisappeared(QString deviceUni, QString ssid);

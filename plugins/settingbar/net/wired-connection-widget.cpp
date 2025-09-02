@@ -33,7 +33,7 @@ WiredConnectionWidget::WiredConnectionWidget(QString deviceUni, QString connecti
       m_ui(new Ui::WiredConnectionWidget),
       m_deviceUni(deviceUni),
       m_connectionUuid(connectionUuid),
-      m_status(NetStatus::DISCONNECTED),
+      m_status(NetShowState::DISCONNECTED),
       m_firstUpdateFlag(true)
 {
     m_ui->setupUi(this);
@@ -52,7 +52,7 @@ WiredConnectionWidget::WiredConnectionWidget(QString deviceUni, QString connecti
     m_loadingLabel = new LoadingLabel(this);
     m_loadingLabel->hide();
 
-    m_status = NetStatus::DISCONNECTED;
+    m_status = NetShowState::DISCONNECTED;
     updateShowStatus();
 }
 
@@ -63,55 +63,35 @@ WiredConnectionWidget::~WiredConnectionWidget()
 
 void WiredConnectionWidget::updateStatus()
 {
-    auto device = NetworkManager::findNetworkInterface(m_deviceUni);
-    NetworkManager::ActiveConnection::State state = NetworkManager::ActiveConnection::Deactivated;
-    auto activeConnection = device->activeConnection();
-    if (activeConnection)
-    {
-        if (activeConnection->uuid() == m_connectionUuid)
-        {
-            state = activeConnection->state();
-        }
-    }
-
     NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(m_connectionUuid);
     QString connectionName = connection->name();
     m_ui->labelName->setShowText(connectionName);
 
-    NetStatus connectedFlag = m_status;
-    setActiveStatus(state);
-    if (!m_firstUpdateFlag && connectedFlag != m_status)
+    NetShowState lastNetState = m_status;
+    NetShowState newState = NetShowState::DISCONNECTED;
+
+    auto device = NetworkManager::findNetworkInterface(m_deviceUni);
+    auto activeConnection = device->activeConnection();
+    auto deviceState = device->state();
+    if (activeConnection && activeConnection->uuid() == m_connectionUuid)
+    {
+        newState = NetCommon::coverDeviceStateToNetShowState(deviceState);
+    }
+    m_status = newState;
+
+    if (!m_firstUpdateFlag && lastNetState != m_status)
     {
         // 连接状态变化通知
-        if (m_status == CONNECTED)
+        if (NetShowState::CONNECTED == m_status)
         {
             Common::generalNotify(tr("wired network"), connectionName + " " + tr("connected"));
         }
-        else if (m_status == DISCONNECTED)
+        else if (NetShowState::DISCONNECTED == m_status)
         {
             Common::generalNotify(tr("wired network"), connectionName + " " + tr("disconnected"));
         }
     }
     m_firstUpdateFlag = false;
-}
-
-void WiredConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state)
-{
-    KLOG_INFO() << "WiredConnectionWidget::setActiveStatus" << state;
-    switch (state)
-    {
-    case NetworkManager::ActiveConnection::State::Activating:
-    case NetworkManager::ActiveConnection::State::Deactivating:
-        // 载入状态
-        m_status = NetStatus::LOADING;
-        break;
-    case NetworkManager::ActiveConnection::State::Activated:
-        m_status = NetStatus::CONNECTED;
-        break;
-    default:
-        m_status = NetStatus::DISCONNECTED;
-        break;
-    }
 
     updateShowStatus();
 }
@@ -120,14 +100,14 @@ void WiredConnectionWidget::updateShowStatus()
 {
     switch (m_status)
     {
-    case NetStatus::LOADING:
+    case NetShowState::LOADING:
         m_loadingLabel->setVisible(true);
         m_connectStatu->setVisible(false);
         m_ui->layoutNetStatu->removeWidget(m_connectStatu);
         m_ui->layoutNetStatu->addWidget(m_loadingLabel);
         m_ui->toolButtonDisconnect->hide();
         break;
-    case NetStatus::CONNECTED:
+    case NetShowState::CONNECTED:
         m_loadingLabel->setVisible(false);
         m_connectStatu->setIcon(m_connectedIcon);
         m_connectStatu->setVisible(true);
@@ -159,11 +139,11 @@ void WiredConnectionWidget::updateShowStatus()
 
 void WiredConnectionWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (NetStatus::CONNECTED == m_status)
+    if (NetShowState::CONNECTED == m_status)
     {
         // on_toolButtonDisconnect_clicked();
     }
-    else if (NetStatus::DISCONNECTED == m_status)
+    else if (NetShowState::DISCONNECTED == m_status)
     {
         NetCommon::activateConnection(m_deviceUni, m_connectionUuid);
     }

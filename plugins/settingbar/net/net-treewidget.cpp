@@ -263,35 +263,35 @@ void netTreeWidget::updateWirelessConnection(const QString &deviceUni, const QSt
 
 void netTreeWidget::wiredNetworkAppeared(const QString &deviceUni, const QString &connectionUuid)
 {
-    KLOG_INFO(LCSettingbar) << "wiredNetworkAppeared" << deviceUni << connectionUuid;
+    KLOG_DEBUG(LCSettingbar) << "wiredNetworkAppeared" << deviceUni << connectionUuid;
 
     updateWiredConnection(deviceUni, connectionUuid);
 }
 
 void netTreeWidget::wiredNetworkDisappeared(const QString &deviceUni, const QString &connectionUuid)
 {
-    KLOG_INFO(LCSettingbar) << "wiredNetworkDisappeared" << deviceUni << connectionUuid;
+    KLOG_DEBUG(LCSettingbar) << "wiredNetworkDisappeared" << deviceUni << connectionUuid;
 
     removeConnection(deviceUni, connectionUuid);
 }
 
 void netTreeWidget::wirelessNetworkAppeared(const QString &deviceUni, const QString &ssid)
 {
-    KLOG_INFO(LCSettingbar) << "wirelessNetworkAppeared" << deviceUni << ssid;
+    KLOG_DEBUG(LCSettingbar) << "wirelessNetworkAppeared" << deviceUni << ssid;
 
     updateWirelessConnection(deviceUni, ssid);
 }
 
 void netTreeWidget::wirelessNetworkDisappeared(const QString &deviceUni, const QString &ssid)
 {
-    KLOG_INFO(LCSettingbar) << "wirelessNetworkDisappeared" << deviceUni << ssid;
+    KLOG_DEBUG(LCSettingbar) << "wirelessNetworkDisappeared" << deviceUni << ssid;
 
     removeConnection(deviceUni, ssid);
 }
 
 void netTreeWidget::removeConnection(const QString &deviceUni, const QString &connectUuid)
 {
-    KLOG_INFO(LCSettingbar) << "netTreeWidget::removeConnection" << deviceUni << connectUuid;
+    KLOG_DEBUG(LCSettingbar) << "netTreeWidget::removeConnection" << deviceUni << connectUuid;
 
     if (m_connectionItems.contains(deviceUni) && m_connectionItems[deviceUni].contains(connectUuid))
     {
@@ -313,6 +313,8 @@ void netTreeWidget::updateActiveStatus(const QString &deviceUni, NetworkManager:
         KLOG_ERROR(LCSettingbar) << "!m_netConnectionItem.contains(deviceUni)" << deviceUni;
         return;
     }
+
+    KLOG_DEBUG(LCSettingbar) << "updateActiveStatus" << deviceUni << state;
 
     for (const auto &connection : m_connectionItems[deviceUni])
     {
@@ -356,7 +358,7 @@ void netTreeWidget::activeConnectionStateChanged(const QString &deviceUni, Netwo
 
 void netTreeWidget::requestPassword(const QString &devicePath, const QString &ssid, bool wait)
 {
-    KLOG_INFO(LCSettingbar) << "netTreeWidget::requestPassword" << devicePath << ssid << wait;
+    KLOG_DEBUG(LCSettingbar) << "netTreeWidget::requestPassword" << devicePath << ssid << wait;
 
     if (m_connectionItems.contains(devicePath) && m_connectionItems[devicePath].contains(ssid))
     {

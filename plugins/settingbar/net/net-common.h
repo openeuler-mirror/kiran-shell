@@ -37,7 +37,7 @@ enum OpeartionResult
     OPERTION_FAILED
 };
 
-enum NetStatus
+enum NetShowState
 {
     LOADING,
     CONNECTED,
@@ -76,6 +76,8 @@ public:
 
     // 连接结果
     void checkOpeartionResult(OpeartionType type, QString name, QDBusPendingCall& call);
+
+    static NetShowState coverDeviceStateToNetShowState(NetworkManager::Device::State state);
 
 private:
     NetCommon();

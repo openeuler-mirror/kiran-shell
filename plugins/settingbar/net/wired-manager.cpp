@@ -59,8 +59,6 @@ void WiredManager::updateNetworkStatus()
         }
         RemoveFromManager(uni);
     }
-
-    emit netStatusChanged();
 }
 
 WiredManager &WiredManager::getInstance()
@@ -97,11 +95,11 @@ void WiredManager::AddToManager(const QString &deviceUni)
                     emit availableConnectionDisappeared(deviceUni, connection->uuid());
                 });
         // 这个信号捕获不到 连接已active，设备active了，连接仍未active，需要NetworkManager::Device::activeConnectionChanged
-        //        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
-        //                {
-        //                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate;
-        //                    emit stateChanged(deviceUni, newstate);
-        //                });
+        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
+                {
+                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate;
+                    emit stateChanged(deviceUni, newstate);
+                });
     }
 }
 
