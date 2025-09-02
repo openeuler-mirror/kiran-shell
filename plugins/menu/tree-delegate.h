@@ -16,6 +16,8 @@
 #include <QPainter>
 #include <QStyledItemDelegate>
 
+#include "lib/common/utility.h"
+
 namespace Kiran
 {
 namespace Menu
@@ -70,7 +72,7 @@ public:
 
         QRect baseRect = option.rect;
         // 缩进
-        baseRect.adjust(INDENTATION, 0, INDENTATION, 0);
+        baseRect.adjust(INDENTATION, 0, -INDENTATION, 0);
 
         QRect iconRect = baseRect;
 
@@ -103,6 +105,7 @@ public:
 
         QRect textRect = baseRect;
         textRect.adjust(iconRect.right() - baseRect.x() + ICON_TEXT_MARGIN, 0, 0, 0);
+        text = Utility::getElidedText(painter->fontMetrics(), text, textRect.width());
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
 };

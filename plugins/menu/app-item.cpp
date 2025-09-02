@@ -55,7 +55,15 @@ void AppItem::setAppId(const QString &appId)
         }
         setIcon(icon);
         setText(s->name());
-        setToolTip(s->comment());
+
+        QString tooltip = s->name();
+        // 当comment与name相同时，不显示comment
+        if (!s->comment().isEmpty() && (s->name() != s->comment()))
+        {
+            tooltip += "\n" + s->comment();
+        }
+
+        setToolTip(tooltip);
     }
 }
 
