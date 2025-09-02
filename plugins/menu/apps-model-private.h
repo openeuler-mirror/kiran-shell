@@ -51,12 +51,13 @@ public:
                            parent);
     }
 
-    static AppNode *createNode(const QString &name, const QIcon &icon, const QString &id, const QString &untranslatedName, AppNode *parent = nullptr)
+    static AppNode *createNode(const QString &name, const QIcon &icon, const QString &id, const QString &tooltip, const QString &untranslatedName, AppNode *parent = nullptr)
     {
         return new AppNode({{AppsModel::NameRole, name},
                             {AppsModel::TypeRole, AppsModel::ItemType::Application},
                             {AppsModel::IconRole, icon},
                             {AppsModel::IdRole, id},
+                            {AppsModel::ToolTipRole, tooltip},
                             {AppsModel::UntranslatedNameRole, untranslatedName}},
                            parent);
     }
@@ -246,7 +247,13 @@ private:
                 }
 
                 storageIds << service->storageId();
-                AppNode::createNode(service->name(), icon, service->storageId(), untranslatedName, parentItem);
+                QString tooltip = service->name();
+                // 当comment与name相同时，不显示comment
+                if (!service->comment().isEmpty() && (service->name() != service->comment()))
+                {
+                    tooltip += "\n" + service->comment();
+                }
+                AppNode::createNode(service->name(), icon, service->storageId(), tooltip, untranslatedName, parentItem);
             }
             else if (entry->isType(KST_KServiceGroup))  // 分类
             {

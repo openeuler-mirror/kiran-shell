@@ -35,6 +35,7 @@ public:
     enum Roles
     {
         NameRole = Qt::DisplayRole,
+        ToolTipRole = Qt::ToolTipRole,
         IconRole = Qt::DecorationRole,
         TypeRole = Qt::UserRole + 1,
         IdRole,

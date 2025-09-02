@@ -17,32 +17,32 @@
 <context>
     <name>Kiran::Menu::AppItem</name>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="78"/>
+        <location filename="../plugins/menu/app-item.cpp" line="86"/>
         <source>Run app</source>
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="82"/>
+        <location filename="../plugins/menu/app-item.cpp" line="90"/>
         <source>Add to desktop</source>
         <translation>添加到桌面</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="90"/>
+        <location filename="../plugins/menu/app-item.cpp" line="98"/>
         <source>Add to favorite</source>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="97"/>
+        <location filename="../plugins/menu/app-item.cpp" line="105"/>
         <source>Remove from favorite</source>
         <translation>从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="107"/>
+        <location filename="../plugins/menu/app-item.cpp" line="115"/>
         <source>Add to tasklist</source>
         <translation>固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/app-item.cpp" line="114"/>
+        <location filename="../plugins/menu/app-item.cpp" line="122"/>
         <source>Remove from tasklist</source>
         <translation>取消固定到任务栏</translation>
     </message>
@@ -59,12 +59,12 @@
 <context>
     <name>Kiran::Menu::AppsModel</name>
     <message>
-        <location filename="../plugins/menu/apps-model.cpp" line="91"/>
+        <location filename="../plugins/menu/apps-model.cpp" line="92"/>
         <source>Search Result</source>
         <translation>搜索结果</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/apps-model.cpp" line="258"/>
+        <location filename="../plugins/menu/apps-model.cpp" line="230"/>
         <source>New Apps</source>
         <translation>新应用</translation>
     </message>
@@ -72,81 +72,104 @@
 <context>
     <name>Kiran::Menu::AppsView</name>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="184"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="191"/>
         <source>Run app</source>
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="188"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="195"/>
         <source>Add to desktop</source>
         <translation>添加到桌面</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="198"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="205"/>
         <source>Add to favorite</source>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="205"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="212"/>
         <source>Remove from favorite</source>
         <translation>从收藏夹中移除</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="218"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="225"/>
         <source>Add to tasklist</source>
         <translation>固定到任务栏</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/tree-view.cpp" line="227"/>
+        <location filename="../plugins/menu/tree-view.cpp" line="234"/>
         <source>Remove from tasklist</source>
         <translation>取消固定到任务栏</translation>
     </message>
 </context>
 <context>
+    <name>Kiran::Menu::RecentFilesView</name>
+    <message>
+        <location filename="../plugins/menu/tree-view.cpp" line="330"/>
+        <source>Open</source>
+        <translation>打开文件</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/tree-view.cpp" line="334"/>
+        <source>Open file directory</source>
+        <translation>打开文件所在目录</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/tree-view.cpp" line="338"/>
+        <source>Remove</source>
+        <translation>从最近访问列表中移除</translation>
+    </message>
+    <message>
+        <location filename="../plugins/menu/tree-view.cpp" line="342"/>
+        <source>Remove all</source>
+        <translation>清空最近访问列表</translation>
+    </message>
+</context>
+<context>
     <name>Kiran::Menu::Window</name>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="225"/>
+        <location filename="../plugins/menu/window.cpp" line="226"/>
         <source>Lock screen</source>
         <translation>锁定屏幕</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="241"/>
+        <location filename="../plugins/menu/window.cpp" line="242"/>
         <source>Switch user</source>
         <translatorcomment>切换用户</translatorcomment>
         <translation>切换用户</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="233"/>
+        <location filename="../plugins/menu/window.cpp" line="234"/>
         <source>Logout</source>
         <translatorcomment>注销</translatorcomment>
         <translation>注销</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="257"/>
+        <location filename="../plugins/menu/window.cpp" line="258"/>
         <source>Suspend</source>
         <translatorcomment>待机</translatorcomment>
         <translation>待机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="265"/>
+        <location filename="../plugins/menu/window.cpp" line="266"/>
         <source>Hibernate</source>
         <translatorcomment>休眠</translatorcomment>
         <translation>休眠</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="273"/>
+        <location filename="../plugins/menu/window.cpp" line="274"/>
         <source>Reboot</source>
         <translatorcomment>重启</translatorcomment>
         <translation>重启</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="281"/>
+        <location filename="../plugins/menu/window.cpp" line="282"/>
         <source>Shutdown</source>
         <translatorcomment>关机</translatorcomment>
         <translation>关机</translation>
     </message>
     <message>
-        <location filename="../plugins/menu/window.cpp" line="429"/>
+        <location filename="../plugins/menu/window.cpp" line="423"/>
         <source>Hello,</source>
         <translatorcomment>你好，</translatorcomment>
         <translation>你好，</translation>
