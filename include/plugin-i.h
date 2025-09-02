@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2023 ~ 2024 KylinSec Co., Ltd.
- * kiran-session-manager is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -35,7 +35,7 @@ class IPanel
 public:
     virtual int getSize() = 0;
     virtual int getOrientation() = 0;
-    virtual QScreen* getScreen() = 0;
+    virtual QScreen *getScreen() = 0;
 
     // 此接口实际作为信号用
     virtual void panelProfileChanged() = 0;
