@@ -68,7 +68,7 @@ private:
     QString m_deviceUni;
     QString m_connectionUuid;
 
-    NetStatus m_status = NetStatus::DISCONNECTED;
+    NetShowState m_status;
 
     // 第一次启动不需要通知
     bool m_firstUpdateFlag;

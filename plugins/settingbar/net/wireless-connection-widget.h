@@ -59,11 +59,7 @@ private slots:
 
 private:
     void setPasswordEditorVisible(bool isVisible);
-
-    void setActiveStatus(NetworkManager::ActiveConnection::State state, bool isLoading = false);
-    void resetStatus();
     void signalStrengthChanged(int strength);
-
     void updateShowStatus();
 
 signals:
@@ -83,7 +79,7 @@ private:
     QString m_ssid;
     WifiSecurityType m_securityType;
 
-    NetStatus m_status = NetStatus::DISCONNECTED;
+    NetShowState m_status;
 
     // 第一次启动不需要通知
     bool m_firstUpdateFlag = true;

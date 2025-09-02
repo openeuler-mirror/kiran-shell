@@ -401,6 +401,27 @@ void NetCommon::checkOpeartionResult(OpeartionType type, QString name, QDBusPend
     }
 }
 
+NetShowState NetCommon::coverDeviceStateToNetShowState(NetworkManager::Device::State state)
+{
+    switch (state)
+    {
+    case NetworkManager::Device::State::Preparing:
+    case NetworkManager::Device::State::ConfiguringHardware:
+    case NetworkManager::Device::State::NeedAuth:
+    case NetworkManager::Device::State::ConfiguringIp:
+    case NetworkManager::Device::State::CheckingIp:
+    case NetworkManager::Device::State::WaitingForSecondaries:
+    case NetworkManager::Device::State::Deactivating:
+        return NetShowState::LOADING;
+
+    case NetworkManager::Device::State::Activated:
+        return NetShowState::CONNECTED;
+
+    default:
+        return NetShowState::DISCONNECTED;
+    }
+}
+
 void NetCommon::processPendingCallFinished(QDBusPendingCallWatcher *watcher)
 {
     auto reply = watcher->reply();

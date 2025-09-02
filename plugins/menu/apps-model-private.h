@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2020 ~ 2025 KylinSec Co., Ltd.
- * qt5-treeview-async-model is licensed under Mulan PSL v2.
+ * kiran-shell is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -76,7 +76,7 @@ public:
         m_childItems.append(child);
         child->m_parentItem = this;
     }
-    
+
     void prepend(AppNode *child)
     {
         m_childItems.prepend(child);
@@ -248,7 +248,7 @@ private:
                 storageIds << service->storageId();
                 AppNode::createNode(service->name(), icon, service->storageId(), untranslatedName, parentItem);
             }
-            else if (entry->isType(KST_KServiceGroup))  //分类
+            else if (entry->isType(KST_KServiceGroup))  // 分类
             {
                 KServiceGroup *childGroup = static_cast<KServiceGroup *>(entry);
                 AppNode *childGroupItem = AppNode::createCategory(childGroup->caption(), parentItem);
