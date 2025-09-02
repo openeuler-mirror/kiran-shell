@@ -47,8 +47,6 @@ private:
     void changeActiveConnection();
 
 signals:
-    void netStatusChanged();
-
     // 有线连接点变化
     void availableConnectionAppeared(QString deviceUni, QString connectionUuid);
     void availableConnectionDisappeared(QString deviceUni, QString connectionUuid);

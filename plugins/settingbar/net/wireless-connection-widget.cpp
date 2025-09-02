@@ -19,7 +19,6 @@
 #include <NetworkManagerQt/WirelessDevice>
 #include <NetworkManagerQt/WirelessNetwork>
 #include <NetworkManagerQt/WirelessSetting>
-#include <QInputDialog>
 #include <QToolTip>
 
 #include "ks-i.h"
@@ -30,6 +29,7 @@
 #include "lib/widgets/styled-button.h"
 #include "ui_wireless-connection-widget.h"
 #include "wireless-connection-widget.h"
+#include "wireless-dialog.h"
 #include "wireless-manager.h"
 
 namespace Kiran
@@ -41,7 +41,7 @@ WirelessConnectionWidget::WirelessConnectionWidget(QString deviceUni, QString ss
       m_ui(new Ui::WirelessConnectionWidget),
       m_deviceUni(deviceUni),
       m_ssid(ssid),
-      m_status(NetStatus::DISCONNECTED)
+      m_status(NetShowState::DISCONNECTED)
 {
     m_ui->setupUi(this);
 
@@ -70,10 +70,9 @@ WirelessConnectionWidget::WirelessConnectionWidget(QString deviceUni, QString ss
     connect(wirelessNetwork.data(), &NetworkManager::WirelessNetwork::signalStrengthChanged, this, &WirelessConnectionWidget::signalStrengthChanged);
     signalStrengthChanged(wirelessNetwork->signalStrength());
 
-    m_status = NetStatus::DISCONNECTED;
-    updateShowStatus();
-
     m_ui->labelName->setShowText(m_ssid);
+
+    updateShowStatus();
 }
 
 WirelessConnectionWidget::~WirelessConnectionWidget()
@@ -83,7 +82,10 @@ WirelessConnectionWidget::~WirelessConnectionWidget()
 
 void WirelessConnectionWidget::updateStatus()
 {
+    NetShowState lastNetState = m_status;
+    NetShowState newState = NetShowState::DISCONNECTED;
     auto device = NetworkManager::findNetworkInterface(m_deviceUni);
+
     NetworkManager::ActiveConnection::State state = NetworkManager::ActiveConnection::Deactivated;
     bool isLoading = false;
 
@@ -94,64 +96,43 @@ void WirelessConnectionWidget::updateStatus()
         auto wifiSetting = connectionSettings->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
         if (wifiSetting && wifiSetting->ssid() == m_ssid)
         {
-            state = activeConnection->state();
-            isLoading = device->state() > NetworkManager::Device::State::Disconnected && device->state() < NetworkManager::Device::State::Activated;
+            newState = NetCommon::coverDeviceStateToNetShowState(device->state());
+            // state = activeConnection->state();
+            // isLoading = device->state() > NetworkManager::Device::State::Disconnected && device->state() < NetworkManager::Device::State::Activated;
         }
     }
+    m_status = newState;
 
-    NetStatus connectedFlag = m_status;
-    setActiveStatus(state, isLoading);
-
-    if (!m_firstUpdateFlag && connectedFlag != m_status)
+    if (!m_firstUpdateFlag && lastNetState != m_status)
     {
         // 连接状态变化通知
-        if (m_status == CONNECTED)
+        if (NetShowState::CONNECTED == m_status)
         {
             Common::generalNotify(tr("wireless network"), m_ssid + " " + tr("connected"));
         }
-        else if (m_status == DISCONNECTED)
+        else if (NetShowState::DISCONNECTED == m_status)
         {
             Common::generalNotify(tr("wireless network"), m_ssid + " " + tr("disconnected"));
         }
     }
     m_firstUpdateFlag = false;
+
+    updateShowStatus();
 }
 
 void WirelessConnectionWidget::requestPassword()
 {
-    bool isOK = false;
-    QString title = tr("please input password");
-    QString label = tr("WI-FI(%1) requires password re-entry").arg(m_ssid);
-
-    QInputDialog dialog;
-    dialog.setWindowTitle(title);
-    dialog.setLabelText(label);
-    dialog.setOkButtonText(tr("OK"));
-    dialog.setCancelButtonText(tr("Cancel"));
-    dialog.setTextEchoMode(QLineEdit::PasswordEchoOnEdit);
-
     QString passwd;
-    if (dialog.exec() == QDialog::Accepted)
-    {
-        passwd = dialog.textValue();
-        isOK = true;
-    }
-    else
+    bool isOK = false;
+    QString desc = tr("WI-FI(%1) requires password re-entry").arg(m_ssid);
+
+    if (!WirelessDialog::getNetworkPasswd(parentWidget(), desc, m_ssid, passwd))
     {
         isOK = false;
     }
-    while (isOK && passwd.length() < 8)
+    else
     {
-        dialog.setLabelText(label + "\n" + tr("The password must be at least 8 characters long."));
-        if (dialog.exec() == QDialog::Accepted)
-        {
-            passwd = dialog.textValue();
-            isOK = true;
-        }
-        else
-        {
-            isOK = false;
-        }
+        isOK = true;
     }
 
     // 被动输入密码连接
@@ -166,12 +147,12 @@ void WirelessConnectionWidget::mouseReleaseEvent(QMouseEvent *event)
         setPasswordEditorVisible(false);
     }
 
-    if (NetStatus::CONNECTED == m_status)
+    if (NetShowState::CONNECTED == m_status)
     {
         // on_toolButtonDisconnect_clicked();
         return;
     }
-    else if (NetStatus::DISCONNECTED == m_status)
+    else if (NetShowState::DISCONNECTED == m_status)
     {
         bool canDirectConn = WirelessManagerInstance.checkNetworkCanDirectConn(m_deviceUni, m_ssid);
         KLOG_INFO(LCSettingbar) << m_deviceUni << m_ssid << "checkNetworkCanDirectConn" << canDirectConn;
@@ -246,35 +227,6 @@ void WirelessConnectionWidget::setPasswordEditorVisible(bool isVisible)
     emit resizeShow();
 }
 
-void WirelessConnectionWidget::setActiveStatus(NetworkManager::ActiveConnection::State state, bool isLoading)
-{
-    KLOG_INFO(LCSettingbar) << "set active ui status:" << m_ssid << state;
-    if (isLoading)
-    {
-        // 载入状态
-        m_status = NetStatus::LOADING;
-        updateShowStatus();
-    }
-    else
-    {
-        switch (state)
-        {
-        case NetworkManager::ActiveConnection::State::Activating:
-        case NetworkManager::ActiveConnection::State::Deactivating:
-            // 载入状态
-            m_status = NetStatus::LOADING;
-            break;
-        case NetworkManager::ActiveConnection::State::Activated:
-            m_status = NetStatus::CONNECTED;
-            break;
-        default:  // Deactivated Unknown
-            m_status = NetStatus::DISCONNECTED;
-            break;
-        }
-        updateShowStatus();
-    }
-}
-
 void WirelessConnectionWidget::signalStrengthChanged(int strength)
 {
     QString themeIcon = KS_ICON_WIRELESS_PREFIX;
@@ -293,7 +245,7 @@ void WirelessConnectionWidget::signalStrengthChanged(int strength)
     else if (75 <= strength && strength <= 100)
         themeIcon += "3";
 
-    KLOG_INFO(LCSettingbar) << "wireless signal strength changed" << m_ssid << strength;
+    KLOG_DEBUG(LCSettingbar) << "wireless signal strength changed" << m_ssid << strength;
 
     m_ui->toolButtonSignalStrength->setIcon(QIcon::fromTheme(themeIcon));
 }
@@ -303,14 +255,14 @@ void WirelessConnectionWidget::updateShowStatus()
     //    KLOG_INFO() << "WirelessConnectionWidget::updateShowStatus" << m_status;
     switch (m_status)
     {
-    case NetStatus::LOADING:
+    case NetShowState::LOADING:
         m_loadingLabel->setVisible(true);
         m_connectStatu->setVisible(false);
         m_ui->layoutNetStatu->removeWidget(m_connectStatu);
         m_ui->layoutNetStatu->addWidget(m_loadingLabel);
         m_ui->toolButtonDisconnect->setVisible(false);
         break;
-    case NetStatus::CONNECTED:
+    case NetShowState::CONNECTED:
         m_loadingLabel->setVisible(false);
         m_connectStatu->setIcon(m_connectedIcon);
         m_connectStatu->setVisible(true);

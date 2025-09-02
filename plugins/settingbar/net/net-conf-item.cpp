@@ -117,10 +117,7 @@ void NetConfItem::updateNetworkStatus()
     }
 
     setActive(isActive);
-
-    m_connectTreeWidget->updateNetworkStatus();
     emit enableNetwork(!devices.isEmpty());
-
     update();
 }
 

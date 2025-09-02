@@ -18,7 +18,6 @@
 #include <NetworkManagerQt/Device>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/WirelessDevice>
-#include <QInputDialog>
 #include <thread>
 
 #include "lib/common/logging-category.h"
@@ -81,8 +80,6 @@ void WirelessManager::updateNetworkStatus()
         }
         RemoveFromManager(uni);
     }
-
-    emit netStatusChanged();
 }
 
 WirelessManager &WirelessManager::getInstance()
@@ -116,11 +113,11 @@ void WirelessManager::AddToManager(const QString &deviceUni)
                     emit networkDisappeared(deviceUni, ssid);
                 });
 
-        //        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
-        //                {
-        //                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
-        //                    emit stateChanged(deviceUni, newstate);
-        //                });
+        connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
+                {
+                    KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
+                    emit stateChanged(deviceUni, newstate);
+                });
 
         for (const auto &networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())
         {
