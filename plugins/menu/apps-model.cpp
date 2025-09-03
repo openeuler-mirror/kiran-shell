@@ -141,6 +141,7 @@ void AppsModel::filter(AppNode *searchResult, const QString &searchKey, AppNode 
         bool match = false;
         QString appName = child->data(AppsModel::NameRole).toString();
         QString untranslatedName = child->data(AppsModel::UntranslatedNameRole).toString();
+        QString appId = child->data(AppsModel::IdRole).toString();
         if (appName.contains(searchKey, Qt::CaseInsensitive))
         {
             match = true;
@@ -161,10 +162,12 @@ void AppsModel::filter(AppNode *searchResult, const QString &searchKey, AppNode 
                 }
             }
         }
-        if (match)
+
+        // 不添加重复搜索项,新应用会存在于两个节点下
+        if (match & !storageIds.contains(appId))
         {
             AppNode::createNode(child->data(), searchResult);
-            storageIds << child->data(AppsModel::IdRole).toString();
+            storageIds << appId;
         }
     }
 }
