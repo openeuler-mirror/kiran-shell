@@ -18,10 +18,11 @@
 #include <KActivities/Stats/ResultWatcher>
 #include <KService/KService>
 #include <QFile>
-#include <QFileIconProvider>
 #include <QIcon>
 #include <QThread>
 #include <QTimer>
+#include <QFileInfo>
+#include <QMimeDatabase>
 #include "lib/common/logging-category.h"
 
 namespace KAStats = KActivities::Stats;
@@ -65,12 +66,20 @@ void RecentFilesLoader::loadData()
     for (const ResultSet::Result &result : ResultSet(query))
     {
         QString filePath = QUrl(result.resource()).path();
-        if (!QFile::exists(filePath) || QFileInfo(filePath).isDir())
+        QFileInfo fileInfo(filePath);
+        if (!QFile::exists(filePath) || fileInfo.isDir())
         {
             continue;
         }
 
-        QIcon icon = QFileIconProvider().icon(QFileInfo(filePath));
+        // 查询文件MimeType，根据MimeType尝试加载Freedesktop图标名
+        auto mimeType = QMimeDatabase().mimeTypeForFile(fileInfo);
+        auto icon = QIcon::fromTheme(mimeType.iconName());
+        if( icon.isNull() )
+        {
+            // fallback 通用类型图标名
+            icon = QIcon::fromTheme(mimeType.genericIconName());
+        }
 
         QMap<int, QVariant> fileData;
         fileData.insert(RecentFilesModel::FileNameRole, result.title());
