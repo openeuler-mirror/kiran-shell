@@ -36,7 +36,7 @@ class netTreeWidget : public QTreeWidget
 public:
     netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *parent = nullptr);
 
-    void updateNetworkStatus();
+    void updateDeviceList();
 
 private:
     // 更新各类信息
@@ -46,13 +46,13 @@ private:
 
     // 有线网络接入点变化
     void wiredNetworkAppeared(const QString &deviceUni, const QString &connectionUuid);
-    void wiredNetworkDisappeared(const QString &deviceUni, const QString &connectionUuid);
+    void wiredNetworkDisappeared(const QString &deviceUni);
 
     // 无线网络接入点变化
     void wirelessNetworkAppeared(const QString &deviceUni, const QString &ssid);
     void wirelessNetworkDisappeared(const QString &deviceUni, const QString &ssid);
 
-    void removeConnection(const QString &deviceUni, const QString &connectUuid);
+    void removeConnection(const QString &deviceUni, const QString &connectUuid = "");
 
     // 连接状态变化
     void updateActiveStatus(const QString &deviceUni, NetworkManager::Device::State state);
