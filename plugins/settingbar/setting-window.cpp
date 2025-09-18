@@ -204,6 +204,8 @@ void SettingWindow::showEvent(QShowEvent *event)
     // 任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
 
+    exitOnlyShow();
+
     QDialog::showEvent(event);
 }
 
@@ -275,7 +277,7 @@ void SettingWindow::on_toolButtonVolumeSetting_clicked()
 void SettingWindow::on_toolButtonBrightness_clicked()
 {
     KLOG_INFO(LCSettingbar) << "start detached: kiran-control-panel -c power-management";
-    QProcess::startDetached("kiran-control-panel", {"-c","power-management"});
+    QProcess::startDetached("kiran-control-panel", {"-c", "power-management"});
 }
 
 void SettingWindow::on_toolButtonBattery_clicked()

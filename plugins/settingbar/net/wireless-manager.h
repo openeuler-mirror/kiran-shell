@@ -57,13 +57,15 @@ private:
     void changeActiveConnection();
 
     // 更新设备管理列表
-    void updateNetworkStatus();
+    void updateDeviceList();
 
     // 无线管理
     void AddToManager(const QString& deviceUni);
     void RemoveFromManager(const QString& deviceUni);
 
 signals:
+    void deviceListChanged();
+
     // 无线连接点变化
     void networkAppeared(QString deviceUni, QString ssid);
     void networkDisappeared(QString deviceUni, QString ssid);

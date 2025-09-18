@@ -38,7 +38,7 @@ private:
     explicit WiredManager(QObject* parent = nullptr);
 
     // 更新设备管理列表
-    void updateNetworkStatus();
+    void updateDeviceList();
 
     // 有线管理
     void AddToManager(const QString& deviceUni);
@@ -47,9 +47,11 @@ private:
     void changeActiveConnection();
 
 signals:
+    void deviceListChanged();
+
     // 有线连接点变化
     void availableConnectionAppeared(QString deviceUni, QString connectionUuid);
-    void availableConnectionDisappeared(QString deviceUni, QString connectionUuid);
+    void availableConnectionDisappeared(QString deviceUni);
 
     // 设备状态
     void stateChanged(QString deviceUni, NetworkManager::Device::State state);
