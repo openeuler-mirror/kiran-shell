@@ -29,11 +29,11 @@ namespace SettingBar
 WiredManager::WiredManager(QObject *parent)
     : QObject{parent}
 {
-    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WiredManager::updateNetworkStatus);
-    updateNetworkStatus();
+    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WiredManager::updateDeviceList);
+    updateDeviceList();
 }
 
-void WiredManager::updateNetworkStatus()
+void WiredManager::updateDeviceList()
 {
     QStringList currentDeviceUnis;
     NetworkManager::Device::List devices = NetCommonInstance.getEthernetDevices();
@@ -42,6 +42,7 @@ void WiredManager::updateNetworkStatus()
         currentDeviceUnis.append(device->uni());
     }
 
+    bool isChanged = false;
     for (const auto &uni : currentDeviceUnis)
     {
         if (m_deviceUnis.contains(uni))
@@ -49,6 +50,7 @@ void WiredManager::updateNetworkStatus()
             continue;
         }
         AddToManager(uni);
+        isChanged = true;
     }
 
     for (auto uni : m_deviceUnis)
@@ -58,6 +60,12 @@ void WiredManager::updateNetworkStatus()
             continue;
         }
         RemoveFromManager(uni);
+        isChanged = true;
+    }
+
+    if (isChanged)
+    {
+        emit deviceListChanged();
     }
 }
 
@@ -91,8 +99,8 @@ void WiredManager::AddToManager(const QString &deviceUni)
 
         connect(device.data(), &NetworkManager::Device::availableConnectionDisappeared, [this, deviceUni](const QString &connectionPath)
                 {
-                    auto connection = NetworkManager::findConnection(connectionPath);
-                    emit availableConnectionDisappeared(deviceUni, connection->uuid());
+                    // 此时找不到connection uuid
+                    emit availableConnectionDisappeared(deviceUni);
                 });
         // 这个信号捕获不到 连接已active，设备active了，连接仍未active，需要NetworkManager::Device::activeConnectionChanged
         connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)

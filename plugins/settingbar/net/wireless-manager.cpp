@@ -35,8 +35,8 @@ WirelessManager::WirelessManager(QObject *parent)
     m_secretAgent = new NMSecretAgent(this);
     connect(m_secretAgent, &NMSecretAgent::requestPassword, this, &WirelessManager::requestPassword);
 
-    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WirelessManager::updateNetworkStatus);
-    updateNetworkStatus();
+    connect(&NetCommonInstance, &NetCommon::netStatusChanged, this, &WirelessManager::updateDeviceList);
+    updateDeviceList();
 }
 
 void WirelessManager::changeActiveConnection()
@@ -54,7 +54,7 @@ void WirelessManager::changeActiveConnection()
     }
 }
 
-void WirelessManager::updateNetworkStatus()
+void WirelessManager::updateDeviceList()
 {
     QStringList currentDeviceUnis;
     NetworkManager::Device::List devices = NetCommonInstance.getWifiDevices();
@@ -63,6 +63,7 @@ void WirelessManager::updateNetworkStatus()
         currentDeviceUnis.append(device->uni());
     }
 
+    bool isChanged = false;
     for (const auto &uni : currentDeviceUnis)
     {
         if (m_deviceManagerMap.contains(uni))
@@ -70,6 +71,7 @@ void WirelessManager::updateNetworkStatus()
             continue;
         }
         AddToManager(uni);
+        isChanged = true;
     }
 
     for (const auto &uni : m_deviceManagerMap.keys())
@@ -79,6 +81,12 @@ void WirelessManager::updateNetworkStatus()
             continue;
         }
         RemoveFromManager(uni);
+        isChanged = true;
+    }
+
+    if (isChanged)
+    {
+        emit deviceListChanged();
     }
 }
 
