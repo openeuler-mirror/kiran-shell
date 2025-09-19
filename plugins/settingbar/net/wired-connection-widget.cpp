@@ -64,6 +64,12 @@ WiredConnectionWidget::~WiredConnectionWidget()
 void WiredConnectionWidget::updateStatus()
 {
     NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(m_connectionUuid);
+    if (connection.isNull())
+    {
+        // 如果连接被删除，当收到 Device Deactivating 信号时，连接已找不到
+        // 这里不需要处理，后续会有其他信号处理连接删除
+        return;
+    }
     QString connectionName = connection->name();
     m_ui->labelName->setShowText(connectionName);
 
