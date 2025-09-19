@@ -183,16 +183,22 @@ bool Panel::event(QEvent *event)
 void Panel::init()
 {
     // 主屏变化
-    connect(qGuiApp, &QGuiApplication::primaryScreenChanged, this,
-            &Panel::updateLayout);
+    connect(qGuiApp, &QGuiApplication::primaryScreenChanged, this, [this]()
+            {
+                // 尝试重新连接到新的当前屏幕
+                connectToCurrentScreen();
+                updateLayout();
+            });
 
-    // 分辨率变化
-    connect(getScreen(), &QScreen::geometryChanged, this,
-            &Panel::updateLayout);
+    // 初始连接到当前屏幕
+    connectToCurrentScreen();
 
     // 布局方向变化
-    connect(m_profilePanel, &ProfilePanel::monitorChanged, this,
-            &Panel::updateLayout);
+    connect(m_profilePanel, &ProfilePanel::monitorChanged, this, [this]()
+            {
+                connectToCurrentScreen();  // 面板中显示器配置变化时重新连接
+                updateLayout();
+            });
     connect(m_profilePanel, &ProfilePanel::sizeChanged, this,
             &Panel::updateLayout);
     connect(m_profilePanel, &ProfilePanel::orientationChanged, this,
@@ -584,6 +590,23 @@ bool Panel::isMouseInsideWidgetTree(QWidget *widget)
     }
 
     return false;  // 如果没有控件包含鼠标位置，返回 false
+}
+
+void Panel::connectToCurrentScreen()
+{
+    // 更新面板配置屏幕信息，重新连接感知屏幕大小位置变化
+    if (m_screenConnection)
+    {
+        disconnect(m_screenConnection);
+    }
+
+    QScreen *currentScreen = getScreen();
+    if (currentScreen)
+    {
+        m_screenConnection = connect(currentScreen, &QScreen::geometryChanged, this,
+                                     &Panel::updateLayout);
+        KLOG_DEBUG(LCShell) << getUID() << "Connected to screen geometry changes for screen: " << currentScreen->name();
+    }
 }
 
 }  // namespace Kiran
