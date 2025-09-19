@@ -326,11 +326,16 @@ void Window::runApp(QString appId)
         return;
     }
 
-    KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
     // 启动应用
+    KLOG_INFO(LCMenu) << "Running app: " << appId << " with exec: " << service->exec();
     Common::appLauncher(service);
 
     NewAppsManager::getInstance().markAppsAsRead(QSet<QString>() << appId);
+
+    // 单靠窗口非激活时发出Window::windowDeactivated，触发Applet::hideMenu隐藏菜单, 不够完善
+    // 可能有些应用没弹窗(例如:托盘程序)，导致点击应用启动，但是开始菜单不会消失(#90606)
+    // 此处修改为启动应用后，直接隐藏开始菜单
+    emit windowDeactivated();
 }
 
 void Window::openFile(QString filePath)
