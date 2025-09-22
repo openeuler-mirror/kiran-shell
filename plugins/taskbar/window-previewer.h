@@ -53,7 +53,6 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 signals:
-    void closeWindow(WId wid);
     void hideWindow();
 
 private:

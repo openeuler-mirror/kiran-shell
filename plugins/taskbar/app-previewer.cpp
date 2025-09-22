@@ -109,14 +109,6 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 void AppPreviewer::addWindow(WId wid)
 {
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
-    connect(m_mapWindowPreviewers[wid], &WindowPreviewer::closeWindow, [this](WId wid)
-            {
-                // 关闭窗口
-                WindowInfoHelper::closeWindow(wid);
-
-                m_widsCurrentShow.removeAll(wid);
-                showPreviewer(m_widsCurrentShow, m_triggerWidget);
-            });
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, [this]()
             {
                 setVisible(false);
