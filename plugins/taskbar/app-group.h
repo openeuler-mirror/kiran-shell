@@ -107,6 +107,10 @@ public:
     void removeWindow(WId wid);
     void changedActiveWindow(WId wid);
 
+    // 获取窗口关联的按钮
+    AppButton *getAppButtonByWId(WId wid);
+    WId getWidByAppButton(AppButton *appBtn);
+
     const AppInfo &getAppInfo();
     bool isLocked() const;
     void setLocked(bool lockFlag);
@@ -119,6 +123,8 @@ public:
 
     // 由父控件统一调用
     void updateLayout();
+
+    void showPreviewer(WId wid);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -134,7 +140,6 @@ private:
     void getRelationAppSize(int &size);
     void activeRelationApp();
 
-    void showPreviewer(WId wid);
     void changePreviewerShow(WId wid);
     void windowCloseAll();
 

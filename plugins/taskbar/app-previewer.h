@@ -37,6 +37,11 @@ public:
     void addWindow(WId wid);
     void removeWindow(WId wid);
 
+    QWidget *getTriggerWidget()
+    {
+        return m_triggerWidget;
+    };
+
 private:
     // 获取panel方向信息
     QBoxLayout::Direction getLayoutDirection();
@@ -70,7 +75,7 @@ private:
     QTimer *m_hideTimer;
 
     QList<WId> m_widsCurrentShow;
-    QWidget *m_triggerWidget;
+    QWidget *m_triggerWidget;  // 触发显示的widget
 };
 
 }  // namespace Taskbar
