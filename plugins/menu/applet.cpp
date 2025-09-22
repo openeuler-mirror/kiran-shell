@@ -130,6 +130,7 @@ void Applet::clickButton(bool checked)
 
 void Applet::showMenu()
 {
+    m_window->resetToDefaultView();
     m_window->show();
     m_appletButton->setEnabled(false);
     m_appletButton->setChecked(true);

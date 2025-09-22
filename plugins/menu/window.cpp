@@ -110,16 +110,16 @@ void Window::initUI()
     // 移除qt designer默认创建的widget
     clear(m_ui->widgetOverviewStack);
 
-    AppsOverview *appsOverview = new AppsOverview(this);
-    connect(appsOverview, &AppsOverview::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
-    connect(appsOverview, &AppsOverview::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
-    connect(appsOverview, &AppsOverview::addToFavorite, this, &Window::addToFavorite);
-    connect(appsOverview, &AppsOverview::removeFromFavorite, this, &Window::removeFromFavorite);
-    connect(appsOverview, &AppsOverview::addToFixedApps, this, &Window::addToFixedApps);
-    connect(appsOverview, &AppsOverview::removeFromFixedApps, this, &Window::removeFromFixedApps);
-    connect(appsOverview, &AppsOverview::addToDesktop, this, &Window::addToDesktop);
-    connect(appsOverview, &AppsOverview::runApp, this, &Window::runApp);
-    m_ui->widgetOverviewStack->addWidget(appsOverview);
+    m_appsOverview = new AppsOverview(this);
+    connect(m_appsOverview, &AppsOverview::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
+    connect(m_appsOverview, &AppsOverview::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
+    connect(m_appsOverview, &AppsOverview::addToFavorite, this, &Window::addToFavorite);
+    connect(m_appsOverview, &AppsOverview::removeFromFavorite, this, &Window::removeFromFavorite);
+    connect(m_appsOverview, &AppsOverview::addToFixedApps, this, &Window::addToFixedApps);
+    connect(m_appsOverview, &AppsOverview::removeFromFixedApps, this, &Window::removeFromFixedApps);
+    connect(m_appsOverview, &AppsOverview::addToDesktop, this, &Window::addToDesktop);
+    connect(m_appsOverview, &AppsOverview::runApp, this, &Window::runApp);
+    m_ui->widgetOverviewStack->addWidget(m_appsOverview);
 
     RecentFilesOverview *recentFilesOverview = new RecentFilesOverview(this);
     connect(recentFilesOverview, &RecentFilesOverview::fileItemClicked, this, &Window::openFile);
@@ -419,6 +419,17 @@ void Window::addToDesktop(const QString &appId)
         permissions |= QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther;
         QFile::setPermissions(destPath, permissions);
     }
+}
+
+void Window::resetToDefaultView()
+{
+    // 重置到默认界面：应用列表页面
+    m_ui->widgetOverviewStack->setCurrentIndex(0);
+    m_appsOverview->resetToDefaultView();
+    
+    // 重置按钮选择状态 - 选中应用列表按钮1
+    m_ui->btnAppsOverview->setChecked(true);
+    m_ui->btnRecentFilesOverview->setChecked(false);
 }
 
 void Window::updateUserInfo()
