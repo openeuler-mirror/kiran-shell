@@ -456,15 +456,35 @@ void Window::removeWindow(WId wid)
     {
         auto info = iter.key();
         auto *group = iter.value().first;
-        auto widList = iter.value().second;
+        auto &widList = iter.value().second;
+        auto appBtn = group->getAppButtonByWId(wid);
+
         group->removeWindow(wid);
         widList.removeAll(wid);
+        // 待显示为空
         if (widList.isEmpty())
         {
             m_mapAppGroupOpened.remove(info);
+            m_appPreviewer->hide();
+            return;
         }
 
-        m_appPreviewer->removeWindow(wid);
+        // 如果应用预览窗口在显示，则更新预览窗口
+        if (m_appPreviewer->isVisible())
+        {
+            auto triggerWidget = m_appPreviewer->getTriggerWidget();
+            if (appBtn == triggerWidget)
+            {
+                // 关闭的是触发预览的窗口，需要重新选定触发预览的窗口
+                group->showPreviewer(widList.first());
+            }
+            else
+            {
+                // 关闭的不是触发预览的窗口，则更新预览窗口内容即可
+                auto triggerWid = group->getWidByAppButton((AppButton *)triggerWidget);
+                group->showPreviewer(triggerWid);
+            }
+        }
     }
 }
 
