@@ -51,6 +51,23 @@ AppGroup::AppGroup(IAppletImport *import, QWidget *parent)
     m_buttonFixed->show();
 }
 
+AppButton *AppGroup::getAppButtonByWId(WId wid)
+{
+    return m_mapWidButton.contains(wid) ? m_mapWidButton[wid] : nullptr;
+}
+
+WId AppGroup::getWidByAppButton(AppButton *appBtn)
+{
+    for (auto wid : m_mapWidButton.keys())
+    {
+        if (m_mapWidButton[wid] == appBtn)
+        {
+            return wid;
+        }
+    }
+    return 0;
+}
+
 const AppInfo &AppGroup::getAppInfo()
 {
     return m_appInfo;
@@ -143,12 +160,13 @@ void AppGroup::showPreviewer(WId wid)
     if (!m_gsettings->get(TASKBAR_SCHEMA_KEY_SHOW_APP_NAME).toBool())
     {
         wids = m_mapWidButton.keys();
+        emit previewerShow(wids, this);
     }
     else
     {
         wids << wid;
+        emit previewerShow(wids, m_mapWidButton[wid]);
     }
-    emit previewerShow(wids, (QWidget *)sender());
 }
 
 void AppGroup::changePreviewerShow(WId wid)

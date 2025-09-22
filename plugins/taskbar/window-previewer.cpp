@@ -54,7 +54,8 @@ void WindowPreviewer::changedActiveWindow(WId wid)
 
 void WindowPreviewer::on_btnClose_clicked()
 {
-    emit closeWindow(m_wid);
+    WindowInfoHelper::closeWindow(m_wid);
+    setVisible(false);
 }
 void WindowPreviewer::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -80,7 +81,7 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
 
     m_menu->addAction(tr("Close window"), this, [=]()
                       {
-                          emit closeWindow(m_wid);
+                          on_btnClose_clicked();
                       });
 
     if (WindowInfoHelper::isMaximized(m_wid))
