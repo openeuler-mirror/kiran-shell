@@ -35,6 +35,7 @@ namespace Kiran
 {
 namespace Menu
 {
+class AppsOverview;
 class Window : public QDialog
 {
     Q_OBJECT
@@ -43,6 +44,8 @@ public:
     Window(QWidget* parent = nullptr);
     virtual ~Window();
 
+    // 重置界面到默认状态
+    void resetToDefaultView();
 public slots:
     void userInfoChanged(QDBusMessage msg);
 
@@ -95,6 +98,7 @@ signals:
 
 private:
     Ui::Window* m_ui;
+    AppsOverview* m_appsOverview = nullptr;
 
     // 常用应用 收藏夹 依赖kactivitymanagerd服务
     KActivities::Stats::ResultWatcher* m_actStatsWatcher = nullptr;

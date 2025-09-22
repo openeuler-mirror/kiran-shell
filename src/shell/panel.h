@@ -68,6 +68,8 @@ private:
     void updateAutoHide();
     bool isMouseInsideWidgetTree(QWidget* parentWidget);
 
+    void connectToCurrentScreen();
+
 signals:
     void panelProfileChanged() override;
 
@@ -89,5 +91,6 @@ private:
     bool m_isAutoHide = false;
     bool m_isFullShow = false;
     QTimer* m_leaveDetectTimer;
+    QMetaObject::Connection m_screenConnection;
 };
 }  // namespace Kiran

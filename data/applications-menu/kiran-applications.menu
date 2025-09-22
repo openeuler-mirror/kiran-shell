@@ -119,6 +119,7 @@
         <Not><Category>Utility</Category></Not>
         <Not><Category>Settings</Category></Not>
         <Not><Category>System</Category></Not>
+      </And>
     </Include>
   </Menu>
 
