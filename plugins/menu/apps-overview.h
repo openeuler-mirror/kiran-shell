@@ -38,6 +38,7 @@ public:
     AppsOverview(QWidget* parent = nullptr);
     ~AppsOverview() override;
 
+    void resetToDefaultView();
 protected:
     void showEvent(QShowEvent* event) override;
 

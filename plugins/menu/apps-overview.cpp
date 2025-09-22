@@ -59,6 +59,13 @@ AppsOverview::~AppsOverview()
     delete m_ui;
 }
 
+void AppsOverview::resetToDefaultView()
+{
+    m_ui->edit_search->clear();
+    m_ui->treeview_apps->setFilterText(QString());
+    m_ui->treeview_apps->scrollToTop();
+}
+
 void AppsOverview::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
