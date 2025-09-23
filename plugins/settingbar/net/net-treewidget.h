@@ -55,13 +55,13 @@ private:
     void removeConnection(const QString &deviceUni, const QString &connectUuid = "");
 
     // 连接状态变化
-    void updateActiveStatus(const QString &deviceUni, NetworkManager::Device::State state);
+    void updateDeviceStatus(const QString &deviceUni, NetworkManager::Device::State state);
     void activeConnectionStateChanged(const QString &deviceUni, NetworkManager::ActiveConnection::State state);
 
     void requestPassword(const QString &devicePath, const QString &ssid, bool wait);
 
 private:
-    QMap<QString, QPair<QTreeWidgetItem *, QWidget *>> m_deviceItems;                     // <device uuid,<>>
+    QMap<QString, QPair<QTreeWidgetItem *, DeviceWidget *>> m_deviceItems;                // <device uuid,<>>
     QMap<QString, QMap<QString, QPair<QTreeWidgetItem *, QWidget *>>> m_connectionItems;  // <device uuid, <connectuuid/ssid, <>>>
 
     NetworkManager::Device::Type m_netType;

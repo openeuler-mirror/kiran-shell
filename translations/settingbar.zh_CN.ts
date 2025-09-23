@@ -13,6 +13,11 @@
         <source>name</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../plugins/settingbar/net/device-widget.ui" line="34"/>
+        <source>(Unavailable)</source>
+        <translation>（不可用）</translation>
+    </message>
 </context>
 <context>
     <name>Kiran::SettingBar</name>
@@ -48,30 +53,30 @@
 <context>
     <name>Kiran::SettingBar::NetCommon</name>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="392"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="436"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="393"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="437"/>
         <source>network</source>
         <translation>网络</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="445"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="446"/>
         <source>Network unknow error</source>
         <translation>未知网络错误</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="446"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="448"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="447"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="449"/>
         <source>Network connected</source>
         <translation>网络已连接</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="447"/>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="449"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="448"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="450"/>
         <source>The network is connected, but you cannot access the Internet</source>
         <translation>网络已连接，但不能访问互联网</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/net-common.cpp" line="450"/>
+        <location filename="../plugins/settingbar/net/net-common.cpp" line="451"/>
         <source>Network disconnected</source>
         <translation>网络已断开</translation>
     </message>
@@ -108,18 +113,18 @@
 <context>
     <name>Kiran::SettingBar::WiredConnectionWidget</name>
     <message>
-        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="89"/>
         <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="93"/>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="97"/>
         <source>wired network</source>
         <translation>有线网络</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="89"/>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="93"/>
         <source>connected</source>
         <translation>已连接</translation>
     </message>
     <message>
-        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="93"/>
+        <location filename="../plugins/settingbar/net/wired-connection-widget.cpp" line="97"/>
         <source>disconnected</source>
         <translation>已断开</translation>
     </message>

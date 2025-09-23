@@ -54,6 +54,19 @@ void DeviceWidget::Init()
     updateInfo();
 }
 
+void DeviceWidget::setUnavailable(bool isUnavailable)
+{
+    if (isUnavailable)
+    {
+        // 当设备不可用时，没有可用的连接，暂时在设备后标注不可用
+        m_ui->labelUnavailable->setVisible(true);
+    }
+    else
+    {
+        m_ui->labelUnavailable->setVisible(false);
+    }
+}
+
 void DeviceWidget::updateInfo()
 {
     auto device = NetworkManager::findNetworkInterface(m_deviceUni);

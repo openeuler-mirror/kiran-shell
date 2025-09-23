@@ -39,6 +39,8 @@ public:
 
     void Init();
 
+    void setUnavailable(bool isUnavailable);
+
 private:
     void updateInfo();
 
