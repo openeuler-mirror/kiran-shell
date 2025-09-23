@@ -455,8 +455,8 @@ void Window::removeWindow(WId wid)
     if (iter != m_mapAppGroupOpened.end())
     {
         auto info = iter.key();
-        auto *group = iter.value().first;
-        auto &widList = iter.value().second;
+        auto *group = m_mapAppGroupOpened[info].first;
+        QList<WId> widList = m_mapAppGroupOpened[info].second;
         auto appBtn = group->getAppButtonByWId(wid);
 
         group->removeWindow(wid);
@@ -468,6 +468,7 @@ void Window::removeWindow(WId wid)
             m_appPreviewer->hide();
             return;
         }
+        m_mapAppGroupOpened[info].second = widList;
 
         // 如果应用预览窗口在显示，则更新预览窗口
         if (m_appPreviewer->isVisible())

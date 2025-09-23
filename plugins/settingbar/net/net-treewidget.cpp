@@ -103,7 +103,7 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         // 有线接入点变化信号
         connect(&WiredManagerInstance, &WiredManager::availableConnectionAppeared, this, &netTreeWidget::wiredNetworkAppeared);
         connect(&WiredManagerInstance, &WiredManager::availableConnectionDisappeared, this, &netTreeWidget::wiredNetworkDisappeared);
-        connect(&WiredManagerInstance, &WiredManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
+        connect(&WiredManagerInstance, &WiredManager::stateChanged, this, &netTreeWidget::updateDeviceStatus);
         connect(&WiredManagerInstance, &WiredManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
     }
     else if (NetworkManager::Device::Type::Wifi == m_netType)
@@ -112,7 +112,7 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         // 无线接入点变化信号
         connect(&WirelessManagerInstance, &WirelessManager::networkAppeared, this, &netTreeWidget::wirelessNetworkAppeared);
         connect(&WirelessManagerInstance, &WirelessManager::networkDisappeared, this, &netTreeWidget::wirelessNetworkDisappeared);
-        connect(&WirelessManagerInstance, &WirelessManager::stateChanged, this, &netTreeWidget::updateActiveStatus);
+        connect(&WirelessManagerInstance, &WirelessManager::stateChanged, this, &netTreeWidget::updateDeviceStatus);
         connect(&WirelessManagerInstance, &WirelessManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
         // 被动请求密码信号
         connect(&WirelessManagerInstance, &WirelessManager::requestPassword, this, &netTreeWidget::requestPassword);
@@ -180,7 +180,19 @@ void netTreeWidget::updateNetDevice(const QString &deviceUni)
     {
         // 添加有线连接
         auto device = NetworkManager::findNetworkInterface(deviceUni);
-        for (const auto &connection : device->availableConnections())
+        NetworkManager::Connection::List connections;
+
+        if (NetworkManager::Device::Unavailable < device->state())
+        {
+            connections = device->availableConnections();
+            m_deviceItems[deviceUni].second->setUnavailable(false);
+        }
+        else
+        {
+            m_deviceItems[deviceUni].second->setUnavailable(true);
+        }
+
+        for (const auto &connection : connections)
         {
             QString connectionUuid = connection->uuid();
             updateWiredConnection(deviceUni, connectionUuid);
@@ -343,7 +355,7 @@ void netTreeWidget::removeConnection(const QString &deviceUni, const QString &co
     }
 }
 
-void netTreeWidget::updateActiveStatus(const QString &deviceUni, NetworkManager::Device::State state)
+void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager::Device::State state)
 {
     if (!m_connectionItems.contains(deviceUni))
     {
@@ -352,6 +364,16 @@ void netTreeWidget::updateActiveStatus(const QString &deviceUni, NetworkManager:
     }
 
     KLOG_DEBUG(LCSettingbar) << "updateActiveStatus" << deviceUni << state;
+
+    if (NetworkManager::Device::Unavailable == state)  // 只需要处理Unavailable，state值小于Unavailable的已在上层过滤
+    {
+        m_deviceItems[deviceUni].second->setUnavailable(true);
+        return;
+    }
+    else
+    {
+        m_deviceItems[deviceUni].second->setUnavailable(false);
+    }
 
     for (const auto &connection : m_connectionItems[deviceUni])
     {
