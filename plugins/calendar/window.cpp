@@ -308,6 +308,8 @@ void Window::showDate(QDate date)
 
         m_ui->lunarYear->setText(strLunarYear);
         m_ui->lunarDay->setText(strLunar);
+        m_ui->monthSpinBox->setValue(date.month());
+        m_ui->yearSpinBox->setValue(date.year());
     }
     else
     {
