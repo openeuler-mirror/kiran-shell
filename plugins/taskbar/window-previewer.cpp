@@ -61,7 +61,8 @@ void WindowPreviewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
-        emit hideWindow();
+        // 保持与kiran-menu一致，点击状态栏预览图之后不隐藏状态栏预览图
+        // emit hideWindow();
 
         if (m_widLastActive != m_wid)
         {
