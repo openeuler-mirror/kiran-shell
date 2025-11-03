@@ -260,6 +260,10 @@ bool WindowInfoHelper::isOnCurrentDesktop(WId wid)
 
 QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
 {
+    // 优先直接使用KWindowInfo接口获取desktop file
+    // 其次通过cmdline匹配
+    // 最后查询KIRAN_SHELL_LAUNCHED_DESKTOP_FILE环境变量
+
     QByteArray desktopFile;
 
     KWindowInfo info(wid, NET::WMPid, NET::WM2DesktopFileName | NET::WM2WindowClass);
@@ -280,7 +284,8 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return "";
     }
 
-    desktopFile = getDesktopFileByEnviorn(pid);
+    QStringList classNames = {info.windowClassName(), info.windowClassClass()};
+    desktopFile = getDesktopFileByWmClass(classNames);
     if (!desktopFile.isEmpty())
     {
         return desktopFile;
@@ -292,8 +297,7 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
         return desktopFile;
     }
 
-    QStringList classNames = {info.windowClassName(), info.windowClassClass()};
-    desktopFile = getDesktopFileByWmClass(classNames);
+    desktopFile = getDesktopFileByEnviorn(pid);
     if (!desktopFile.isEmpty())
     {
         return desktopFile;
@@ -315,6 +319,9 @@ QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
     // 1.service->desktopEntryName()
     // 2.service->name()
     // 3.service->exec()
+
+    // 补充 StartupWMClass 匹配
+    // 当KService没有匹配成功时再尝试，例如通过chrome打开wps文档，使用的二进制不在上述三种情况之中 #100994
 
     auto allKService = KService::allServices();
 
@@ -367,6 +374,15 @@ QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
         auto exec_simple = exec.mid(0, exec.indexOf(" "));
 
         if (info == exec_simple || info.startsWith(exec_simple) || exec_simple.startsWith(info))
+        {
+            return service->entryPath().toLocal8Bit();
+        }
+    }
+
+    for (auto service : allKService)
+    {
+        auto startupWMClass = service->property(QStringLiteral("StartupWMClass")).toString();
+        if (info == startupWMClass)
         {
             return service->entryPath().toLocal8Bit();
         }
