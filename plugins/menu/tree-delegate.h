@@ -14,6 +14,7 @@
 #pragma once
 #include <kiran-integration/theme/palette.h>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyledItemDelegate>
 
 #include "lib/common/utility.h"
@@ -46,10 +47,9 @@ public:
     }
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
+        painter->setRenderHint(QPainter::Antialiasing, true);
         auto *palette = Kiran::Theme::Palette::getDefault();
-
-        // 文字颜色
-        painter->setPen(palette->getColor(Kiran::Theme::Palette::NORMAL, Kiran::Theme::Palette::TEXT));
+        painter->setPen(Qt::NoPen);
 
         QRect bgRect = option.rect;
         bgRect.adjust(0, 0, -8, 0);
@@ -57,14 +57,21 @@ public:
         if (option.state & QStyle::State_Selected)
         {
             QColor bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
-
-            painter->fillRect(bgRect, bgColor);
+            //            painter->fillRect(bgRect, bgColor);
+            painter->setBrush(bgColor);
+            QPainterPath path;
+            path.addRoundedRect(bgRect, 5, 5);
+            painter->drawPath(path);
         }
         // 鼠标移入底色
         if (option.state & QStyle::State_MouseOver)
         {
             QColor bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
-            painter->fillRect(bgRect, bgColor);
+            //            painter->fillRect(bgRect, bgColor);
+            painter->setBrush(bgColor);
+            QPainterPath path;
+            path.addRoundedRect(bgRect, 4, 4);
+            painter->drawPath(path);
         }
 
         QString text = index.data(Qt::DisplayRole).toString();
@@ -106,6 +113,8 @@ public:
         QRect textRect = baseRect;
         textRect.adjust(iconRect.right() - baseRect.x() + ICON_TEXT_MARGIN, 0, 0, 0);
         text = Utility::getElidedText(painter->fontMetrics(), text, textRect.width());
+        // 文字颜色
+        painter->setPen(palette->getColor(Kiran::Theme::Palette::NORMAL, Kiran::Theme::Palette::TEXT));
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
 };
