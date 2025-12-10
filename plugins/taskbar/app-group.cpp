@@ -134,6 +134,20 @@ void AppGroup::getRelationAppSize(int &size)
     }
 }
 
+bool AppGroup::isAlsoOpenedOnOtherDesktop()
+{
+    bool result = false;
+    for (auto wid : m_mapWidButton.keys())
+    {
+        if (!WindowInfoHelper::isOnCurrentDesktop(wid) && WindowInfoHelper::getDesktopOfWindow(wid) > 0)
+        {
+            result = true;
+            break;
+        }
+    }
+    return result;
+}
+
 void AppGroup::activeRelationApp()
 {
     // 当应用组在多个桌面分别打开了窗口，需要激活当前桌面的窗口
@@ -306,12 +320,28 @@ void AppGroup::removeWindow(WId wid)
 
     updateLayout();
 
+    // 这里如果是一次性关闭所有的窗口，会导致提前清空group
+    // 需要校验窗口是否已被关闭
     // 是否已空
     int size = 0;
     getRelationAppSize(size);
-    if (0 == size && !m_isLocked)
+    // 关联窗口为空
+    if (0 == size)
     {
-        emit emptyGroup(this);
+        // 未在其他桌面打开，剩余窗口不为空
+        // 说明剩余窗口也被关闭了，但资源还没回收：不需要处理，等待回收
+        if (!isAlsoOpenedOnOtherDesktop() && !m_mapWidButton.isEmpty())
+        {
+            return;
+        }
+        // 其他情况：
+        // 1. 在其他桌面打开（剩余窗口肯定不为空（故不存在false false））（上面的条件：false true）（当前桌面可以进入清理流程）
+        // 2. 未在其他桌面打开、剩余窗口为空 (上面的条件：true false)（当前桌面可以进入清理流程）
+        else if (!m_isLocked)
+        {
+            KLOG_INFO() << "empty group";
+            emit emptyGroup(this);
+        }
     }
 }
 

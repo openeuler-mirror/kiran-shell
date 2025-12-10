@@ -139,6 +139,8 @@ private:
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &size);
     void activeRelationApp();
+    // 确认在其他桌面是否有关联窗口
+    bool isAlsoOpenedOnOtherDesktop();
 
     void changePreviewerShow(WId wid);
     void windowCloseAll();
