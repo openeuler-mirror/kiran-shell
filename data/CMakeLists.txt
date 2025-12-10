@@ -26,3 +26,6 @@ install(
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/applications-menu/directories/
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/desktop-directories)
+
+install(FILES ${PROJECT_SOURCE_DIR}/data/tray-translation.ini
+        DESTINATION ${KS_INSTALL_DATADIR})
