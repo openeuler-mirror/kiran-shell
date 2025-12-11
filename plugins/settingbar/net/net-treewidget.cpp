@@ -23,6 +23,7 @@
 
 #include "device-widget.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/notify.h"
 #include "net-common.h"
 #include "net-treewidget.h"
 #include "wired-connection-widget.h"
@@ -355,7 +356,7 @@ void netTreeWidget::removeConnection(const QString &deviceUni, const QString &co
     }
 }
 
-void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager::Device::State state)
+void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager::Device::State state, NetworkManager::Device::StateChangeReason reason)
 {
     if (!m_connectionItems.contains(deviceUni))
     {
@@ -363,7 +364,9 @@ void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager:
         return;
     }
 
-    KLOG_DEBUG(LCSettingbar) << "updateActiveStatus" << deviceUni << state;
+    KLOG_INFO(LCSettingbar) << "updateActiveStatus" << deviceUni << state << reason;
+    auto device = NetworkManager::findNetworkInterface(deviceUni);
+    notifyDeviceState(device, state, reason);
 
     if (NetworkManager::Device::Unavailable == state)  // 只需要处理Unavailable，state值小于Unavailable的已在上层过滤
     {
@@ -423,6 +426,207 @@ void netTreeWidget::requestPassword(const QString &devicePath, const QString &ss
     {
         auto *netConnectionItem = (WirelessConnectionWidget *)m_connectionItems[devicePath][ssid].second;
         netConnectionItem->requestPassword();
+    }
+}
+
+void netTreeWidget::notifyDeviceState(const NetworkManager::Device::Ptr &device, NetworkManager::Device::State state, NetworkManager::Device::StateChangeReason reason)
+{
+    KLOG_INFO(LCSettingbar) << "notifyDeviceState" << state << reason;
+
+    const QString title = NetCommon::prettyInterfaceName(device->type(), device->interfaceName());
+
+    QString text;
+    if (state == NetworkManager::Device::Unavailable || state == NetworkManager::Device::Failed)
+    {
+        switch (reason)
+        {
+        case NetworkManager::Device::NoReason:
+        case NetworkManager::Device::UnknownReason:
+        case NetworkManager::Device::NowManagedReason:
+        case NetworkManager::Device::NowUnmanagedReason:
+            return;
+        case NetworkManager::Device::ConfigFailedReason:
+            text = tr("The device could not be configured");
+            break;
+        case NetworkManager::Device::ConfigUnavailableReason:
+            text = tr("IP configuration was unavailable");
+            break;
+        case NetworkManager::Device::ConfigExpiredReason:
+            text = tr("IP configuration expired");
+            break;
+        case NetworkManager::Device::NoSecretsReason:
+            text = tr("No secrets were provided");
+            break;
+        case NetworkManager::Device::AuthSupplicantDisconnectReason:
+            text = tr("Authorization supplicant disconnected");
+            break;
+        case NetworkManager::Device::AuthSupplicantConfigFailedReason:
+            text = tr("Authorization supplicant's configuration failed");
+            break;
+        case NetworkManager::Device::AuthSupplicantFailedReason:
+            text = tr("Authorization supplicant failed");
+            break;
+        case NetworkManager::Device::AuthSupplicantTimeoutReason:
+            text = tr("Authorization supplicant timed out");
+            break;
+        case NetworkManager::Device::PppStartFailedReason:
+            text = tr("PPP failed to start");
+            break;
+        case NetworkManager::Device::PppDisconnectReason:
+            text = tr("PPP disconnected");
+            break;
+        case NetworkManager::Device::PppFailedReason:
+            text = tr("PPP failed");
+            break;
+        case NetworkManager::Device::DhcpStartFailedReason:
+            text = tr("DHCP failed to start");
+            break;
+        case NetworkManager::Device::DhcpErrorReason:
+            text = tr("A DHCP error occurred");
+            break;
+        case NetworkManager::Device::DhcpFailedReason:
+            text = tr("DHCP failed");
+            break;
+        case NetworkManager::Device::SharedStartFailedReason:
+            text = tr("The shared service failed to start");
+            break;
+        case NetworkManager::Device::SharedFailedReason:
+            text = tr("The shared service failed");
+            break;
+        case NetworkManager::Device::AutoIpStartFailedReason:
+            text = tr("The auto IP service failed to start");
+            break;
+        case NetworkManager::Device::AutoIpErrorReason:
+            text = tr("The auto IP service reported an error");
+            break;
+        case NetworkManager::Device::AutoIpFailedReason:
+            text = tr("The auto IP service failed");
+            break;
+        case NetworkManager::Device::ModemBusyReason:
+            text = tr("The modem is busy");
+            break;
+        case NetworkManager::Device::ModemNoDialToneReason:
+            text = tr("The modem has no dial tone");
+            break;
+        case NetworkManager::Device::ModemNoCarrierReason:
+            text = tr("The modem shows no carrier");
+            break;
+        case NetworkManager::Device::ModemDialTimeoutReason:
+            text = tr("The modem dial timed out");
+            break;
+        case NetworkManager::Device::ModemDialFailedReason:
+            text = tr("The modem dial failed");
+            break;
+        case NetworkManager::Device::ModemInitFailedReason:
+            text = tr("The modem could not be initialized");
+            break;
+        case NetworkManager::Device::GsmApnSelectFailedReason:
+            text = tr("The GSM APN could not be selected");
+            break;
+        case NetworkManager::Device::GsmNotSearchingReason:
+            text = tr("The GSM modem is not searching");
+            break;
+        case NetworkManager::Device::GsmRegistrationDeniedReason:
+            text = tr("GSM network registration was denied");
+            break;
+        case NetworkManager::Device::GsmRegistrationTimeoutReason:
+            text = tr("GSM network registration timed out");
+            break;
+        case NetworkManager::Device::GsmRegistrationFailedReason:
+            text = tr("GSM registration failed");
+            break;
+        case NetworkManager::Device::GsmPinCheckFailedReason:
+            text = tr("The GSM PIN check failed");
+            break;
+        case NetworkManager::Device::FirmwareMissingReason:
+            text = tr("Device firmware is missing");
+            break;
+        case NetworkManager::Device::DeviceRemovedReason:
+            text = tr("The device was removed");
+            break;
+        case NetworkManager::Device::SleepingReason:
+            text = tr("The networking system is now sleeping");
+            break;
+        case NetworkManager::Device::ConnectionRemovedReason:
+            text = tr("The connection was removed");
+            break;
+        case NetworkManager::Device::UserRequestedReason:
+            return;
+        case NetworkManager::Device::CarrierReason:
+            text = tr("The cable was disconnected");
+            break;
+        case NetworkManager::Device::ConnectionAssumedReason:
+        case NetworkManager::Device::SupplicantAvailableReason:
+            return;
+        case NetworkManager::Device::ModemNotFoundReason:
+            text = tr("The modem could not be found");
+            break;
+        case NetworkManager::Device::BluetoothFailedReason:
+            text = tr("The bluetooth connection failed or timed out");
+            break;
+        case NetworkManager::Device::GsmSimNotInserted:
+            text = tr("GSM Modem's SIM Card not inserted");
+            break;
+        case NetworkManager::Device::GsmSimPinRequired:
+            text = tr("GSM Modem's SIM Pin required");
+            break;
+        case NetworkManager::Device::GsmSimPukRequired:
+            text = tr("GSM Modem's SIM Puk required");
+            break;
+        case NetworkManager::Device::GsmSimWrong:
+            text = tr("GSM Modem's SIM wrong");
+            break;
+        case NetworkManager::Device::InfiniBandMode:
+            text = tr("InfiniBand device does not support connected mode");
+            break;
+        case NetworkManager::Device::DependencyFailed:
+            text = tr("A dependency of the connection failed");
+            break;
+        case NetworkManager::Device::Br2684Failed:
+            text = tr("Problem with the RFC 2684 Ethernet over ADSL bridge");
+            break;
+        case NetworkManager::Device::ModemManagerUnavailable:
+            text = tr("ModemManager not running");
+            break;
+        case NetworkManager::Device::SsidNotFound:
+            return;
+        case NetworkManager::Device::SecondaryConnectionFailed:
+            text = tr("A secondary connection of the base connection failed");
+            break;
+        case NetworkManager::Device::DcbFcoeFailed:
+            text = tr("DCB or FCoE setup failed");
+            break;
+        case NetworkManager::Device::TeamdControlFailed:
+            text = tr("teamd control failed");
+            break;
+        case NetworkManager::Device::ModemFailed:
+            text = tr("Modem failed or no longer available");
+            break;
+        case NetworkManager::Device::ModemAvailable:
+            text = tr("Modem now ready and available");
+            break;
+        case NetworkManager::Device::SimPinIncorrect:
+            text = tr("The SIM PIN was incorrect");
+            break;
+        case NetworkManager::Device::NewActivation:
+            text = tr("A new connection activation was enqueued");
+            break;
+        case NetworkManager::Device::ParentChanged:
+            text = tr("The device's parent changed");
+            break;
+        case NetworkManager::Device::ParentManagedChanged:
+            text = tr("The device parent's management changed");
+            break;
+        case NetworkManager::Device::Reserved:
+            return;
+        }
+    }
+
+    KLOG_INFO(LCSettingbar) << "notifyDeviceState" << title << text;
+
+    if (!text.isEmpty())
+    {
+        Common::generalNotify(title, text);
     }
 }
 

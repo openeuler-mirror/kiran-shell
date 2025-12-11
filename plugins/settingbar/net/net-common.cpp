@@ -423,6 +423,38 @@ NetShowState NetCommon::coverDeviceStateToNetShowState(NetworkManager::Device::S
     }
 }
 
+QString NetCommon::prettyInterfaceName(const NetworkManager::Device::Type &type, const QString &interfaceName)
+{
+    QString ret;
+    switch (type)
+    {
+    case NetworkManager::Device::Wifi:
+        ret = tr("Wireless Interface (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Ethernet:
+        ret = tr("Wired Interface (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Bluetooth:
+        ret = tr("Bluetooth (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Modem:
+        ret = tr("Modem (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Adsl:
+        ret = tr("ADSL (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Vlan:
+        ret = tr("VLan (%1)").arg(interfaceName);
+        break;
+    case NetworkManager::Device::Bridge:
+        ret = tr("Bridge (%1)").arg(interfaceName);
+        break;
+    default:
+        ret = interfaceName;
+    }
+    return ret;
+}
+
 void NetCommon::processPendingCallFinished(QDBusPendingCallWatcher *watcher)
 {
     auto reply = watcher->reply();
