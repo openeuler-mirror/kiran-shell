@@ -98,7 +98,9 @@ void WirelessDialog::showEvent(QShowEvent* event)
 
 void WirelessDialog::moveTocenterOnScreen()
 {
-    QScreen* screen = QApplication::primaryScreen();
+    // 移动到鼠标所在屏幕中心
+    QPoint cursorPos = QCursor::pos();
+    QScreen* screen = QApplication::screenAt(cursorPos);
     if (screen)
     {
         QRect screenGeometry = screen->geometry();
