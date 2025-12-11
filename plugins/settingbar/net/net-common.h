@@ -79,6 +79,8 @@ public:
 
     static NetShowState coverDeviceStateToNetShowState(NetworkManager::Device::State state);
 
+    static QString prettyInterfaceName(const NetworkManager::Device::Type& type, const QString& interfaceName);
+
 private:
     NetCommon();
 
