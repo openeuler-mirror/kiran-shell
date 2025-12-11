@@ -14,6 +14,10 @@
 
 #include "wireless-dialog.h"
 
+#include <QApplication>
+#include <QScreen>
+#include <QShowEvent>
+
 namespace Kiran
 {
 namespace SettingBar
@@ -84,6 +88,25 @@ bool WirelessDialog::checkValid(const QString& text)
 
 void WirelessDialog::init()
 {
+}
+
+void WirelessDialog::showEvent(QShowEvent* event)
+{
+    KiranInputDialog::showEvent(event);
+    moveTocenterOnScreen();
+}
+
+void WirelessDialog::moveTocenterOnScreen()
+{
+    QScreen* screen = QApplication::primaryScreen();
+    if (screen)
+    {
+        QRect screenGeometry = screen->geometry();
+        QRect dialogRect = frameGeometry();
+        int x = screenGeometry.x() + (screenGeometry.width() - dialogRect.width()) / 2;
+        int y = screenGeometry.y() + (screenGeometry.height() - dialogRect.height()) / 2;
+        move(x, y);
+    }
 }
 
 }  // namespace SettingBar

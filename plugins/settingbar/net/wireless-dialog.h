@@ -35,10 +35,14 @@ public:
     static bool getNetworkPasswd(QWidget* w, const QString& title, const QString& ssid, QString& passwd);
     static bool getHiddenNetworkSsid(QWidget* w, QString& ssid);
 
+protected:
+    void showEvent(QShowEvent* event) override;
+
 private:
     WirelessDialog(DialogType type, QWidget* parent = nullptr);
     void init();
     bool checkValid(const QString& text) override;
+    void moveTocenterOnScreen();
 
 private:
     DialogType m_type;
