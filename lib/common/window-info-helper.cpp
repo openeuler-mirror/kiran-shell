@@ -14,10 +14,13 @@
 
 #include <qt5-log-i.h>
 #include <KService/KService>
+#include <KSycoca>
 #include <KWindowInfo>
 #include <KWindowSystem/NETWM>
 #include <KWindowSystem>
 #include <QFileInfo>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QWindow>
 #include <QtX11Extras/QX11Info>
 
@@ -30,6 +33,15 @@
 static const NET::Properties windowInfoFlags =
     NET::WMState | NET::XAWMState | NET::WMDesktop | NET::WMVisibleName | NET::WMGeometry | NET::WMFrameExtents | NET::WMWindowType | NET::WMPid;
 static const NET::Properties2 windowInfoFlags2 = NET::WM2DesktopFileName | NET::WM2Activities | NET::WM2WindowClass | NET::WM2AllowedActions | NET::WM2AppMenuObjectPath | NET::WM2AppMenuServiceName | NET::WM2GTKApplicationId;
+
+// KService 缓存静态成员初始化
+QMap<QString, QByteArray> WindowInfoHelper::s_desktopEntryNameMap;
+QMap<QString, QByteArray> WindowInfoHelper::s_serviceNameMap;
+QMap<QString, QByteArray> WindowInfoHelper::s_execMap;
+QMap<QString, QByteArray> WindowInfoHelper::s_execSimpleMap;
+QMap<QString, QByteArray> WindowInfoHelper::s_startupWMClassMap;
+bool WindowInfoHelper::s_serviceCacheInitialized = false;
+QMutex WindowInfoHelper::s_cacheMutex;
 
 QUrl WindowInfoHelper::getUrlByWId(WId wid)
 {
@@ -308,6 +320,200 @@ QByteArray WindowInfoHelper::getUrlByWIdPrivate(WId wid)
     return desktopFile;
 }
 
+void WindowInfoHelper::initServiceCache()
+{
+    QMutexLocker locker(&s_cacheMutex);
+
+    if (s_serviceCacheInitialized)
+    {
+        return;
+    }
+
+    // 确保 KSycoca 缓存有效
+    KSycoca::self()->ensureCacheValid();
+
+    // 连接 KSycoca 数据库变化信号，自动重新加载缓存
+    static bool signalConnected = false;
+    if (!signalConnected)
+    {
+        connect(KSycoca::self(), QOverload<>::of(&KSycoca::databaseChanged),
+                []()
+                {
+                    KLOG_DEBUG(LCLib) << "KSycoca database changed, reloading service cache";
+                    reloadServiceCache();
+                });
+        signalConnected = true;
+    }
+
+    // 已经在锁保护下，调用不获取锁的版本
+    reloadServiceCacheUnlocked();
+}
+
+void WindowInfoHelper::reloadServiceCache()
+{
+    QMutexLocker locker(&s_cacheMutex);
+    reloadServiceCacheUnlocked();
+}
+
+void WindowInfoHelper::reloadServiceCacheUnlocked()
+{
+    // 注意：此函数必须在锁保护下调用，不自己获取锁
+
+    // 清空现有缓存
+    s_desktopEntryNameMap.clear();
+    s_serviceNameMap.clear();
+    s_execMap.clear();
+    s_execSimpleMap.clear();
+    s_startupWMClassMap.clear();
+
+    KLOG_INFO(LCLib) << "Loading KService cache...";
+    const auto allKService = KService::allServices();
+
+    for (const auto& service : allKService)
+    {
+        const QByteArray entryPath = service->entryPath().toLocal8Bit();
+        if (entryPath.isEmpty())
+        {
+            continue;
+        }
+
+        // 第一级：desktopEntryName
+        const QString desktopEntryName = service->desktopEntryName();
+        if (!desktopEntryName.isEmpty())
+        {
+            // 使用 insert 而不是 []，避免不必要的默认构造
+            s_desktopEntryNameMap.insert(desktopEntryName, entryPath);
+        }
+
+        // 第二级：name
+        const QString serviceName = service->name();
+        if (!serviceName.isEmpty())
+        {
+            s_serviceNameMap.insert(serviceName, entryPath);
+        }
+
+        // 第三级：exec (完整和简化版本)
+        const QString exec = service->exec();
+        if (!exec.isEmpty())
+        {
+            // 如果 exec 已存在，保留第一个（保持与原代码行为一致）
+            if (!s_execMap.contains(exec))
+            {
+                s_execMap.insert(exec, entryPath);
+            }
+
+            // exec_simple: 取 exec 的第一个空格前的部分
+            const int spacePos = exec.indexOf(' ');
+            const QString execSimple = (spacePos > 0) ? exec.left(spacePos) : exec;
+            if (!execSimple.isEmpty())
+            {
+                // 如果 execSimple 已存在，保留第一个（保持与原代码行为一致）
+                if (!s_execSimpleMap.contains(execSimple))
+                {
+                    s_execSimpleMap.insert(execSimple, entryPath);
+                }
+            }
+        }
+
+        // 第四级：StartupWMClass
+        const QString startupWMClass = service->property(QStringLiteral("StartupWMClass")).toString();
+        if (!startupWMClass.isEmpty())
+        {
+            s_startupWMClassMap.insert(startupWMClass, entryPath);
+        }
+    }
+
+    s_serviceCacheInitialized = true;
+    KLOG_INFO(LCLib) << "KService cache loaded. "
+                     << "desktopEntryName:" << s_desktopEntryNameMap.size()
+                     << "serviceName:" << s_serviceNameMap.size()
+                     << "exec:" << s_execMap.size()
+                     << "execSimple:" << s_execSimpleMap.size()
+                     << "startupWMClass:" << s_startupWMClassMap.size();
+}
+
+QByteArray WindowInfoHelper::queryFromCache(const QString& info)
+{
+    // 按优先级一级一级查找，不能在一个循环中做所有的查找，不然优先级低的可能会先命中
+    // 为什么？：desktopEntryName只能是唯一的，其他字段不同软件可能会相同，我们按 name exec 的顺序排列优先级
+    // 1.service->desktopEntryName()
+    // 2.service->name()
+    // 3.service->exec()
+    // 4.StartupWMClass
+    // StartupWMClass当KService没有匹配成功时再尝试，例如通过chrome打开wps文档，使用的二进制不在上述三种情况之中 #100994
+
+    // 按优先级一级一级查询
+    // 第一级：desktopEntryName
+    auto it = s_desktopEntryNameMap.constFind(info);
+    if (it != s_desktopEntryNameMap.constEnd())
+    {
+        return it.value();
+    }
+
+    // 第二级：name
+    it = s_serviceNameMap.constFind(info);
+    if (it != s_serviceNameMap.constEnd())
+    {
+        return it.value();
+    }
+
+    // 第三级：exec (完整匹配)
+    it = s_execMap.constFind(info);
+    if (it != s_execMap.constEnd())
+    {
+        return it.value();
+    }
+
+    // 第三级：exec_simple (精确匹配或前缀匹配)
+    // 优化：使用 const_iterator 和提前计算字符串长度，避免重复比较
+    const int infoLength = info.length();
+    for (auto mapIt = s_execSimpleMap.constBegin(); mapIt != s_execSimpleMap.constEnd(); ++mapIt)
+    {
+        const QString& execSimple = mapIt.key();
+        const int execSimpleLength = execSimple.length();
+
+        // 精确匹配
+        if (info == execSimple)
+        {
+            return mapIt.value();
+        }
+
+        // 前缀匹配：info 以 execSimple 开头，或 execSimple 以 info 开头
+        if ((execSimpleLength > 0 && infoLength >= execSimpleLength && info.startsWith(execSimple)) ||
+            (infoLength > 0 && execSimpleLength >= infoLength && execSimple.startsWith(info)))
+        {
+            return mapIt.value();
+        }
+    }
+
+    // 第四级：StartupWMClass
+    it = s_startupWMClassMap.constFind(info);
+    if (it != s_startupWMClassMap.constEnd())
+    {
+        return it.value();
+    }
+
+    return QByteArray();
+}
+
+QByteArray WindowInfoHelper::findDesktopFileByInfo(const QString& info)
+{
+    // 确保缓存已初始化
+    if (!s_serviceCacheInitialized)
+    {
+        initServiceCache();
+    }
+
+    // 查询缓存
+    QByteArray result;
+    {
+        QMutexLocker locker(&s_cacheMutex);
+        result = queryFromCache(info);
+    }
+
+    return result;
+}
+
 QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
 {
     if (info.isEmpty())
@@ -315,79 +521,14 @@ QByteArray WindowInfoHelper::getDesktopFileByInfoStr(QString info)
         return "";
     }
 
-    // 按优先级一遍一遍过滤，不能在一个循环中做所有的过滤，不然优先级低的可能会命中
-    // 1.service->desktopEntryName()
-    // 2.service->name()
-    // 3.service->exec()
-
-    // 补充 StartupWMClass 匹配
-    // 当KService没有匹配成功时再尝试，例如通过chrome打开wps文档，使用的二进制不在上述三种情况之中 #100994
-
-    auto allKService = KService::allServices();
-
-    for (auto service : allKService)
+    // 使用缓存进行快速查询
+    QByteArray result = findDesktopFileByInfo(info);
+    if (!result.isEmpty())
     {
-        auto desktopEntryName = service->desktopEntryName();
-        if (desktopEntryName.isEmpty())
-        {
-            continue;
-        }
-        if (info == desktopEntryName)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
+        return result;
     }
 
-    for (auto service : allKService)
-    {
-        auto serviceName = service->name();
-        if (serviceName.isEmpty())
-        {
-            continue;
-        }
-        if (info == serviceName)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
-    for (auto service : allKService)
-    {
-        auto exec = service->exec();
-        if (exec.isEmpty())
-        {
-            continue;
-        }
-        if (info == exec)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
-    for (auto service : allKService)
-    {
-        auto exec = service->exec();
-        if (exec.isEmpty())
-        {
-            continue;
-        }
-        auto exec_simple = exec.mid(0, exec.indexOf(" "));
-
-        if (info == exec_simple || info.startsWith(exec_simple) || exec_simple.startsWith(info))
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
-    for (auto service : allKService)
-    {
-        auto startupWMClass = service->property(QStringLiteral("StartupWMClass")).toString();
-        if (info == startupWMClass)
-        {
-            return service->entryPath().toLocal8Bit();
-        }
-    }
-
+    // 如果缓存中没有找到，返回空
     return "";
 }
 
