@@ -71,10 +71,17 @@ private:
     QIcon mergeIcons(const QIcon &icon1, const QIcon &icon2);
     void updateIconShow();
 
+    // 翻译相关静态方法
+    static QString translateText(const QString &text);
+    static void loadTranslation();
+
 signals:
     void startDrag(TrayItem *);
 
 private:
+    // 静态翻译缓存
+    static QMap<QString, QString> s_translationMap;
+    static bool s_translationLoaded;
     bool m_isInit = false;
 
     // dbus路径

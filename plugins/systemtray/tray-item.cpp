@@ -15,10 +15,14 @@
 #include <netinet/in.h>
 #include <qt5-log-i.h>
 #include <QDrag>
+#include <QMap>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QSettings>
+#include <QTextCodec>
 
+#include "ks-config.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/tray-data-types.h"
 #include "tray-item.h"
@@ -27,6 +31,10 @@ namespace Kiran
 {
 namespace Systemtray
 {
+// 静态成员初始化
+QMap<QString, QString> TrayItem::s_translationMap;
+bool TrayItem::s_translationLoaded = false;
+
 TrayItem::TrayItem(QString service, QString objectPath, QWidget *parent)
     : StyledButton(parent)
 {
@@ -77,21 +85,20 @@ void TrayItem::updateToolTip()
     }
 
     QString toolTipTitle = tooltip.title;
-    if (!toolTipTitle.isEmpty())
-    {
-        setToolTip(toolTipTitle);
-    }
-    else
+    if (toolTipTitle.isEmpty())
     {
         if (m_propertyKeys.contains("Title"))
         {
             busdata = m_trayItemProxy->getProperty(QLatin1String("Title"));
-            QString title = busdata.variant().toString();
-            if (!title.isEmpty())
-            {
-                setToolTip(title);
-            }
+            toolTipTitle = busdata.variant().toString();
         }
+    }
+
+    // 应用翻译
+    if (!toolTipTitle.isEmpty())
+    {
+        toolTipTitle = translateText(toolTipTitle);
+        setToolTip(toolTipTitle);
     }
 }
 
@@ -399,6 +406,44 @@ void TrayItem::updateIconShow()
     }
 
     setVisible(true);
+}
+
+void TrayItem::loadTranslation()
+{
+    if (s_translationLoaded)
+    {
+        return;
+    }
+
+    QString translationFile = QString("%1/tray-translation.ini").arg(KS_INSTALL_DATADIR);
+    QSettings settings(translationFile, QSettings::IniFormat);
+    settings.setIniCodec(QTextCodec::codecForName("UTF-8"));
+
+    // 读取当前语言环境的翻译（例如 zh_CN）
+    QString locale = QLocale::system().name();
+    settings.beginGroup(locale);
+
+    QStringList keys = settings.allKeys();
+    for (const QString &key : keys)
+    {
+        QString value = settings.value(key).toString();
+        s_translationMap[key] = value;
+    }
+
+    settings.endGroup();
+    s_translationLoaded = true;
+}
+
+QString TrayItem::translateText(const QString &text)
+{
+    // 确保翻译已加载
+    if (!s_translationLoaded)
+    {
+        loadTranslation();
+    }
+
+    // 如果找到翻译，返回翻译后的文本；否则返回原文
+    return s_translationMap.value(text, text);
 }
 
 }  // namespace Systemtray
