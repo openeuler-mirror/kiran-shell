@@ -146,8 +146,7 @@ NetworkManager::Device::List NetCommon::getDevices(const NetworkManager::Device:
     auto devices = NetworkManager::Device::List();
     for (const auto &device : NetworkManager::networkInterfaces())
     {
-        // 过滤unmanaged设备
-        if ((type == device->type()) && (NetworkManager::Device::Unmanaged < device->state()))
+        if (type == device->type())
         {
             devices.append(device);
         }

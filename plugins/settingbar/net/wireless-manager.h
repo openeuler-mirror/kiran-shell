@@ -71,7 +71,7 @@ signals:
     void networkDisappeared(QString deviceUni, QString ssid);
 
     // 设备状态
-    void stateChanged(QString deviceUni, NetworkManager::Device::State state, NetworkManager::Device::StateChangeReason reason);
+    void deviceStateChanged(QString deviceUni, NetworkManager::Device::State state, NetworkManager::Device::StateChangeReason reason);
     void activeConnectionStateChanged(QString deviceUni, NetworkManager::ActiveConnection::State state);
 
     // SecretAgent请求密码
