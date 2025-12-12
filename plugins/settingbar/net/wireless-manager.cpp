@@ -124,7 +124,7 @@ void WirelessManager::AddToManager(const QString &deviceUni)
         connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
                 {
                     KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate << oldstate << reason;
-                    emit stateChanged(deviceUni, newstate, reason);
+                    emit deviceStateChanged(deviceUni, newstate, reason);
                 });
 
         for (const auto &networkInfo : m_deviceManagerMap[deviceUni]->getNetworkInfoList())

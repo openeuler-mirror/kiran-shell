@@ -104,7 +104,7 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         // 有线接入点变化信号
         connect(&WiredManagerInstance, &WiredManager::availableConnectionAppeared, this, &netTreeWidget::wiredNetworkAppeared);
         connect(&WiredManagerInstance, &WiredManager::availableConnectionDisappeared, this, &netTreeWidget::wiredNetworkDisappeared);
-        connect(&WiredManagerInstance, &WiredManager::stateChanged, this, &netTreeWidget::updateDeviceStatus);
+        connect(&WiredManagerInstance, &WiredManager::deviceStateChanged, this, &netTreeWidget::updateDeviceStatus);
         connect(&WiredManagerInstance, &WiredManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
     }
     else if (NetworkManager::Device::Type::Wifi == m_netType)
@@ -113,7 +113,7 @@ netTreeWidget::netTreeWidget(NetworkManager::Device::Type deviceType, QWidget *p
         // 无线接入点变化信号
         connect(&WirelessManagerInstance, &WirelessManager::networkAppeared, this, &netTreeWidget::wirelessNetworkAppeared);
         connect(&WirelessManagerInstance, &WirelessManager::networkDisappeared, this, &netTreeWidget::wirelessNetworkDisappeared);
-        connect(&WirelessManagerInstance, &WirelessManager::stateChanged, this, &netTreeWidget::updateDeviceStatus);
+        connect(&WirelessManagerInstance, &WirelessManager::deviceStateChanged, this, &netTreeWidget::updateDeviceStatus);
         connect(&WirelessManagerInstance, &WirelessManager::activeConnectionStateChanged, this, &netTreeWidget::activeConnectionStateChanged);
         // 被动请求密码信号
         connect(&WirelessManagerInstance, &WirelessManager::requestPassword, this, &netTreeWidget::requestPassword);
@@ -170,29 +170,21 @@ void netTreeWidget::updateNetDevice(const QString &deviceUni)
         auto *netDeviceItem = new DeviceWidget(m_netType, deviceUni, this);
         auto *treeWidgetItem = new QTreeWidgetItem(this);
         setItemWidget(treeWidgetItem, 0, netDeviceItem);
+        treeWidgetItem->setExpanded(true);  // 默认展开
 
         m_deviceItems[deviceUni] = qMakePair(treeWidgetItem, netDeviceItem);
 
         netDeviceItem->Init();
     }
 
+    auto device = NetworkManager::findNetworkInterface(deviceUni);
+    updateDeviceItem(deviceUni, device->state());
+
     QString connecttionUuids;
     if (NetworkManager::Device::Type::Ethernet == m_netType)
     {
         // 添加有线连接
-        auto device = NetworkManager::findNetworkInterface(deviceUni);
-        NetworkManager::Connection::List connections;
-
-        if (NetworkManager::Device::Unavailable < device->state())
-        {
-            connections = device->availableConnections();
-            m_deviceItems[deviceUni].second->setUnavailable(false);
-        }
-        else
-        {
-            m_deviceItems[deviceUni].second->setUnavailable(true);
-        }
-
+        NetworkManager::Connection::List connections = device->availableConnections();
         for (const auto &connection : connections)
         {
             QString connectionUuid = connection->uuid();
@@ -368,15 +360,7 @@ void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager:
     auto device = NetworkManager::findNetworkInterface(deviceUni);
     notifyDeviceState(device, state, reason);
 
-    if (NetworkManager::Device::Unavailable == state)  // 只需要处理Unavailable，state值小于Unavailable的已在上层过滤
-    {
-        m_deviceItems[deviceUni].second->setUnavailable(true);
-        return;
-    }
-    else
-    {
-        m_deviceItems[deviceUni].second->setUnavailable(false);
-    }
+    updateDeviceItem(deviceUni, state);
 
     for (const auto &connection : m_connectionItems[deviceUni])
     {
@@ -390,6 +374,15 @@ void netTreeWidget::updateDeviceStatus(const QString &deviceUni, NetworkManager:
             auto *item = (WirelessConnectionWidget *)connection.second;
             item->updateStatus();
         }
+    }
+}
+
+void netTreeWidget::updateDeviceItem(const QString &deviceUni, NetworkManager::Device::State state)
+{
+    if (m_deviceItems.contains(deviceUni))
+    {
+        m_deviceItems[deviceUni].first->setHidden(!(state >= NetworkManager::Device::Unmanaged));
+        m_deviceItems[deviceUni].second->setUnavailable(state == NetworkManager::Device::Unavailable);
     }
 }
 
