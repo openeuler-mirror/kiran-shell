@@ -106,7 +106,7 @@ void WiredManager::AddToManager(const QString &deviceUni)
         connect(device.data(), &NetworkManager::Device::stateChanged, [this, deviceUni](NetworkManager::Device::State newstate, NetworkManager::Device::State oldstate, NetworkManager::Device::StateChangeReason reason)
                 {
                     KLOG_INFO(LCSettingbar) << "WirelessNetworkManager::stateChanged" << newstate;
-                    emit stateChanged(deviceUni, newstate, reason);
+                    emit deviceStateChanged(deviceUni, newstate, reason);
                 });
     }
 }
