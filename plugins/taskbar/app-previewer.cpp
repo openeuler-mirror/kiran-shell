@@ -33,8 +33,12 @@ namespace Kiran
 {
 namespace Taskbar
 {
+// See also: 
+// Kwin AbstractClient::belongsToLayer
+// Kwin显示桌面时，将Desktop窗口提前至AboveLayer层，导致预览窗口被遮挡。
+// 参考plasma，将预览窗口层级提前至ToolTip层。
 AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
-    : QWidget(parent, Qt::FramelessWindowHint | Qt::Tool),
+    : QWidget(parent, Qt::FramelessWindowHint | Qt::ToolTip),
       m_import(import)
 {
     auto *window = (Window *)parent;
