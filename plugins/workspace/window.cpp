@@ -256,7 +256,17 @@ void Window::on_btnAddWorkspace_clicked()
 
 void Window::on_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item)
 {
-    DesktopHelper::setCurrentDesktop(m_ui->listWidgetThumbnail->row(item) + 1);
+    auto dstIndex = m_ui->listWidgetThumbnail->row(item) + 1;
+    // 双击当前工作区时，由于桌面一致，KWin不会切换桌面
+    // ，也就不会触发QEvent::WindowDeactivate事件，窗口就不会隐藏。
+    if (DesktopHelper::currentDesktop() == dstIndex)
+    {
+        emit windowDeactivated();
+    }
+    else 
+    {
+        DesktopHelper::setCurrentDesktop(dstIndex);
+    }
 }
 
 void Window::on_listWidgetThumbnail_currentRowChanged(int currentRow)
