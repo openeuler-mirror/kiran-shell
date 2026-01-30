@@ -151,10 +151,30 @@ void netTreeWidget::updateDeviceList()
         {
             QTreeWidgetItem *item = m_deviceItems[uni].first;
             QWidget *widget = m_deviceItems[uni].second;
+
+            // 先删除设备项下的所有连接项（子项）及其 widget
+            if (m_connectionItems.contains(uni))
+            {
+                const auto connectionMap = m_connectionItems[uni];
+                for (const QString &connectUuid : connectionMap.keys())
+                {
+                    QTreeWidgetItem *childItem = connectionMap[connectUuid].first;
+                    QWidget *childWidget = connectionMap[connectUuid].second;
+
+                    // 从父项中移除子项
+                    item->removeChild(childItem);
+
+                    delete childItem;
+                    childWidget->deleteLater();
+                }
+                m_connectionItems.remove(uni);
+            }
+
+            // 删除设备项及其 widget
             takeTopLevelItem(indexOfTopLevelItem(item));
 
             delete item;
-            delete widget;
+            widget->deleteLater();
 
             m_deviceItems.remove(uni);
         }
