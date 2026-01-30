@@ -318,6 +318,14 @@ QPair<QString, QString> NetCommon::getNetworkIcon()
     // 优先显示有线连接图标
     for (auto activeConnection : activeConnections)
     {
+        //  排除网络回环接口"lo"
+        if (!activeConnection->devices().isEmpty()) {
+            NetworkManager::Device::Ptr device = NetworkManager::findNetworkInterface(activeConnection->devices().first());
+            if (device && device->interfaceName() == QLatin1String("lo"))
+            {
+                continue;
+            }
+        }
         auto type = activeConnection->type();
         auto state = activeConnection->state();
         if (NetworkManager::ActiveConnection::Activated != state)
