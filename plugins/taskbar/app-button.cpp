@@ -111,6 +111,11 @@ void AppButton::getInfoFromUrl()
     {
         KService::Ptr service =
             KService::serviceByStorageId(m_appInfo.m_url.fileName());
+        if (!service || !service->isValid())
+        {
+            KLOG_WARNING(LCTaskbar) << "Service not found for appId: " << m_appInfo.m_url;
+            return;
+        }
         setToolTip(service->name());
     }
     // 普通文件
@@ -546,6 +551,11 @@ void AppButton::buttonClicked()
         {
             KService::Ptr service =
                 KService::serviceByStorageId(m_appInfo.m_url.fileName());
+            if (!service || !service->isValid())
+            {
+                KLOG_WARNING(LCTaskbar) << "Service not found for appId: " << m_appInfo.m_url;
+                return;
+            }
             // 启动应用
             Common::appLauncher(service);
         }
