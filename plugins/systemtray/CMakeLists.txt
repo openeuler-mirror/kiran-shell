@@ -60,7 +60,7 @@ target_link_libraries(
           KF5::WindowSystem
           dbusmenu-qt5
           kiran-integration-theme
-          common
+          ${PROJECT_NAME}-common
           widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})

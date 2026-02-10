@@ -38,7 +38,7 @@ target_link_libraries(
           KF5::KIOCore
           KF5::KIOWidgets
           kiran-integration-theme
-          common
+          ${PROJECT_NAME}-common
           widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})

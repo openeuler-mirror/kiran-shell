@@ -45,7 +45,7 @@ target_link_libraries(
           KF5::WindowSystem
           kiran-integration-theme
           widgets
-          common)
+          ${PROJECT_NAME}-common)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})
