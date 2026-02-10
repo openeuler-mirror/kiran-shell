@@ -1440,7 +1440,7 @@ void Window::addFileWatcher(const QUrl &url)
     QString dirPath = fileInfo.absolutePath();
     if (!m_fileWatcher.directories().contains(dirPath))
     {
-        m_fileWatcher.addPath(dirPath)
+        m_fileWatcher.addPath(dirPath);
     }
 }
 
@@ -1483,7 +1483,7 @@ void Window::removeFileWatcher(const QUrl &url)
     }
 }
 
-void Window::fileChangedCheck(QString filePath)
+void Window::fileChangedCheck(QString path)
 {
     // 检查文件是否还存在
     if (!QFile::exists(path))
@@ -1528,7 +1528,7 @@ void Window::onDirectoryChanged(const QString &path)
         QFileInfo fileInfo(filePath);
         if (fileInfo.absolutePath() == path)
         {
-            fileCheck(filePath);
+            fileChangedCheck(filePath);
         }
     }
 }
