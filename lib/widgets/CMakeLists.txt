@@ -28,4 +28,4 @@ target_link_libraries(
          KF5::WindowSystem
          ${KLOG_QT5_LIBRARIES}
          kiran-integration-theme
-         common)
+         ${PROJECT_NAME}-common)

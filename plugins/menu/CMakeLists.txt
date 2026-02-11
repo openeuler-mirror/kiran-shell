@@ -81,7 +81,7 @@ target_link_libraries(
           KF5::Activities
           KF5::ActivitiesStats
           kiran-integration-theme
-          common
+          ${PROJECT_NAME}-common
           widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})

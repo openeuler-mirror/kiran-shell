@@ -41,15 +41,14 @@ Applet::Applet(IAppletImport *import)
         QCoreApplication::installTranslator(&translator);
     }
 
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(size, size);
     setRadius(0);
-    setToolTip(tr("Workspace switcher"));
 
     m_appletButton = new StyledButton(this);
     m_appletButton->setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
+    m_appletButton->setToolTip(tr("Workspace switcher"));
+
 
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);

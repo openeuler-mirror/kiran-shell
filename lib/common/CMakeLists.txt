@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(TARGET_NAME common)
+set(TARGET_NAME ${PROJECT_NAME}-common)
 
 file(GLOB_RECURSE COMMON_H_FILES *.h)
 file(GLOB_RECURSE COMMON_CPP_FILES *.cpp)
 
 set(ALL_FILES ${COMMON_H_FILES} ${COMMON_CPP_FILES})
 
-add_library(${TARGET_NAME} STATIC ${ALL_FILES})
+add_library(${TARGET_NAME} SHARED ${ALL_FILES})
 
 # 获取 libpinyin pkgdatadir
 execute_process(
@@ -42,3 +42,6 @@ target_link_libraries(
           ${GSETTINGS_QT_LIBRARIES}
           XCB::XCB
           XCB::IMAGE)
+
+# 安装动态库到标准库目录
+install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})

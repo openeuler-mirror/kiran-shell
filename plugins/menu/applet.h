@@ -16,7 +16,6 @@
 
 #include <kiran-color-block.h>
 
-#include "lib/widgets/applet-button.h"
 #include "lib/widgets/styled-button.h"
 #include "plugin-i.h"
 

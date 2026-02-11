@@ -43,11 +43,11 @@
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
+#include "new-apps-manager.h"
 #include "power.h"
 #include "recent-files-overview.h"
 #include "ui_window.h"
 #include "window.h"
-#include "new-apps-manager.h"
 
 #define KIRAN_ACCOUNTS_BUS "com.kylinsec.Kiran.SystemDaemon.Accounts"
 #define KIRAN_ACCOUNTS_PATH "/com/kylinsec/Kiran/SystemDaemon/Accounts"
@@ -320,7 +320,7 @@ AppItem *Window::newAppItem(QString appId)
 void Window::runApp(QString appId)
 {
     KService::Ptr service = KService::serviceByStorageId(appId);
-    if (!service)
+    if (!service || !service->isValid())
     {
         KLOG_WARNING(LCMenu) << "Service not found for appId: " << appId;
         return;
@@ -404,21 +404,24 @@ void Window::addToDesktop(const QString &appId)
     }
     QString desktopPath = desktopPaths.first();
 
-    KService::Ptr s = KService::serviceByStorageId(appId);
-    if (s)
+    KService::Ptr service = KService::serviceByStorageId(appId);
+    if (!service || !service->isValid())
     {
-        QString fileName = QFileInfo(s->entryPath()).fileName();
-        QString destPath = QDir::toNativeSeparators(desktopPath + QDir::separator() + fileName);
-        QFile::copy(s->entryPath(), destPath);
-        if (!QFile(destPath).exists())
-        {
-            KLOG_WARNING(LCMenu) << "Desktop file copy failed, from" << s->entryPath() << "to" << destPath;
-            return;
-        }
-        QFile::Permissions permissions = QFileInfo(destPath).permissions();
-        permissions |= QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther;
-        QFile::setPermissions(destPath, permissions);
+        KLOG_WARNING(LCMenu) << "Service not found for appId: " << appId;
+        return;
     }
+
+    QString fileName = QFileInfo(service->entryPath()).fileName();
+    QString destPath = QDir::toNativeSeparators(desktopPath + QDir::separator() + fileName);
+    QFile::copy(service->entryPath(), destPath);
+    if (!QFile(destPath).exists())
+    {
+        KLOG_WARNING(LCMenu) << "Desktop file copy failed, from" << service->entryPath() << "to" << destPath;
+        return;
+    }
+    QFile::Permissions permissions = QFileInfo(destPath).permissions();
+    permissions |= QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther;
+    QFile::setPermissions(destPath, permissions);
 }
 
 void Window::resetToDefaultView()
@@ -426,7 +429,7 @@ void Window::resetToDefaultView()
     // 重置到默认界面：应用列表页面
     m_ui->widgetOverviewStack->setCurrentIndex(0);
     m_appsOverview->resetToDefaultView();
-    
+
     // 重置按钮选择状态 - 选中应用列表按钮1
     m_ui->btnAppsOverview->setChecked(true);
     m_ui->btnRecentFilesOverview->setChecked(false);
