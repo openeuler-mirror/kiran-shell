@@ -23,6 +23,7 @@
 
 class QGSettings;
 class StyledButton;
+class QMimeData;
 namespace Kiran
 {
 class IAppletImport;
@@ -50,6 +51,8 @@ protected:
 
 private slots:
     void updateLayoutByProfile();
+    void onFileChanged(const QString &path);
+    void onDirectoryChanged(const QString &path);
 
 private:
     // 初始化相关
@@ -86,6 +89,16 @@ private:
     void isInFixedApps(const QUrl &url, bool &checkResult);
     void addToFixedApps(const QUrl &url, AppGroup *appGroup);
     void removeFromFixedApps(const QUrl &url);
+
+    // 文件监控相关
+    void addFileWatcher(const QUrl &url);
+    void removeFileWatcher(const QUrl &url);
+    bool isRegularFile(const QUrl &url);
+    void fileChangedCheck(QString filePath);
+
+    // 拖拽文件类型检查
+    bool isSupportedFile(const QUrl &url);
+    bool hasSupportedFiles(const QMimeData *mimeData);
 
     QList<QUrl> getFixedApps();
     void setFixedApps(QList<QUrl> urls);
@@ -135,6 +148,8 @@ private:
     AppPreviewer *m_appPreviewer = nullptr;  // 应用预览窗口
 
     QFileSystemWatcher m_settingFileWatcher;  // 用于检测固定到任务栏应用的变化
+    QFileSystemWatcher m_fileWatcher;         // 用于监控固定到任务栏的文件变化
+    QMap<QString, QUrl> m_filePathToUrlMap;   // 文件路径到URL的映射
 
     // 收藏夹相关KActivities/Stats/ResultWatcher（用于从任务栏右键 添加或移除 收藏夹应用项）
     KActivities::Stats::ResultWatcher *m_actStatsLinkedWatcher = nullptr;

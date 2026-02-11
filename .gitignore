@@ -3,3 +3,7 @@ CMakeLists.txt.user*
 .vscode
 .idea
 .cache
+.cursor
+.clangd
+.cursorrules
+compile_commands.json

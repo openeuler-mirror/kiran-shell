@@ -37,7 +37,7 @@ target_link_libraries(
           Qt5::DBus
           KF5::WindowSystem
           kiran-integration-theme
-          common
+          ${PROJECT_NAME}-common
           widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})

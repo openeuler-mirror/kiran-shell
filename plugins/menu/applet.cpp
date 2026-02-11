@@ -100,8 +100,6 @@ void Applet::setupLayout()
     layout->addWidget(m_appletButton);
 
     setRadius(0);
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(size, size);
 }
 
 void Applet::setupDbus()

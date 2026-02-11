@@ -19,7 +19,10 @@
 #include <KActivities/Stats/ResultWatcher>
 #include <KIOCore/KFileItem>
 #include <KService/KService>
+#include <QDir>
 #include <QDragEnterEvent>
+#include <QFile>
+#include <QFileInfo>
 #include <QGSettings>
 #include <QMimeData>
 #include <QPainter>
@@ -144,6 +147,10 @@ void Window::initConfig()
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultLinked, this, &Window::updateFavorite);
     connect(m_actStatsLinkedWatcher, &ResultWatcher::resultUnlinked, this, &Window::updateFavorite);
 
+    // 连接文件监控信号
+    connect(&m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &Window::onFileChanged);
+    connect(&m_fileWatcher, &QFileSystemWatcher::directoryChanged, this, &Window::onDirectoryChanged);
+
     auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
     connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayoutByProfile()));
 }
@@ -152,18 +159,28 @@ void Window::dragEnterEvent(QDragEnterEvent *event)
 {
     m_currentDropIndex = -1;
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
-    if (event->mimeData()->hasFormat("text/uri-list"))
-    {
-        event->accept();
-    }
-    else
+
+    KLOG_INFO(LCTaskbar) << "dragEnterEvent" << mimeData;
+
+    // 检查是否包含支持的文件类型
+    if (!hasSupportedFiles(event->mimeData()))
     {
         event->ignore();
+        return;
     }
+
+    event->accept();
 }
 
 void Window::dragMoveEvent(QDragMoveEvent *event)
 {
+    // 检查是否包含支持的文件类型
+    if (!hasSupportedFiles(event->mimeData()))
+    {
+        event->ignore();
+        return;
+    }
+
     QPoint pos = event->pos();
     m_currentDropIndex = getInsertedIndex(pos);
     if (-1 == m_currentDropIndex)
@@ -221,6 +238,13 @@ void Window::dropEvent(QDropEvent *event)
         return;
     }
 
+    // 检查是否包含支持的文件类型
+    if (!hasSupportedFiles(event->mimeData()))
+    {
+        event->ignore();
+        return;
+    }
+
     QByteArray mimeData = event->mimeData()->data("text/uri-list");
     if (!event->mimeData()->hasFormat("text/uri-list"))
     {
@@ -236,8 +260,8 @@ void Window::dropEvent(QDropEvent *event)
     KLOG_INFO(LCTaskbar) << "dropEvent" << urls;
     for (const auto &url : urls)
     {
-        KFileItem fileItem(url);
-        if (fileItem.isNull())
+        // 只处理支持的文件类型
+        if (!isSupportedFile(url))
         {
             continue;
         }
@@ -733,6 +757,12 @@ void Window::addLockApp(const QUrl &url)
             m_listAppGroupShow.append(appGroup);
         }
     }
+
+    // 如果是普通文件，添加文件监控
+    if (isRegularFile(url))
+    {
+        addFileWatcher(url);
+    }
 }
 
 void Window::removeLockApp(const AppInfo &info)
@@ -751,6 +781,12 @@ void Window::removeLockApp(const AppInfo &info)
     {
         m_listAppGroupLocked.removeAll(appGroup);
         appGroup->setLocked(false);
+
+        // 如果是普通文件，移除文件监控
+        if (isRegularFile(info.m_url))
+        {
+            removeFileWatcher(info.m_url);
+        }
 
         // 如果固定的应用没有被打开，则移除掉应用
         auto iter = m_mapAppGroupOpened.begin();
@@ -859,10 +895,22 @@ void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
     }
     KLOG_INFO(LCTaskbar) << "addToFixedApps" << inserIndex << fixedApps.size();
     setFixedApps(fixedApps);
+
+    // 如果是普通文件，添加文件监控
+    if (isRegularFile(url))
+    {
+        addFileWatcher(url);
+    }
 }
 
 void Window::removeFromFixedApps(const QUrl &url)
 {
+    // 如果是普通文件，移除文件监控
+    if (isRegularFile(url))
+    {
+        removeFileWatcher(url);
+    }
+
     auto fixedApps = getFixedApps();
     fixedApps.removeAll(url);
     setFixedApps(fixedApps);
@@ -872,6 +920,8 @@ QList<QUrl> Window::getFixedApps()
 {
     QList<QUrl> fixedApps;
     QVariantList urls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
+    QVariantList validUrls;  // 用于更新 gsettings 的有效 URL 列表
+
     // desktop_id转化为绝对路径
     for (auto &url : urls)
     {
@@ -882,16 +932,48 @@ QList<QUrl> Window::getFixedApps()
             {
                 continue;
             }
-            fixedApps.append(QUrl::fromLocalFile(s->entryPath()).toString());
+            QUrl fileUrl = QUrl::fromLocalFile(s->entryPath());
+            QString filePath = fileUrl.toLocalFile();
+
+            // 检查 desktop 文件是否存在
+            if (!QFile::exists(filePath))
+            {
+                KLOG_INFO(LCTaskbar) << "Desktop file not found, removing:" << filePath;
+                continue;
+            }
+
+            fixedApps.append(fileUrl);
+            validUrls.append(url);  // 保存原始的 desktop ID
         }
         else
         {
             QUrl qurl = QUrl(url.toString());
-            if (qurl.isValid())
+            if (!qurl.isValid())
             {
-                fixedApps.append(qurl);
+                continue;
             }
+
+            // 检查文件是否存在
+            if (qurl.isLocalFile())
+            {
+                QString filePath = qurl.toLocalFile();
+                if (!QFile::exists(filePath))
+                {
+                    KLOG_INFO(LCTaskbar) << "File not found, removing:" << filePath;
+                    continue;
+                }
+            }
+
+            fixedApps.append(qurl);
+            validUrls.append(url);
         }
+    }
+
+    // 如果发现无效的 URL，更新 gsettings
+    if (validUrls.size() != urls.size())
+    {
+        m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, validUrls);
+        KLOG_INFO(LCTaskbar) << "Removed invalid fixed apps from gsettings:" << ", original urls:" << urls << ", valid urls:" << validUrls;
     }
 
     return fixedApps;
@@ -1233,12 +1315,222 @@ void Window::openFileByDrop(QDropEvent *event)
     }
 
     KService::Ptr service = KService::serviceByStorageId(appUrl.fileName());
-    if (!service.data())
+    if (!service || !service->isValid())
     {
+        KLOG_WARNING(LCTaskbar) << "Service not found for appId: " << appUrl.fileName();
         return;
     }
 
     Common::appLauncher(service, urls);
+}
+
+bool Window::isRegularFile(const QUrl &url)
+{
+    // 判断是否是普通文件（非desktop文件）
+    if (!url.isLocalFile() || url.isEmpty() || !url.isValid())
+    {
+        return false;
+    }
+
+    KFileItem fileItem(url);
+    if (fileItem.isNull())
+    {
+        return false;
+    }
+
+    // 如果是desktop文件，不需要监控
+    if (fileItem.isDesktopFile())
+    {
+        return false;
+    }
+
+    // 如果是目录，不需要监控
+    if (fileItem.isDir())
+    {
+        return false;
+    }
+
+    // 普通文件需要监控
+    return true;
+}
+
+bool Window::isSupportedFile(const QUrl &url)
+{
+    // 只支持 file:/// 协议的文件
+    if (!url.isLocalFile() || url.isEmpty() || !url.isValid())
+    {
+        return false;
+    }
+
+    KFileItem fileItem(url);
+    if (fileItem.isNull())
+    {
+        return false;
+    }
+
+    if (fileItem.isDesktopFile())
+    {
+        return true;
+    }
+
+    if (fileItem.isDir())
+    {
+        return false;
+    }
+
+    // FIXME: 文件的固定存在一个问题：如果文件固定后被打开，会出现一个新的图标，而不是在原来被固定的图标上被打开，所以暂时屏蔽文件固定操作
+    if (fileItem.isFile())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool Window::hasSupportedFiles(const QMimeData *mimeData)
+{
+    if (!mimeData || !mimeData->hasFormat("text/uri-list"))
+    {
+        return false;
+    }
+
+    QList<QUrl> urls = mimeData->urls();
+    if (urls.isEmpty())
+    {
+        return false;
+    }
+
+    // 检查是否至少有一个支持的文件
+    for (const auto &url : urls)
+    {
+        if (isSupportedFile(url))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Window::addFileWatcher(const QUrl &url)
+{
+    QString filePath = url.toLocalFile();
+    if (filePath.isEmpty())
+    {
+        return;
+    }
+
+    // 检查文件是否存在
+    if (!QFile::exists(filePath))
+    {
+        KLOG_WARNING(LCTaskbar) << "File does not exist, cannot watch:" << filePath;
+        return;
+    }
+
+    // 添加到监控列表
+    if (!m_fileWatcher.files().contains(filePath))
+    {
+        m_fileWatcher.addPath(filePath);
+    }
+
+    m_filePathToUrlMap[filePath] = url;
+
+    // 同时监控文件所在目录，以便检测文件删除
+    QFileInfo fileInfo(filePath);
+    QString dirPath = fileInfo.absolutePath();
+    if (!m_fileWatcher.directories().contains(dirPath))
+    {
+        m_fileWatcher.addPath(dirPath);
+    }
+}
+
+void Window::removeFileWatcher(const QUrl &url)
+{
+    QString filePath = url.toLocalFile();
+    if (filePath.isEmpty())
+    {
+        return;
+    }
+
+    // 从监控列表中移除
+    if (m_fileWatcher.files().contains(filePath))
+    {
+        m_fileWatcher.removePath(filePath);
+        KLOG_INFO(LCTaskbar) << "Removed file watcher for:" << filePath;
+    }
+
+    m_filePathToUrlMap.remove(filePath);
+
+    // 检查目录是否还有其他监控的文件
+    QFileInfo fileInfo(filePath);
+    QString dirPath = fileInfo.absolutePath();
+    bool hasOtherFiles = false;
+    for (const QString &watchedPath : m_fileWatcher.files())
+    {
+        QFileInfo watchedInfo(watchedPath);
+        if (watchedInfo.absolutePath() == dirPath)
+        {
+            hasOtherFiles = true;
+            break;
+        }
+    }
+
+    // 如果没有其他文件监控该目录，移除目录监控
+    if (!hasOtherFiles && m_fileWatcher.directories().contains(dirPath))
+    {
+        m_fileWatcher.removePath(dirPath);
+        KLOG_INFO(LCTaskbar) << "Removed directory watcher for:" << dirPath;
+    }
+}
+
+void Window::fileChangedCheck(QString path)
+{
+    // 检查文件是否还存在
+    if (!QFile::exists(path))
+    {
+        // 文件被删除或重命名（无法检测到新路径）
+        KLOG_INFO(LCTaskbar) << "File deleted or renamed:" << path;
+        if (m_filePathToUrlMap.contains(path))
+        {
+            QUrl url = m_filePathToUrlMap[path];
+            AppInfo info(url, {});
+            // 需要同时从内存和gsettings中移除
+            // removeFromFixedApps 会更新gsettings并移除文件监控
+            removeFromFixedApps(url);
+            // removeLockApp 会从内存中移除AppGroup
+            removeLockApp(info);
+            // removeFileWatcher 已经在 removeFromFixedApps 中调用，但 removeLockApp 中也会调用
+            // 由于 removeFileWatcher 内部有检查，重复调用是安全的
+        }
+    }
+    // 文件不存在，QFileSystemWatcher 会自动移除监控
+    // 文件存在，可能是删除后，重新创建一个新的文件，需要重新添加监控
+    else if (!m_fileWatcher.files().contains(path))
+    {
+        m_fileWatcher.addPath(path);
+    }
+}
+
+void Window::onFileChanged(const QString &path)
+{
+    KLOG_INFO(LCTaskbar) << "File changed:" << path;
+
+    fileChangedCheck(path);
+}
+
+void Window::onDirectoryChanged(const QString &path)
+{
+    KLOG_INFO(LCTaskbar) << "Directory changed:" << path;
+
+    QList<QString> filesToCheck = m_filePathToUrlMap.keys();
+    for (const QString &filePath : filesToCheck)
+    {
+        QFileInfo fileInfo(filePath);
+        if (fileInfo.absolutePath() == path)
+        {
+            fileChangedCheck(filePath);
+        }
+    }
 }
 
 }  // namespace Taskbar
