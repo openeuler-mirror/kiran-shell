@@ -42,13 +42,13 @@ AppsModel::AppsModel(QObject *parent)
     m_dataLoadThread = new QThread(this);
     m_dataLoadThread->setObjectName("AppsDataLoaderThread");
 
-    auto dataLoader = new AppsDataLoader();
-    dataLoader->moveToThread(m_dataLoadThread);
+    m_dataLoader = new AppsDataLoader();
+    m_dataLoader->moveToThread(m_dataLoadThread);
 
-    connect(m_dataLoadThread, &QThread::started, dataLoader, &AppsDataLoader::loadData);
-    connect(dataLoader, &AppsDataLoader::dataLoaded, this, &AppsModel::onDataLoaded);
-    connect(dataLoader, &AppsDataLoader::errorOccurred, this, &AppsModel::onErrorOccurred);
-    connect(&NewAppsManager::getInstance(), &NewAppsManager::newAppsConfigUpdated, dataLoader, &AppsDataLoader::loadData);
+    connect(m_dataLoadThread, &QThread::started, m_dataLoader, &AppsDataLoader::loadData);
+    connect(m_dataLoader, &AppsDataLoader::dataLoaded, this, &AppsModel::onDataLoaded);
+    connect(m_dataLoader, &AppsDataLoader::errorOccurred, this, &AppsModel::onErrorOccurred);
+    connect(&NewAppsManager::getInstance(), &NewAppsManager::newAppsConfigUpdated, m_dataLoader, &AppsDataLoader::loadData);
 
     m_dataLoadThread->start();
 }
@@ -63,7 +63,10 @@ AppsModel::~AppsModel()
         m_dataLoadThread->terminate();
         m_dataLoadThread->wait();
     }
+    delete m_dataLoader;
+    m_dataLoader = nullptr;
     delete m_dataLoadThread;
+    m_dataLoadThread = nullptr;
     AppNode::cleanup(m_root);
     AppNode::cleanup(m_searchRoot);
 }

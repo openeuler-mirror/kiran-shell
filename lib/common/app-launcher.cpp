@@ -27,6 +27,7 @@ namespace Common
 static void appStart(const KService::Ptr &service, QList<QUrl> urls)
 {
     auto *job = new KIO::ApplicationLauncherJob(service);
+    job->setAutoDelete(true);  // 完成后自动删除，避免泄漏
     if (!urls.isEmpty())
     {
         job->setUrls(urls);
