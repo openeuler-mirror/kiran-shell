@@ -31,6 +31,7 @@ namespace Kiran
 {
 namespace Menu
 {
+class RecentFilesView;
 class RecentFilesOverview : public QWidget
 {
     Q_OBJECT
@@ -38,6 +39,11 @@ class RecentFilesOverview : public QWidget
 public:
     RecentFilesOverview(QWidget* parent = nullptr);
     ~RecentFilesOverview() override;
+
+    class RecentFilesView* getTreeView() const;
+
+protected:
+    void showEvent(QShowEvent* event) override;
 
 signals:
     void fileItemClicked(QString filePath);

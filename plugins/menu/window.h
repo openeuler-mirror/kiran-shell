@@ -28,6 +28,7 @@ class QStackedWidget;
 class QButtonGroup;
 class QStackedWidget;
 class QToolButton;
+class QGridLayout;
 class AppItem;
 class KSAccounts;
 class KSAccountsUser;
@@ -99,6 +100,7 @@ signals:
 private:
     Ui::Window* m_ui;
     AppsOverview* m_appsOverview = nullptr;
+    class KeyNavigation* m_keyNav = nullptr;
 
     // 常用应用 收藏夹 依赖kactivitymanagerd服务
     KActivities::Stats::ResultWatcher* m_actStatsWatcher = nullptr;
