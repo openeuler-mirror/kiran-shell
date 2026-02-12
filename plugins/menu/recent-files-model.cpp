@@ -98,6 +98,17 @@ RecentFilesModel::RecentFilesModel(QObject *parent)
 
 RecentFilesModel::~RecentFilesModel()
 {
+    if (m_recentFilesLoadThread)
+    {
+        m_recentFilesLoadThread->quit();
+        if (!m_recentFilesLoadThread->wait(1000))
+        {
+            m_recentFilesLoadThread->terminate();
+            m_recentFilesLoadThread->wait();
+        }
+        delete m_loader;
+        m_loader = nullptr;
+    }
 }
 
 void RecentFilesModel::setFilterText(const QString &text)

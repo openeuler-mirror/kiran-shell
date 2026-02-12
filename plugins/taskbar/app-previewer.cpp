@@ -112,6 +112,12 @@ void AppPreviewer::updateLayout(QList<WindowPreviewer *> windowPreviewerShow)
 
 void AppPreviewer::addWindow(WId wid)
 {
+    // 若已存在该窗口的预览（如重复事件），先移除再创建，避免泄漏
+    if (m_mapWindowPreviewers.contains(wid))
+    {
+        removeWindow(wid);
+    }
+
     m_mapWindowPreviewers[wid] = new WindowPreviewer(wid, m_import, this);
     connect(m_mapWindowPreviewers[wid], &WindowPreviewer::hideWindow, [this]()
             {
