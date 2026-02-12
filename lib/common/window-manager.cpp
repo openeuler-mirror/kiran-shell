@@ -237,6 +237,10 @@ QPixmap WindowManager::getPixPreviewr(WId wid)
 }
 void WindowManager::addWindow(WId wid)
 {
+    if (m_windows.contains(wid))
+    {
+        return;
+    }
     if (!WindowInfoHelper::isSkipTaskbar(wid))
     {
         auto* window = new Window(wid, this);
@@ -287,7 +291,7 @@ void WindowManager::changedWindow(WId wid, NET::Properties properties, NET::Prop
         }
     }
 
-    if( m_windows.contains(wid) )
+    if (m_windows.contains(wid))
     {
         emit windowChanged(wid, properties, properties2);
     }
