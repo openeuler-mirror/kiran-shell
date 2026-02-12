@@ -18,6 +18,7 @@
 #include <QDrag>
 #include <QFileInfo>
 #include <QIcon>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
@@ -152,6 +153,17 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
     menu.exec(mapToGlobal(event->pos()));
 
     update();
+}
+
+void AppItem::keyPressEvent(QKeyEvent *event)
+{
+    if ((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) && !m_appId.isEmpty())
+    {
+        emit runApp(m_appId);
+        event->accept();
+        return;
+    }
+    StyledButton::keyPressEvent(event);
 }
 
 void AppItem::mouseReleaseEvent(QMouseEvent *event)

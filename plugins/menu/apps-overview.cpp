@@ -31,6 +31,7 @@
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
+#include "tree-view.h"
 #include "ui_apps-overview.h"
 
 namespace Kiran
@@ -57,6 +58,11 @@ AppsOverview::AppsOverview(QWidget *parent)
 AppsOverview::~AppsOverview()
 {
     delete m_ui;
+}
+
+AppsView *AppsOverview::getAppsView() const
+{
+    return m_ui->treeview_apps;
 }
 
 void AppsOverview::resetToDefaultView()

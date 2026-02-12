@@ -13,7 +13,9 @@
  */
 
 #include <kiran-integration/theme/palette.h>
+#include <QFocusEvent>
 #include <QGuiApplication>
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -26,7 +28,7 @@ StyledButton::StyledButton(QWidget *parent)
     : QToolButton(parent)
 {
     setCheckable(true);
-    // 启用悬浮事件
+    setFocusPolicy(Qt::NoFocus);  // 默认不参与焦点，需要键盘导航的需显式 setFocusPolicy(Qt::StrongFocus)
     setAttribute(Qt::WA_Hover);
 }
 
@@ -50,6 +52,29 @@ void StyledButton::enterEvent(QEvent *event)
 void StyledButton::leaveEvent(QEvent *event)
 {
     m_hovered = false;
+}
+
+void StyledButton::focusInEvent(QFocusEvent *event)
+{
+    QToolButton::focusInEvent(event);
+    update();
+}
+
+void StyledButton::focusOutEvent(QFocusEvent *event)
+{
+    QToolButton::focusOutEvent(event);
+    update();
+}
+
+void StyledButton::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
+    {
+        click();
+        event->accept();
+        return;
+    }
+    QToolButton::keyPressEvent(event);
 }
 
 void StyledButton::mousePressEvent(QMouseEvent *event)
@@ -104,6 +129,10 @@ void StyledButton::paintEvent(QPaintEvent *event)
         {
             // 悬停
             bgColor = palette->getColor(Kiran::Theme::Palette::MOUSE_OVER, Kiran::Theme::Palette::WIDGET);
+        }
+        else if (hasFocus())
+        {
+            bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
         }
         else
         {
