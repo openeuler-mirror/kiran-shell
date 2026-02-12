@@ -414,6 +414,15 @@ void Window::addWindow(WId wid)
         return;
     }
 
+    // 避免同一窗口被重复添加（如 KWindowSystem 重复事件），防止重复创建预览控件泄漏
+    for (auto it = m_mapAppGroupOpened.begin(); it != m_mapAppGroupOpened.end(); ++it)
+    {
+        if (it.value().second.contains(wid))
+        {
+            return;
+        }
+    }
+
     KLOG_INFO(LCTaskbar) << "addWindow" << wid << appInfo;
 
     // 锁定应用的打开
@@ -482,6 +491,9 @@ void Window::removeWindow(WId wid)
         auto *group = m_mapAppGroupOpened[info].first;
         QList<WId> widList = m_mapAppGroupOpened[info].second;
         auto appBtn = group->getAppButtonByWId(wid);
+
+        // 释放该窗口对应的预览控件，避免内存泄漏
+        m_appPreviewer->removeWindow(wid);
 
         group->removeWindow(wid);
         widList.removeAll(wid);

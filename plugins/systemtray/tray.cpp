@@ -180,7 +180,7 @@ void Tray::statusNotifierItemRegister(const QString &serviceAndPath)
     }
 
     auto item = itemAdd(serviceAndPath);
-    if (item)
+    if (item && !m_items.contains(item))
     {
         m_items.append(item);
         updateItemLayout();
@@ -195,6 +195,12 @@ void Tray::statusNotifierItemUnregister(const QString &serviceAndPath)
 
 TrayItem *Tray::itemAdd(QString serviceAndPath)
 {
+    // 防御：避免重复插入导致覆盖并泄漏已有 TrayItem
+    if (m_services.contains(serviceAndPath))
+    {
+        return m_services.value(serviceAndPath);
+    }
+
     int index = serviceAndPath.indexOf('/');
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
