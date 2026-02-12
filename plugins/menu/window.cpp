@@ -22,17 +22,13 @@
 #include <KWindowSystem>
 #include <QApplication>
 #include <QButtonGroup>
-#include <QDateTime>
 #include <QDesktopServices>
 #include <QFile>
 #include <QKeyEvent>
+#include <QLineEdit>
 #include <QMenu>
-#include <QPainter>
-#include <QPainterPath>
 #include <QProcess>
 #include <QStackedWidget>
-#include <QStyleOption>
-#include <QToolButton>
 
 #include "app-item.h"
 #include "apps-overview.h"
@@ -43,9 +39,11 @@
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
+#include "key-navigation.h"
 #include "new-apps-manager.h"
 #include "power.h"
 #include "recent-files-overview.h"
+#include "tree-view.h"
 #include "ui_window.h"
 #include "window.h"
 
@@ -83,7 +81,7 @@ void Window::init()
     initUserInfo();
     initQuickStart();
 
-    // 事件过滤器
+    m_keyNav = new KeyNavigation(this, m_ui);
     installEventFilter(this);
 }
 
@@ -95,6 +93,17 @@ void Window::initUI()
 
     m_ui->gridLayoutPopularApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_ui->gridLayoutFavoriteApp->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+    // 键盘导航：设置可聚焦控件的 FocusPolicy 并安装事件过滤器（不依赖 qApp，避免影响 applet 按钮点击）
+    QWidget *navButtons[] = {
+        m_ui->btnAppsOverview, m_ui->btnRecentFilesOverview, m_ui->btnRunCommand,
+        m_ui->btnSearchFiles, m_ui->btnHomeDir, m_ui->btnSettings,
+        m_ui->btnSystemMonitor, m_ui->btnPower};
+    for (QWidget *w : navButtons)
+    {
+        w->setFocusPolicy(Qt::StrongFocus);
+        w->installEventFilter(this);
+    }
 
     // 收藏夹图标
     m_ui->btnFavoriteAppIcon->setFlat(true);
@@ -124,6 +133,30 @@ void Window::initUI()
     RecentFilesOverview *recentFilesOverview = new RecentFilesOverview(this);
     connect(recentFilesOverview, &RecentFilesOverview::fileItemClicked, this, &Window::openFile);
     m_ui->widgetOverviewStack->addWidget(recentFilesOverview);
+
+    // OverviewStack 内 search 和 tree 的 FocusPolicy 及事件过滤器
+    if (QLineEdit *search = m_appsOverview->findChild<QLineEdit *>(QStringLiteral("edit_search")))
+    {
+        search->setFocusPolicy(Qt::StrongFocus);
+        search->installEventFilter(this);
+    }
+    if (AppsView *av = m_appsOverview->getAppsView())
+    {
+        av->setFocusPolicy(Qt::StrongFocus);
+        av->installEventFilter(this);
+        av->viewport()->installEventFilter(this);
+    }
+    if (QLineEdit *search2 = recentFilesOverview->findChild<QLineEdit *>(QStringLiteral("edit_search")))
+    {
+        search2->setFocusPolicy(Qt::StrongFocus);
+        search2->installEventFilter(this);
+    }
+    if (RecentFilesView *rfv = recentFilesOverview->getTreeView())
+    {
+        rfv->setFocusPolicy(Qt::StrongFocus);
+        rfv->installEventFilter(this);
+        rfv->viewport()->installEventFilter(this);
+    }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     connect(overviewSelections, SIGNAL(idClicked(int)), m_ui->widgetOverviewStack, SLOT(setCurrentIndex(int)));
@@ -186,6 +219,7 @@ void Window::initUserInfo()
     connect(m_ui->btnUserPhoto, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("kiran-control-panel", {"-c", "account-management"});
+                emit windowDeactivated();
             });
 }
 
@@ -193,26 +227,31 @@ void Window::initQuickStart()
 {
     // 快速启动
     // TODO: mate相关的需要更改成自研
-
+    // 这里需要windowDeactivated，因为某些窗口不会抢占焦点，比如caja，导致开始菜单没有隐藏
     connect(m_ui->btnRunCommand, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-panel", {"--run-dialog"});
+                emit windowDeactivated();
             });
     connect(m_ui->btnSearchFiles, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-search-tool", {});
+                emit windowDeactivated();
             });
     connect(m_ui->btnHomeDir, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("caja", {});
+                emit windowDeactivated();
             });
     connect(m_ui->btnSettings, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("kiran-control-panel", {});
+                emit windowDeactivated();
             });
     connect(m_ui->btnSystemMonitor, &QPushButton::clicked, this, [=]()
             {
                 QProcess::startDetached("mate-system-monitor", {});
+                emit windowDeactivated();
             });
 
     // 电源选项
@@ -243,7 +282,7 @@ void Window::initQuickStart()
                                          {
                                              if (power->getGraphicalNtvs() >= power->getNtvsTotal())
                                              {
-                                                 KLOG_DEBUG(LCMenu) << QString("Total ntvs: %1, graphical ntvs: %2.").arg(power->getNtvsTotal()).arg(power->getGraphicalNtvs());
+                                                 KLOG_INFO(LCMenu) << QString("Total ntvs: %1, graphical ntvs: %2.").arg(power->getNtvsTotal()).arg(power->getGraphicalNtvs());
                                                  // TODO: 弹窗提示，已达最大用户数
                                              }
                                              else
@@ -304,6 +343,8 @@ void Window::clear(QStackedWidget *stackedWidget)
 AppItem *Window::newAppItem(QString appId)
 {
     AppItem *appItem = new AppItem(this);
+    appItem->setFocusPolicy(Qt::StrongFocus);
+    appItem->installEventFilter(this);
     appItem->setAppId(appId);
     connect(appItem, &AppItem::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
     connect(appItem, &AppItem::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
@@ -524,38 +565,58 @@ bool Window::eventFilter(QObject *object, QEvent *event)
         emit windowDeactivated();
     }
 
-    return QWidget::eventFilter(object, event);
+    // 键盘导航：拦截方向键，在四区域间/内切换焦点（当焦点在本窗口或子控件上时）
+    if (event->type() == QEvent::KeyPress)
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down || keyEvent->key() == Qt::Key_Left || keyEvent->key() == Qt::Key_Right)
+        {
+            QWidget *focusWidget = QApplication::focusWidget();
+            if (isVisible() && focusWidget && (focusWidget == this || isAncestorOf(focusWidget)))
+            {
+                if (m_keyNav->handleKeyPress(keyEvent))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return QDialog::eventFilter(object, event);
 }
 
 void Window::showEvent(QShowEvent *event)
 {
+    QDialog::showEvent(event);
     // 任务栏不显示
     KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
 
     // 更新常用应用列表
     updatePopular();
+
+    if (QWidget *first = m_keyNav->firstFocusable())
+    {
+        first->setFocus();
+    }
 }
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
-    if (Qt::Key_Up == event->key())
-    {
-        focusPreviousChild();
-    }
-    else if (Qt::Key_Down == event->key())
-    {
-        focusNextChild();
-    }
-    else if (Qt::Key_Escape == event->key())
+    if (event->key() == Qt::Key_Escape)
     {
         emit windowDeactivated();
+        return;
     }
-    else
+    if (event->key() == Qt::Key_Up || event->key() == Qt::Key_Down || event->key() == Qt::Key_Left || event->key() == Qt::Key_Right)
     {
-        QWidget::keyPressEvent(event);
+        if (m_keyNav->handleKeyPress(event))
+        {
+            return;
+        }
     }
+    QWidget::keyPressEvent(event);
 }
 
-}  // namespace  Menu
+}  // namespace Menu
 
 }  // namespace Kiran

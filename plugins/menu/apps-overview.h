@@ -30,6 +30,7 @@ namespace Kiran
 {
 namespace Menu
 {
+class AppsView;
 class AppsOverview : public QWidget
 {
     Q_OBJECT
@@ -39,6 +40,8 @@ public:
     ~AppsOverview() override;
 
     void resetToDefaultView();
+    class AppsView *getAppsView() const;
+
 protected:
     void showEvent(QShowEvent* event) override;
 

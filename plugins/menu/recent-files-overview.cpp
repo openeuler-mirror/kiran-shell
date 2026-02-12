@@ -17,6 +17,7 @@
 #include <QFileIconProvider>
 
 #include "recent-files-overview.h"
+#include "tree-view.h"
 #include "ui_recent-files-overview.h"
 
 namespace KAStats = KActivities::Stats;
@@ -39,6 +40,17 @@ RecentFilesOverview::RecentFilesOverview(QWidget *parent)
 RecentFilesOverview::~RecentFilesOverview()
 {
     delete m_ui;
+}
+
+RecentFilesView* RecentFilesOverview::getTreeView() const
+{
+    return m_ui->tree_recentFiles;
+}
+
+void RecentFilesOverview::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    m_ui->edit_search->setFocus();
 }
 
 }  // namespace Menu
