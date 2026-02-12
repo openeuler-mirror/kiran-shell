@@ -53,8 +53,8 @@ public:
 
         QRect bgRect = option.rect;
         bgRect.adjust(0, 0, -8, 0);
-        // 选中底色
-        if (option.state & QStyle::State_Selected)
+        // 选中底色（仅在有焦点时绘制，焦点移出后不保留选中样式）
+        if ((option.state & QStyle::State_Selected) && (option.state & QStyle::State_HasFocus))
         {
             QColor bgColor = palette->getColor(Kiran::Theme::Palette::SELECTED, Kiran::Theme::Palette::WIDGET);
             //            painter->fillRect(bgRect, bgColor);
