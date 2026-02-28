@@ -77,6 +77,7 @@ private:
 
 signals:
     void startDrag(TrayItem *);
+    void itemInvalidated(const QString &serviceAndPath);
 
 private:
     // 静态翻译缓存

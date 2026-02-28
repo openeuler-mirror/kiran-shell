@@ -71,6 +71,9 @@ private slots:
     // panel布局信息发生变化
     void updateLayout();
 
+    // 托盘项失效
+    void onItemInvalidated(const QString &serviceAndPath);
+
 signals:
     void dropEnded(QString serviceAndPath);
 
