@@ -56,7 +56,6 @@ signals:  // SIGNALS
     void StatusNotifierItemUnregistered(const QString &service);
 
 private:
-    void serviceOwnerChanged(const QString &serviceName, const QString &oldOwner, const QString &newOwner);
     void serviceUnregistered(const QString &service);
     void serviceRegistered(const QString &service);
 
