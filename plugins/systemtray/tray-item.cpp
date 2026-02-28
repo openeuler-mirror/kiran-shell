@@ -43,6 +43,10 @@ TrayItem::TrayItem(QString service, QString objectPath, QWidget *parent)
     m_objectPath = objectPath;
 
     m_trayItemProxy = new TrayItemProxy(m_service, m_objectPath, this);
+    connect(m_trayItemProxy, &TrayItemProxy::serviceUnregistered, this, [this](const QString &)
+            {
+                emit itemInvalidated(m_service + m_objectPath);
+            });
 
     // 延后执行刷新
     m_refreshTimer = new QTimer(this);

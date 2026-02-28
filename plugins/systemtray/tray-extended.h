@@ -87,6 +87,9 @@ signals:
     void dropEnded(QString serviceAndPath);
     void updatePosition();
 
+private slots:
+    void onItemInvalidated(const QString &serviceAndPath);
+
 private:
     IAppletImport *m_import;
     TraySettings* m_settings;
