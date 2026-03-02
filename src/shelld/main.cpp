@@ -13,6 +13,7 @@
  */
 
 #include <QGuiApplication>
+#include <qt5-log-i.h>
 #include <memory>
 
 #include "shelld.h"
@@ -20,6 +21,11 @@
 // TODO:当前只有底部面板用到,后面如果功能多了,或者其他情况,考虑移动到控制中心后端
 int main(int argc, char *argv[])
 {
+    if (klog_qt5_init("", "kylinsec-session", "kiran-shell", "kiran-shelld") != 0)
+    {
+        fprintf(stderr, "Failed to init kiran-log.");
+    }
+
     QGuiApplication app(argc, argv);
 
     Kiran::Shelld shelld;
