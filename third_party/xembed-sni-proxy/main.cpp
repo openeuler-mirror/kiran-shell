@@ -5,6 +5,12 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+#if defined(__linux__)
+#define _GNU_SOURCE
+#include <csignal>
+#include <sys/prctl.h>
+#endif
+
 #include <QGuiApplication>
 #include <QSessionManager>
 
@@ -25,6 +31,11 @@ Xcb::Atoms *atoms;
 
 int main(int argc, char **argv)
 {
+#if defined(__linux__)
+    // 父进程(shelld)退出或崩溃时，内核自动向本进程发送 SIGKILL
+    prctl(PR_SET_PDEATHSIG, SIGKILL);
+#endif
+
     // the whole point of this is to interact with X, if we are in any other session, force trying to connect to X
     // if the QPA can't load xcb, this app is useless anyway.
     qputenv("QT_QPA_PLATFORM", "xcb");

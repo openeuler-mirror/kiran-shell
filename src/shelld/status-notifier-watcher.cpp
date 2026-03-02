@@ -14,8 +14,8 @@
 
 #include <qt5-log-i.h>
 #include <QDBusConnection>
+#include <QTimer>
 
-#include "lib/common/dbus-service-watcher.h"
 #include "lib/common/logging-category.h"
 #include "status-notifier-watcher.h"
 #include "status_notifier_item_interface.h"
@@ -37,9 +37,6 @@ StatusNotifierWatcher::StatusNotifierWatcher(QObject *parent)
     m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
     m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &StatusNotifierWatcher::serviceUnregistered);
-
-    connect(&DBusWatcher, &DBusServiceWatcher::serviceOwnerChanged, this, &StatusNotifierWatcher::serviceOwnerChanged);
-    DBusWatcher.AddService(SERVICE_NAME, QDBusConnection::SessionBus);
 }
 
 StatusNotifierWatcher::~StatusNotifierWatcher()
@@ -59,29 +56,6 @@ bool StatusNotifierWatcher::IsStatusNotifierHostRegistered() const
 int StatusNotifierWatcher::ProtocolVersion() const
 {
     return 0;
-}
-
-void StatusNotifierWatcher::serviceOwnerChanged(const QString &service, const QString &oldOwner, const QString &newOwner)
-{
-    // 监控 org.kde.StatusNotifierWatcher 注册者变动，若其他进程注销，本服务接替注册
-    if (SERVICE_NAME != service)
-    {
-        return;
-    }
-
-    // Note that this signal is also emitted whenever the serviceName service was registered or unregistered.
-    // If it was registered, oldOwner will contain an empty string,
-    // whereas if it was unregistered, newOwner will contain an empty string
-
-    KLOG_INFO(LCSystemtray) << "Service" << service << "status change, old owner:" << oldOwner << "new:" << newOwner;
-
-    // 能接收到这个信号，说明有其他面板程序注册了服务，如：kiran-applet
-    if (newOwner.isEmpty())
-    {
-        KLOG_INFO(LCSystemtray) << "other program is unregistered, start to register" << SERVICE_NAME;
-
-        registerServer();
-    }
 }
 
 void StatusNotifierWatcher::serviceUnregistered(const QString &service)
@@ -113,6 +87,7 @@ void StatusNotifierWatcher::serviceRegistered(const QString &service)
 void StatusNotifierWatcher::registerServer()
 {
     QDBusConnection dbus = QDBusConnection::sessionBus();
+
     // 注册服务
     // 注册对象，并把函数、信号导出为object的method、signal、property
     // 任意时间都将有且只有一个 org.freedesktop.StatusNotifierWatcher 服务实例在会话中被注册
@@ -120,22 +95,19 @@ void StatusNotifierWatcher::registerServer()
     if (!dbus.registerService(SERVICE_NAME) ||
         !dbus.registerObject(WATCHER_PATH, this, QDBusConnection::ExportAllContents))
     {
-        KLOG_WARNING(LCSystemtray) << "service register failed:" << SERVICE_NAME << ", because other program is registered earlier";
+        KLOG_WARNING(LCSystemtray) << "service register failed:" << SERVICE_NAME
+                                   << ", because other program is registered earlier"
+                                   << dbus.lastError().message();
+        return;
     }
-    else
-    {
-        KLOG_INFO(LCSystemtray) << "service register ok:" << SERVICE_NAME;
-
-        // 启动XEmbed转StatusNotifierItem服务
-        startXembedSniProxy();
-    }
+    KLOG_INFO(LCSystemtray) << "service register ok:" << SERVICE_NAME;
+    // 启动XEmbed转StatusNotifierItem服务
+    startXembedSniProxy();
 }
 
 void StatusNotifierWatcher::startXembedSniProxy()
 {
-    killXembedSniProxy();
-
-    m_xembedSniProxy = new QProcess;
+    m_xembedSniProxy = new QProcess(this);
 
     // 将标准输出和标准错误输出合并
     m_xembedSniProxy->setProcessChannelMode(QProcess::MergedChannels);
@@ -146,6 +118,8 @@ void StatusNotifierWatcher::startXembedSniProxy()
     if (m_xembedSniProxy->waitForStarted())
     {
         KLOG_INFO(LCSystemtray) << "xembedsniproxy start ok";
+        connect(m_xembedSniProxy, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, &StatusNotifierWatcher::onXembedSniProxyFinished);
     }
     else
     {
@@ -159,6 +133,7 @@ void StatusNotifierWatcher::killXembedSniProxy()
 {
     if (m_xembedSniProxy)
     {
+        m_xembedSniProxy->disconnect(this);  // 避免退出时触发 onXembedSniProxyFinished 导致误重启
         if (m_xembedSniProxy->state() == QProcess::Running)
         {
             m_xembedSniProxy->terminate();  // SIGTERM
@@ -172,24 +147,29 @@ void StatusNotifierWatcher::killXembedSniProxy()
                 KLOG_INFO(LCSystemtray) << "xembedsniproxy has been terminated.";
             }
         }
-
         m_xembedSniProxy->deleteLater();  // 清理进程
         m_xembedSniProxy = nullptr;       // 防止再次使用已删除的指针
     }
-    else
+}
+
+void StatusNotifierWatcher::onXembedSniProxyFinished(int exitCode, QProcess::ExitStatus status)
+{
+    QProcess *proc = qobject_cast<QProcess *>(sender());
+    if (!proc || proc != m_xembedSniProxy)
     {
-        // 调试模式下，停止主进程，子进程会变孤儿
-        QProcess process;
-        process.start("pkill", {"xembedsniproxy"});
-        if (process.waitForFinished())
-        {
-            KLOG_INFO(LCSystemtray) << "xembedsniproxy has been killed";
-        }
-        else
-        {
-            KLOG_INFO(LCSystemtray) << "xembedsniproxy can not be kill";
-        }
+        return;
     }
+    bool abnormalExit = (status == QProcess::CrashExit) || (status == QProcess::NormalExit && exitCode != 0);
+    if (!abnormalExit)
+    {
+        return;
+    }
+    KLOG_INFO(LCSystemtray) << "xembedsniproxy exited abnormally (exitCode:" << exitCode
+                            << ", status:" << status << "), restarting...";
+    m_xembedSniProxy->disconnect(this);
+    m_xembedSniProxy->deleteLater();
+    m_xembedSniProxy = nullptr;
+    QTimer::singleShot(1000, this, [this]() { startXembedSniProxy(); });
 }
 
 void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &serviceOrPath)
