@@ -207,6 +207,10 @@ TrayItem *Tray::itemAdd(QString serviceAndPath)
     auto item = new TrayItem(service, path, this);
     auto size = m_import->getPanel()->getSize() / 40 * 32;
     item->setFixedSize(size, size);
+
+    // 当StatusNotifierWatcher服务异常退出，不会发出StatusNotifierItemUnregistered
+    // 此时只能通过TrayItem中监控客户端服务itemInvalidated信号，主动注销托盘项
+    connect(item, &TrayItem::itemInvalidated, this, &Tray::onItemInvalidated);
     connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {
                 m_trayExtendedWindow->show();
@@ -421,6 +425,11 @@ void Tray::updateLayout()
     {
         m_layoutBase->setContentsMargins(4, LAYOUT_MARGIN, 4, LAYOUT_MARGIN);
     }
+}
+
+void Tray::onItemInvalidated(const QString &serviceAndPath)
+{
+    itemRemove(serviceAndPath);
 }
 
 }  // namespace Systemtray

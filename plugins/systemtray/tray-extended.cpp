@@ -286,6 +286,7 @@ TrayItem *TrayExtended::itemAdd(QString serviceAndPath)
                 // dragItem->hide();
                 updateItemLayout();
             });
+    connect(item, &TrayItem::itemInvalidated, this, &TrayExtended::onItemInvalidated);
     m_services.insert(serviceAndPath, item);
 
     return item;
@@ -302,6 +303,11 @@ void TrayExtended::itemRemove(const QString &serviceAndPath)
     }
 
     updateItemLayout();
+}
+
+void TrayExtended::onItemInvalidated(const QString &serviceAndPath)
+{
+    itemRemove(serviceAndPath);
 }
 
 void TrayExtended::addFoldingItem(const QString &serviceAndPath)

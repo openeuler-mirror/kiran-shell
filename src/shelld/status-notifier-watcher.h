@@ -16,9 +16,9 @@
 
 #include <QDBusContext>
 #include <QObject>
+#include <QProcess>
 #include <QStringList>
 
-class QProcess;
 class QDBusServiceWatcher;
 
 namespace Kiran
@@ -56,7 +56,6 @@ signals:  // SIGNALS
     void StatusNotifierItemUnregistered(const QString &service);
 
 private:
-    void serviceOwnerChanged(const QString &serviceName, const QString &oldOwner, const QString &newOwner);
     void serviceUnregistered(const QString &service);
     void serviceRegistered(const QString &service);
 
@@ -64,6 +63,9 @@ private:
 
     void startXembedSniProxy();
     void killXembedSniProxy();
+
+private slots:
+    void onXembedSniProxyFinished(int exitCode, QProcess::ExitStatus status);
 
 private:
     QDBusServiceWatcher *m_serviceWatcher = nullptr;

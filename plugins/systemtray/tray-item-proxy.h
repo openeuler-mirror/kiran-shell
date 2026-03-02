@@ -18,6 +18,8 @@
 
 #include "status_notifier_item_interface.h"
 
+class QDBusServiceWatcher;
+
 class TrayItemProxy : public QObject
 {
     Q_OBJECT
@@ -28,13 +30,8 @@ public:
     QStringList getAllPropertyKey();
     QString service() const;
 
-public slots:
-    QDBusPendingReply<> activate(int x, int y);
-    QDBusPendingReply<> contextMenu(int x, int y);
-    QDBusPendingReply<> scroll(int delta, const QString &orientation);
-    QDBusPendingReply<> secondaryActivate(int x, int y);
-
 signals:
+    void serviceUnregistered(const QString &service);
     void updateAttentionIcon();
     void updateIcon();
     void updateOverlayIcon();
@@ -42,6 +39,13 @@ signals:
     void updateTitle();
     void updateToolTip();
 
+public slots:
+    QDBusPendingReply<> activate(int x, int y);
+    QDBusPendingReply<> contextMenu(int x, int y);
+    QDBusPendingReply<> scroll(int delta, const QString &orientation);
+    QDBusPendingReply<> secondaryActivate(int x, int y);
+
 private:
     StatusNotifierItemInterface m_statusNotifierItemInterface;
+    QDBusServiceWatcher *m_serviceWatcher = nullptr;
 };

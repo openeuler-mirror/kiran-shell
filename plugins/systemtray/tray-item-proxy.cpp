@@ -13,6 +13,7 @@
  */
 
 #include <qt5-log-i.h>
+#include <QDBusServiceWatcher>
 
 #include "lib/common/logging-category.h"
 #include "tray-item-proxy.h"
@@ -20,6 +21,17 @@
 TrayItemProxy::TrayItemProxy(const QString &service, const QString &path, QObject *parent)
     : QObject(parent), m_statusNotifierItemInterface{service, path, QDBusConnection::sessionBus()}
 {
+    m_serviceWatcher = new QDBusServiceWatcher(this);
+    m_serviceWatcher->setConnection(QDBusConnection::sessionBus());
+    m_serviceWatcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+    m_serviceWatcher->addWatchedService(service);
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this,
+            [this](const QString &name)
+            {
+                KLOG_INFO(LCSystemtray) << "TrayItemProxy: service unregistered" << name;
+                emit serviceUnregistered(name);
+            });
+
     connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewIcon, this, &TrayItemProxy::updateIcon);
     connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewAttentionIcon, this, &TrayItemProxy::updateAttentionIcon);
     connect(&m_statusNotifierItemInterface, &StatusNotifierItemInterface::NewOverlayIcon, this, &TrayItemProxy::updateOverlayIcon);
