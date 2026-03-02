@@ -6,3 +6,4 @@ Comment[zh_CN]=kiran-shell后台服务
 Exec=kiran-shelld
 Type=Application
 NoDisplay=true
+X-KIRAN-AutoRestart=true

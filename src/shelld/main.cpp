@@ -12,7 +12,7 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <memory>
 
 #include "shelld.h"
@@ -20,9 +20,9 @@
 // TODO:当前只有底部面板用到,后面如果功能多了,或者其他情况,考虑移动到控制中心后端
 int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 
     Kiran::Shelld shelld;
 
-    return QCoreApplication::exec();  // keep running
+    return QGuiApplication::exec();
 }
