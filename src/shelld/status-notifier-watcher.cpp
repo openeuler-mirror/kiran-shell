@@ -14,6 +14,7 @@
 
 #include <qt5-log-i.h>
 #include <QDBusConnection>
+#include <QTimer>
 
 #include "lib/common/logging-category.h"
 #include "status-notifier-watcher.h"
@@ -117,6 +118,8 @@ void StatusNotifierWatcher::startXembedSniProxy()
     if (m_xembedSniProxy->waitForStarted())
     {
         KLOG_INFO(LCSystemtray) << "xembedsniproxy start ok";
+        connect(m_xembedSniProxy, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, &StatusNotifierWatcher::onXembedSniProxyFinished);
     }
     else
     {
@@ -130,6 +133,7 @@ void StatusNotifierWatcher::killXembedSniProxy()
 {
     if (m_xembedSniProxy)
     {
+        m_xembedSniProxy->disconnect(this);  // 避免退出时触发 onXembedSniProxyFinished 导致误重启
         if (m_xembedSniProxy->state() == QProcess::Running)
         {
             m_xembedSniProxy->terminate();  // SIGTERM
@@ -146,6 +150,26 @@ void StatusNotifierWatcher::killXembedSniProxy()
         m_xembedSniProxy->deleteLater();  // 清理进程
         m_xembedSniProxy = nullptr;       // 防止再次使用已删除的指针
     }
+}
+
+void StatusNotifierWatcher::onXembedSniProxyFinished(int exitCode, QProcess::ExitStatus status)
+{
+    QProcess *proc = qobject_cast<QProcess *>(sender());
+    if (!proc || proc != m_xembedSniProxy)
+    {
+        return;
+    }
+    bool abnormalExit = (status == QProcess::CrashExit) || (status == QProcess::NormalExit && exitCode != 0);
+    if (!abnormalExit)
+    {
+        return;
+    }
+    KLOG_INFO(LCSystemtray) << "xembedsniproxy exited abnormally (exitCode:" << exitCode
+                            << ", status:" << status << "), restarting...";
+    m_xembedSniProxy->disconnect(this);
+    m_xembedSniProxy->deleteLater();
+    m_xembedSniProxy = nullptr;
+    QTimer::singleShot(1000, this, [this]() { startXembedSniProxy(); });
 }
 
 void StatusNotifierWatcher::RegisterStatusNotifierItem(const QString &serviceOrPath)
