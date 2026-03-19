@@ -17,10 +17,10 @@
 #include <KServiceGroup>
 #include <KSycoca>
 #include <QElapsedTimer>
-#include <QFileInfo>
 #include <QIcon>
 #include <QThread>
 #include "apps-model.h"
+#include "icon-utils.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 
@@ -51,14 +51,15 @@ public:
                            parent);
     }
 
-    static AppNode *createNode(const QString &name, const QIcon &icon, const QString &id, const QString &tooltip, const QString &untranslatedName, AppNode *parent = nullptr)
+    static AppNode *createNode(const QString &name, const QIcon &icon, const QString &id, const QString &tooltip, const QString &untranslatedName, bool fallbackIcon, AppNode *parent = nullptr)
     {
         return new AppNode({{AppsModel::NameRole, name},
                             {AppsModel::TypeRole, AppsModel::ItemType::Application},
                             {AppsModel::IconRole, icon},
                             {AppsModel::IdRole, id},
                             {AppsModel::ToolTipRole, tooltip},
-                            {AppsModel::UntranslatedNameRole, untranslatedName}},
+                            {AppsModel::UntranslatedNameRole, untranslatedName},
+                            {AppsModel::FallbackIconRole, fallbackIcon}},
                            parent);
     }
 
@@ -235,14 +236,12 @@ private:
                 if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
                     continue;
 
-                auto icon = QIcon::fromTheme(service->icon());
+                auto icon = loadAppIcon(service->icon());
+                // 记录是否命中默认回退图标，供 AppsModel 后续决定是否触发重试刷新。
+                bool fallbackIcon = false;
                 if (icon.isNull())
                 {
-                    // 支持某些desktop文件不规范的情况，如 icon=xx.png
-                    icon = QIcon::fromTheme(QFileInfo(service->icon()).baseName());
-                }
-                if (icon.isNull())
-                {
+                    fallbackIcon = true;
                     icon = QIcon::fromTheme("application-x-executable");
                 }
 
@@ -253,7 +252,7 @@ private:
                 {
                     tooltip += "\n" + service->comment();
                 }
-                AppNode::createNode(service->name(), icon, service->storageId(), tooltip, untranslatedName, parentItem);
+                AppNode::createNode(service->name(), icon, service->storageId(), tooltip, untranslatedName, fallbackIcon, parentItem);
             }
             else if (entry->isType(KST_KServiceGroup))  // 分类
             {

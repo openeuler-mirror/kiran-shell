@@ -35,6 +35,9 @@ static bool isChineseLocale()
     return locale.language() == QLocale::Chinese;
 }
 
+static constexpr int kMaxIconRetryCount = 3;
+static constexpr int kIconRetryIntervalsMs[kMaxIconRetryCount] = {500, 1500, 3000};
+
 AppsModel::AppsModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
@@ -203,15 +206,98 @@ void AppsModel::buildNewAppsSubTree(QSet<QString> &newAppsSet, AppNode *parent, 
     return;
 }
 
+void AppsModel::collectFallbackIconApps(AppNode *parent, const QSet<QString> &targetAppIds, QSet<QString> &fallbackAppIds) const
+{
+    if (!parent || targetAppIds.isEmpty())
+    {
+        return;
+    }
+
+    for (int i = 0; i < parent->childCount(); ++i)
+    {
+        AppNode *child = parent->child(i);
+        if (child->data(AppsModel::TypeRole).toInt() == AppsModel::ItemType::Application)
+        {
+            const auto appId = child->data(AppsModel::IdRole).toString();
+            // 只跟踪目标集合内且当前仍是回退图标的应用。
+            if (targetAppIds.contains(appId) && child->data(AppsModel::FallbackIconRole).toBool())
+            {
+                fallbackAppIds.insert(appId);
+            }
+            continue;
+        }
+
+        collectFallbackIconApps(child, targetAppIds, fallbackAppIds);
+    }
+}
+
+void AppsModel::scheduleIconRetry()
+{
+    // 仅在存在待修复应用且仍有重试预算时触发。
+    if (m_iconRetryScheduled || m_pendingIconRetryAppIds.isEmpty() || m_remainingIconRetryCount <= 0)
+    {
+        return;
+    }
+
+    const int retryIndex = kMaxIconRetryCount - m_remainingIconRetryCount;
+    const int delayMs = kIconRetryIntervalsMs[retryIndex];
+    --m_remainingIconRetryCount;
+    m_iconRetryScheduled = true;
+
+    QTimer::singleShot(delayMs, this, [this]()
+                       {
+                           m_iconRetryScheduled = false;
+                           // 在延迟窗口中若图标已恢复，则不再触发额外重载。
+                           if (m_pendingIconRetryAppIds.isEmpty())
+                           {
+                               return;
+                           }
+
+                           QMetaObject::invokeMethod(m_dataLoader, "loadData", Qt::QueuedConnection);
+                       });
+}
+
+void AppsModel::updateIconRetryState(AppNode *appsRoot, const QSet<QString> &newAppIds)
+{
+    // 需要检测的集合 = 历史未修复应用 + 本次新增应用。
+    QSet<QString> targetAppIds = m_pendingIconRetryAppIds;
+    targetAppIds.unite(newAppIds);
+    if (targetAppIds.isEmpty())
+    {
+        return;
+    }
+
+    QSet<QString> fallbackAppIds;
+    collectFallbackIconApps(appsRoot, targetAppIds, fallbackAppIds);
+    // 只保留“当前仍命中回退图标”的应用，避免无效重试。
+    m_pendingIconRetryAppIds = fallbackAppIds;
+
+    if (fallbackAppIds.isEmpty())
+    {
+        m_remainingIconRetryCount = 0;
+        return;
+    }
+
+    QSet<QString> newFallbackApps = fallbackAppIds & newAppIds;
+    if (!newFallbackApps.isEmpty())
+    {
+        // 新出现回退图标时重置重试预算，保证最多 3 次机会。
+        m_remainingIconRetryCount = kMaxIconRetryCount;
+    }
+
+    scheduleIconRetry();
+}
+
 void AppsModel::onDataLoaded(QSet<QString> appIds, AppNode *appsRoot)
 {
     static bool firstInit = true;
     auto& newAppsManager = NewAppsManager::getInstance();
+    QSet<QString> diffApps;
 
     if (!firstInit)
     {
         // 检测新老数据差集
-        QSet<QString> diffApps = appIds - m_appIds;
+        diffApps = appIds - m_appIds;
         KLOG_INFO(LCMenu) << appIds << m_appIds;
         if (!diffApps.isEmpty())
         {
@@ -219,6 +305,8 @@ void AppsModel::onDataLoaded(QSet<QString> appIds, AppNode *appsRoot)
         }
     }
     firstInit = false;
+
+    updateIconRetryState(appsRoot, diffApps);
 
     // 剔除一些GSettings新应用配置中的无效项
     auto newAppsSet = newAppsManager.getAllNewApps();
