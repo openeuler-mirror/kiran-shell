@@ -40,6 +40,7 @@ public:
         TypeRole = Qt::UserRole + 1,
         IdRole,
         UntranslatedNameRole,
+        FallbackIconRole,
     };
     enum ItemType
     {
@@ -69,6 +70,10 @@ private:
     void filter(AppNode *searchResult, const QString &searchKey, AppNode *item, QSet<QString> &storageIds);
     // 传入新应用集合以及原始应用节点和新应用根节点，构建新应用子树
     void buildNewAppsSubTree(QSet<QString> &newAppsSet, AppNode *parent, AppNode *newAppsNode);
+    // 用于处理图标不显示的情况
+    void collectFallbackIconApps(AppNode *parent, const QSet<QString> &targetAppIds, QSet<QString> &fallbackAppIds) const;
+    void updateIconRetryState(AppNode *appsRoot, const QSet<QString> &newAppIds);
+    void scheduleIconRetry();
 
 private slots:
     void onDataLoaded(QSet<QString> appIds, AppNode *appsRoot);
@@ -83,6 +88,9 @@ private:
     QSet<QString> m_appIds;
     // 搜索结果
     AppNode *m_searchRoot = nullptr;
+    QSet<QString> m_pendingIconRetryAppIds;
+    int m_remainingIconRetryCount = 0;
+    bool m_iconRetryScheduled = false;
 };
 }  // namespace Menu
 }  // namespace Kiran
