@@ -397,7 +397,8 @@ void NetCommon::checkOpeartionResult(OpeartionType type, QString name, QDBusPend
         KLOG_WARNING(LCSettingbar) << name << opeartionMsgMap[type][result];
         if (OPERTION_FAILED == result)
         {
-            Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result] + "\n" + call.error().message());
+            Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result]);
+            KLOG_ERROR(LCSettingbar) << "network operation failed:" << name << opeartionMsgMap[type][result] << "error:" << call.error().message();
         }
     }
     else
@@ -473,7 +474,8 @@ void NetCommon::processPendingCallFinished(QDBusPendingCallWatcher *watcher)
     KLOG_WARNING(LCSettingbar) << name << opeartionMsgMap[type][result];
     if (OPERTION_FAILED == result)
     {
-        Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result] + "\n" + reply.errorMessage());
+        Common::generalNotify(tr("network"), name + " " + opeartionMsgMap[type][result]);
+        KLOG_ERROR(LCSettingbar) << "network operation failed:" << name << opeartionMsgMap[type][result] << "error:" << reply.errorMessage();
     }
 
     watcher->deleteLater();

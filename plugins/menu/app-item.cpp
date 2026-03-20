@@ -16,7 +16,6 @@
 #include <KActivities/ResourceInstance>
 #include <KService/KService>
 #include <QDrag>
-#include <QFileInfo>
 #include <QIcon>
 #include <QKeyEvent>
 #include <QMenu>
@@ -24,6 +23,7 @@
 #include <QMouseEvent>
 
 #include "app-item.h"
+#include "icon-utils.h"
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 
@@ -48,11 +48,10 @@ void AppItem::setAppId(const QString &appId)
     KService::Ptr s = KService::serviceByMenuId(m_appId);
     if (s)
     {
-        QIcon icon = QIcon::fromTheme(s->icon());
+        QIcon icon = loadAppIcon(s->icon());
         if (icon.isNull())
         {
-            // 支持某些desktop文件不规范的情况，如 icon=xx.png
-            icon = QIcon::fromTheme(QFileInfo(s->icon()).baseName());
+            icon = QIcon::fromTheme("application-x-executable");
         }
         setIcon(icon);
         setText(s->name());
