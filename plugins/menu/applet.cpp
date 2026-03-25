@@ -100,6 +100,17 @@ void Applet::setupLayout()
     layout->addWidget(m_appletButton);
 
     setRadius(0);
+
+
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    updateLayout();
+}
+
+void Applet::updateLayout()
+{
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
 }
 
 void Applet::setupDbus()

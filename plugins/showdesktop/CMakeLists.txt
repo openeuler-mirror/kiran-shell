@@ -21,11 +21,12 @@ target_include_directories(
   ${TARGET_NAME}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
           ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include
-          ${KLOG_QT5_INCLUDE_DIRS})
+          ${KLOG_QT5_INCLUDE_DIRS} ${KIRAN_WIDGETS_QT5_INCLUDE_DIRS})
 
 target_link_libraries(
-  ${TARGET_NAME} PRIVATE ${KLOG_QT5_LIBRARIES} Qt5::Widgets KF5::WindowSystem
-                         kiran-integration-theme widgets)
+  ${TARGET_NAME}
+  PRIVATE ${KLOG_QT5_LIBRARIES} ${KIRAN_WIDGETS_QT5_LIBRARIES} Qt5::Widgets
+          KF5::WindowSystem kiran-integration-theme widgets)
 
 install(FILES ${QM_FILES} DESTINATION ${KS_INSTALL_TRANSLATIONDIR})
 install(TARGETS ${TARGET_NAME} DESTINATION ${KS_INSTALL_PLUGINDIR})

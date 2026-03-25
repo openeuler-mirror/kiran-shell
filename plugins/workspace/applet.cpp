@@ -49,7 +49,6 @@ Applet::Applet(IAppletImport *import)
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
     m_appletButton->setToolTip(tr("Workspace switcher"));
 
-
     m_window = new Window();
     connect(m_window, &Window::windowDeactivated, this, &Applet::hideWindow);
 
@@ -57,6 +56,10 @@ Applet::Applet(IAppletImport *import)
     layout->setMargin(4);
     layout->setSpacing(0);
     layout->addWidget(m_appletButton);
+
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    updateLayout();
 }
 
 Applet::~Applet()
@@ -66,6 +69,14 @@ Applet::~Applet()
         delete m_window;
         m_window = nullptr;
     }
+}
+
+void Applet::updateLayout()
+{
+    KLOG_INFO(LCWorkspace) << "updateLayout";
+
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
 }
 
 void Applet::clickButton(bool checked)
