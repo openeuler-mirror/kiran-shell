@@ -39,6 +39,10 @@ private slots:
     void clickButton(bool checked);
     void hideWindow();
 
+private slots:
+    // panel布局信息发生变化
+    void updateLayout();
+
 private:
     StyledButton *m_appletButton;
 
