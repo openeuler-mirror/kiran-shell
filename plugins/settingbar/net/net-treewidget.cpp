@@ -360,8 +360,9 @@ void netTreeWidget::removeConnection(const QString &deviceUni, const QString &co
             QWidget *widget = m_connectionItems[deviceUni][connectUuid].second;
             item->parent()->removeChild(item);
 
+            // 使用 deleteLater() 延迟删除 widget，避免在信号槽处理过程中直接删除对象导致悬空指针
             delete item;
-            delete widget;
+            widget->deleteLater();
 
             m_connectionItems[deviceUni].remove(connectUuid);
         }
@@ -438,7 +439,10 @@ void netTreeWidget::requestPassword(const QString &devicePath, const QString &ss
     if (m_connectionItems.contains(devicePath) && m_connectionItems[devicePath].contains(ssid))
     {
         auto *netConnectionItem = (WirelessConnectionWidget *)m_connectionItems[devicePath][ssid].second;
-        netConnectionItem->requestPassword();
+        if (netConnectionItem)
+        {
+            netConnectionItem->requestPassword();
+        }
     }
 }
 
