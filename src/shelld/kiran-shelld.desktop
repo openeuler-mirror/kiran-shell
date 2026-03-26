@@ -7,3 +7,4 @@ Exec=kiran-shelld
 Type=Application
 NoDisplay=true
 X-KIRAN-AutoRestart=true
+X-KIRAN-Autostart-Phase=Panel
