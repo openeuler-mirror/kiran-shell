@@ -50,10 +50,15 @@ private:
     // 布局更新
     void updateLayout(QList<WindowPreviewer *> windowPreviewerShow);
 
+private slots:
+    // 预览窗口显示/隐藏控制
     void showPreviewer(const QList<WId> &wids, QWidget *triggerWidget);
     void hidePreviewer();
     void hideTimeout();
     void previewerShowChange(const QList<WId> &wids, QWidget *triggerWidget);
+
+    // panel尺寸变化时更新所有预览窗口大小并重新定位
+    void panelProfileChanged();
 
 protected:
     void leaveEvent(QEvent *event) override;

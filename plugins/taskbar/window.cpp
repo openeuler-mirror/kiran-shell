@@ -80,13 +80,20 @@ void Window::initUI()
     setRadius(0);
     setAcceptDrops(true);
 
-    // 翻页按钮
+    // 翻页按钮（根据 panel 尺寸初始化按钮和图标大小）
     m_upPageBtn = new StyledButton(this);
     m_upPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC));
     m_upPageBtn->hide();
     m_downPageBtn = new StyledButton(this);
     m_downPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_DOWN_PAGE_SYMBOLIC));
     m_downPageBtn->hide();
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelIconSize(panelSize);
+    m_upPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_downPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_upPageBtn->setIconSize(QSize(iconSize, iconSize));
+    m_downPageBtn->setIconSize(QSize(iconSize, iconSize));
     connect(m_upPageBtn, &QAbstractButton::clicked, [this]()
             {
                 int showPageIndex = m_curPageIndex - 1;
@@ -343,9 +350,17 @@ void Window::updateLayoutByProfile()
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
+    // 根据 panel 尺寸更新翻页按钮和图标大小
     auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelIconSize(panelSize);
     setFixedDimensions(panelSize, direction);
+    m_upPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_downPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_upPageBtn->setIconSize(QSize(iconSize, iconSize));
+    m_downPageBtn->setIconSize(QSize(iconSize, iconSize));
 
+    // 通知所有应用组更新布局
     for (auto *appGroup : m_listAppGroupShow)
     {
         appGroup->updateLayout();

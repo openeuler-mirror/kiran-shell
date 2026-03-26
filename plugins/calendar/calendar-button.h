@@ -36,6 +36,8 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    QFont calcDisplayFont() const;
+
     IAppletImport *m_import;
 
     bool m_hovered = false;

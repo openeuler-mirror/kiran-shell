@@ -35,8 +35,6 @@
 #include "lib/common/window-info-helper.h"
 #include "plugin-i.h"
 
-const int APP_BUTTON_HEIGHT = 32;
-
 namespace Kiran
 {
 namespace Taskbar
@@ -51,7 +49,6 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
 
     connect(this, &QAbstractButton::clicked, this, &AppButton::buttonClicked);
 
-    setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 }
 
@@ -314,14 +311,15 @@ void AppButton::paintEvent(QPaintEvent *event)
     // 图标 + 文字
     // 在底部面板为40的情况下，进行等比计算
     // 宽=40×4=160
-    // 高=32
+    // 高=32（根据 panel size 动态计算）
     // 图标+文字=136
     // 图标文字间隔=8
     auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
     const int designWidth = panelSize * 4;
-    const int designHeight = APP_BUTTON_HEIGHT;
+    const int designHeight = buttonSize;
     const int designIconTextMargin = 8;
-    const int designIconTextWidth = designWidth - APP_BUTTON_HEIGHT;
+    const int designIconTextWidth = designWidth - buttonSize;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);  // 设置反走样，使边缘平滑
@@ -502,10 +500,15 @@ void AppButton::changedWindow(WId wid, NET::Properties properties,
     }
 }
 
+// 根据 panel 尺寸和窗口状态更新按钮显示：
+// - 水平 panel 且有窗口时显示图标+文字，宽度为 panelSize * 4
+// - 其他情况仅显示图标，按钮为正方形
 void AppButton::updateShowName()
 {
     auto panelSize = m_import->getPanel()->getSize();
-    int height = APP_BUTTON_HEIGHT;
+    int iconSize = Utility::panelIconSize(panelSize);
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    setIconSize(QSize(iconSize, iconSize));
 
     if (0 != m_wid)
     {
@@ -518,15 +521,15 @@ void AppButton::updateShowName()
             (orientation == PanelOrientation::PANEL_ORIENTATION_BOTTOM ||
              orientation == PanelOrientation::PANEL_ORIENTATION_TOP))
         {
-            setFixedSize(panelSize * 4, height);
+            setFixedSize(panelSize * 4, buttonSize);
             QString elideText =
-                Utility::getElidedText(fontMetrics(), m_visualName, height * 3);
+                Utility::getElidedText(fontMetrics(), m_visualName, buttonSize * 3);
             setText(elideText);
             return;
         }
     }
 
-    setFixedSize(height, height);
+    setFixedSize(buttonSize, buttonSize);
     setText("");
 }
 

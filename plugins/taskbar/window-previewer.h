@@ -41,6 +41,9 @@ public:
     // 此处判断是否可以隐藏，如果菜单已弹出，则在菜单执行结束时隐藏窗口
     bool checkCanHide();
 
+    // 根据panel size更新预览窗口大小，确保随panel缩放
+    void updateLayout();
+
 private:
     // 监测窗口变化
     void changedActiveWindow(WId wid);
