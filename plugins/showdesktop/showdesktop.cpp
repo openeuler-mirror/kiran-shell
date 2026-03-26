@@ -61,21 +61,29 @@ Showdesktop::Showdesktop(IAppletImport *import)
     updateLayout();
 }
 
+// 根据 panel 尺寸和方向更新显示桌面按钮布局
+// 横向panel：按钮高度与panel一致，宽度为1/4，上下保留4px边距
+// 纵向panel：按钮宽度与panel一致，高度为1/4，左右保留4px边距
 void Showdesktop::updateLayout()
 {
     KLOG_WARNING() << "updateLayout";
 
     int orientation = m_import->getPanel()->getOrientation();
     auto size = m_import->getPanel()->getSize();
+    auto *boxLayout = static_cast<QBoxLayout *>(layout());
 
     if (PanelOrientation::PANEL_ORIENTATION_BOTTOM == orientation ||
         PanelOrientation::PANEL_ORIENTATION_TOP == orientation)
     {
         setFixedSize(size / 4, size);
+        boxLayout->setContentsMargins(0, 4, 0, 4);
+        m_button->setFixedSize(size / 4, size - 8);
     }
     else
     {
         setFixedSize(size, size / 4);
+        boxLayout->setContentsMargins(4, 0, 4, 0);
+        m_button->setFixedSize(size - 8, size / 4);
     }
 }
 

@@ -21,6 +21,7 @@
 #include "ks-config.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/utility.h"
 #include "plugin-i.h"
 #include "window.h"
 
@@ -44,7 +45,6 @@ Applet::Applet(IAppletImport *import)
     setRadius(0);
 
     m_appletButton = new StyledButton(this);
-    m_appletButton->setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     connect(m_appletButton, &QAbstractButton::clicked, this, &Applet::clickButton);
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_WORKSPACE_SWITCHER));
     m_appletButton->setToolTip(tr("Workspace switcher"));
@@ -77,6 +77,10 @@ void Applet::updateLayout()
 
     auto size = m_import->getPanel()->getSize();
     setFixedSize(size, size);
+    int buttonSize = Utility::panelButtonSize(size);
+    int iconSize = Utility::panelIconSize(size);
+    m_appletButton->setFixedSize(buttonSize, buttonSize);
+    m_appletButton->setIconSize(QSize(iconSize, iconSize));
 }
 
 void Applet::clickButton(bool checked)

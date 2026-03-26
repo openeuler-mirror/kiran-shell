@@ -31,8 +31,7 @@ WindowPreviewer::WindowPreviewer(WId wid, IAppletImport *import, AppPreviewer *p
     : WindowThumbnail(wid, parent),
       m_import(import)
 {
-    int panelSize = m_import->getPanel()->getSize();
-    setFixedSize(panelSize * 4, panelSize * 4);
+    updateLayout();
 
     m_menu = new QMenu(this);
     // 菜单弹出时，点击其地方，隐藏预览窗口
@@ -41,6 +40,13 @@ WindowPreviewer::WindowPreviewer(WId wid, IAppletImport *import, AppPreviewer *p
 }
 
 WindowPreviewer::~WindowPreviewer() = default;
+
+// 根据当前panel尺寸更新预览窗口大小（尺寸为panel尺寸的4倍）
+void WindowPreviewer::updateLayout()
+{
+    int panelSize = m_import->getPanel()->getSize();
+    setFixedSize(panelSize * 4, panelSize * 4);
+}
 
 bool WindowPreviewer::checkCanHide()
 {

@@ -42,12 +42,17 @@ AppPreviewer::AppPreviewer(IAppletImport *import, QWidget *parent)
       m_import(import)
 {
     auto *window = (Window *)parent;
-    // connect(window, &Window::windowRemoved, this, &AppPreviewer::removeWindow);
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+
+    // 连接预览窗口相关信号
     connect(window, &Window::windowChanged, this, &AppPreviewer::windowChanged);
     connect(window, &Window::activeWindowChanged, this, &AppPreviewer::activeWindowChanged);
     connect(window, &Window::previewerShow, this, &AppPreviewer::showPreviewer);
     connect(window, &Window::previewerHide, this, &AppPreviewer::hidePreviewer);
     connect(window, &Window::previewerShowChange, this, &AppPreviewer::previewerShowChange);
+
+    // 监听panel尺寸/方向变化，同步更新预览窗口
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(panelProfileChanged()));
 
     m_hideTimer = new QTimer(this);
     m_hideTimer->setSingleShot(true);
@@ -193,6 +198,47 @@ void AppPreviewer::previewerShowChange(const QList<WId> &wids, QWidget *triggerW
     {
         showPreviewer(wids, triggerWidget);
     }
+}
+
+// panel尺寸或方向变化时的响应：更新所有预览窗口大小，如当前正显示则重新布局和定位
+void AppPreviewer::panelProfileChanged()
+{
+    // 更新所有已存在预览窗口的大小
+    for (auto *previewer : m_mapWindowPreviewers)
+    {
+        previewer->updateLayout();
+    }
+
+    // 若预览窗口当前未显示，无需后续处理
+    if (!isVisible() || m_widsCurrentShow.isEmpty() || !m_triggerWidget)
+    {
+        return;
+    }
+
+    // 重新过滤当前应显示的窗口（可能因桌面切换或窗口关闭而变化）
+    QList<WindowPreviewer *> windowPreviewerShow;
+    for (auto wid : m_widsCurrentShow)
+    {
+        if (m_mapWindowPreviewers.contains(wid) && WindowInfoHelper::isOnCurrentDesktop(wid))
+        {
+            windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
+        }
+    }
+
+    // 无可见窗口则隐藏预览容器
+    if (windowPreviewerShow.isEmpty())
+    {
+        setVisible(false);
+        return;
+    }
+
+    // 重新布局并调整大小
+    updateLayout(windowPreviewerShow);
+
+    // 根据新panel位置重新定位预览窗口
+    auto oriention = m_import->getPanel()->getOrientation();
+    auto *screen = m_import->getPanel()->getScreen();
+    Utility::updatePopWidgetPos(screen, oriention, m_triggerWidget, this);
 }
 
 void AppPreviewer::leaveEvent(QEvent *event)
