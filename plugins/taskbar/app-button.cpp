@@ -522,8 +522,10 @@ void AppButton::updateShowName()
              orientation == PanelOrientation::PANEL_ORIENTATION_TOP))
         {
             setFixedSize(panelSize * 4, buttonSize);
+            // 防御性检查：确保视觉名称有效
+            QString visualName = m_visualName.isEmpty() ? QString() : m_visualName;
             QString elideText =
-                Utility::getElidedText(fontMetrics(), m_visualName, buttonSize * 3);
+                Utility::getElidedText(fontMetrics(), visualName, buttonSize * 3);
             setText(elideText);
             return;
         }
