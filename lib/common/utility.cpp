@@ -110,7 +110,17 @@ void Utility::clearLayout(QWidget *widget)
 
 QString Utility::getElidedText(QFontMetrics fontMetrics, QString text, int elidedTextLen)
 {
-    return fontMetrics.elidedText(text, Qt::ElideRight, elidedTextLen);
+    // 防御性检查：空文本或无效长度
+    if (text.isEmpty() || elidedTextLen <= 0)
+    {
+        return text;
+    }
+    
+    // 清理文本中的控制字符（可能导致 QTextEngine 崩溃）
+    QString cleanText = text;
+    cleanText.remove(QChar('\0'));  // 移除 null 字符
+    
+    return fontMetrics.elidedText(cleanText, Qt::ElideRight, elidedTextLen);
 }
 
 void Utility::updatePopWidgetPos(QScreen *screen, int panelOriention, QWidget *triggerWidget, QWidget *popWidget)
