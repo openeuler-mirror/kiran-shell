@@ -28,6 +28,13 @@ class Utility : public QObject
 public:
     // 执行命令
     static QByteArray runCmd(QString cmd, QStringList cmdArg = QStringList());
+    // 根据 panel 厚度计算 panel 场景下的标准图标与按钮尺寸
+    // panelIconSize: 标准图标尺寸（用于 menu/workspace/taskbar 等）
+    // panelCompactIconSize: 紧凑图标尺寸（用于 systemtray/settingbar，为标准尺寸的 2/3）
+    // panelButtonSize: 按钮尺寸（panel 厚度减去固定边距）
+    static int panelIconSize(int panelSize);
+    static int panelCompactIconSize(int panelSize);
+    static int panelButtonSize(int panelSize);
     // 清理布局
     static void clearLayout(QLayout* layout, bool deleteWidget = false, bool hideWidget = false);
     static void clearLayout(QWidget* widget);

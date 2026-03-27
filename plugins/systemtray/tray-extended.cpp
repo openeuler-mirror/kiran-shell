@@ -40,13 +40,20 @@ TrayExtended::TrayExtended(IAppletImport *import, QWidget *parent)
 
     m_indicatorWidget = new StyledButton(this);
     m_indicatorWidget->setChecked(true);  // 显示不一样的样式
-    auto size = m_import->getPanel()->getSize();
-    m_indicatorWidget->setFixedSize(size, size);
+
+    // 根据 panel 尺寸设置指示器按钮大小
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    m_indicatorWidget->setFixedSize(buttonSize, buttonSize);
     m_indicatorWidget->hide();
 
-    setMinimumSize(size, size);
+    setMinimumSize(buttonSize, buttonSize);
 
     setAcceptDrops(true);
+
+    // 监听 panel 尺寸变化，同步更新布局
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateItemLayout()));
 
     updateItemLayout();
     // 事件过滤器
@@ -195,6 +202,8 @@ int TrayExtended::getInsertIndex(const QPoint &pos)
     return index;
 }
 
+// 根据 panel 尺寸和托盘项数量更新扩展窗口布局
+// 所有托盘项使用统一的 buttonSize 和紧凑的 iconSize
 void TrayExtended::updateItemLayout()
 {
     Utility::clearLayout(m_layout);
@@ -203,9 +212,14 @@ void TrayExtended::updateItemLayout()
     int colCount = 1;
     calculateRowCol(m_items.size(), rowCount, colCount);
 
-    auto size = m_import->getPanel()->getSize();
-    setFixedSize(colCount * size, rowCount * size);
+    // 根据 panel 尺寸计算按钮和图标大小
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
+    m_indicatorWidget->setFixedSize(buttonSize, buttonSize);
+    setFixedSize(colCount * buttonSize, rowCount * buttonSize);
 
+    // 为每个托盘项设置统一尺寸和图标大小
     for (int row = 0; row < rowCount; row++)
     {
         for (int col = 0; col < colCount; col++)
@@ -215,7 +229,13 @@ void TrayExtended::updateItemLayout()
             {
                 break;
             }
-            m_layout->addWidget(m_items.at(index), row, col);
+            auto *item = m_items.at(index);
+            item->setFixedSize(buttonSize, buttonSize);
+            if (auto *trayItem = qobject_cast<TrayItem *>(item))
+            {
+                trayItem->setIconSize(QSize(iconSize, iconSize));
+            }
+            m_layout->addWidget(item, row, col);
         }
     }
 
@@ -277,8 +297,11 @@ TrayItem *TrayExtended::itemAdd(QString serviceAndPath)
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
     TrayItem *item = new TrayItem(service, path, this);
-    auto size = m_import->getPanel()->getSize();
-    item->setFixedSize(size, size);
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
+    item->setFixedSize(buttonSize, buttonSize);
+    item->setIconSize(QSize(iconSize, iconSize));
 
     connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {

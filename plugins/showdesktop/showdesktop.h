@@ -15,7 +15,7 @@
 #pragma once
 
 #include <QPushButton>
-
+#include <kiran-color-block.h>
 #include "lib/widgets/styled-button.h"
 #include "plugin-i.h"
 
@@ -25,7 +25,7 @@ namespace Kiran
 {
 class IAppletImport;
 
-class Showdesktop : public StyledButton
+class Showdesktop : public KiranColorBlock
 {
     Q_OBJECT
 
@@ -38,6 +38,7 @@ private slots:
 
 private:
     IAppletImport *m_import;
+    StyledButton *m_button;
 };
 
 class ShowDesktopPlugin : public QObject, public IPlugin

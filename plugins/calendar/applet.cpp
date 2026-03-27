@@ -37,6 +37,16 @@ namespace Kiran
 {
 namespace Calendar
 {
+// 计算日历 applet 的长边尺寸（短边固定为 panelSize）
+// 返回 panelSize 的 2.5 倍，确保最小值不低于 panelSize
+namespace
+{
+int calcCalendarAppletLongSide(int panelSize)
+{
+    return qMax(panelSize, panelSize * 5 / 2);
+}
+}
+
 Applet::Applet(IAppletImport *import)
     : m_import(import),
       m_ksTimeDate(nullptr),
@@ -192,11 +202,11 @@ void Applet::updateLayout()
     {
     case PanelOrientation::PANEL_ORIENTATION_TOP:
     case PanelOrientation::PANEL_ORIENTATION_BOTTOM:
-        setFixedSize(size * 3, size);
+        setFixedSize(calcCalendarAppletLongSide(size), size);
         break;
     case PanelOrientation::PANEL_ORIENTATION_RIGHT:
     case PanelOrientation::PANEL_ORIENTATION_LEFT:
-        setFixedSize(size, size * 3);
+        setFixedSize(size, calcCalendarAppletLongSide(size));
         break;
     default:
         KLOG_INFO(LCCalendar) << "Unknown oriention " << oriention;

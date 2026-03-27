@@ -32,8 +32,44 @@ CalendarButton::CalendarButton(IAppletImport *import, QWidget *parent)
 {
     setFlat(true);
     setCheckable(true);
-    setFont(QFont("Noto Sans CJK SC", 9));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+}
+
+// 根据按钮当前尺寸和文本内容动态计算合适的显示字体
+// 算法：基于可用高度和行数计算初始字号，若文本宽度超出则逐级缩小
+// 字号限制在 12~24 像素范围内，确保可读性和美观性
+QFont CalendarButton::calcDisplayFont() const
+{
+    QStringList lines = text().split('\n');
+    int lineCount = qMax(1, lines.size());
+    int verticalPadding = qMax(4, height() / 10);
+    int horizontalPadding = qMax(8, width() / 12);
+    int availableHeight = qMax(1, height() - verticalPadding * 2);
+    int availableWidth = qMax(1, width() - horizontalPadding * 2);
+
+    int pixelSize = qBound(12, availableHeight * 3 / (lineCount * 4), 24);
+
+    QFont buttonFont("Noto Sans CJK SC");
+    buttonFont.setPixelSize(pixelSize);
+    QFontMetrics metrics(buttonFont);
+
+    auto calcMaxLineWidth = [&]()
+    {
+        int maxLineWidth = 0;
+        for (const auto &line : lines)
+        {
+            maxLineWidth = qMax(maxLineWidth, metrics.horizontalAdvance(line));
+        }
+        return maxLineWidth;
+    };
+
+    while (buttonFont.pixelSize() > 12 && calcMaxLineWidth() > availableWidth)
+    {
+        buttonFont.setPixelSize(buttonFont.pixelSize() - 1);
+        metrics = QFontMetrics(buttonFont);
+    }
+
+    return buttonFont;
 }
 
 void CalendarButton::mousePressEvent(QMouseEvent *event)
@@ -106,6 +142,7 @@ void CalendarButton::paintEvent(QPaintEvent *event)
 
     QColor penColor = palette->getBaseColors().baseForeground;
     painter.setPen(penColor);
+    painter.setFont(calcDisplayFont());
     painter.drawText(rect(), Qt::AlignCenter, text());
 }
 

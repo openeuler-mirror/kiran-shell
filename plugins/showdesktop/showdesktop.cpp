@@ -14,6 +14,7 @@
 
 #include <qt5-log-i.h>
 #include <KWindowSystem/KWindowSystem>
+#include <QBoxLayout>
 #include <QCoreApplication>
 #include <QTranslator>
 
@@ -24,7 +25,8 @@
 namespace Kiran
 {
 Showdesktop::Showdesktop(IAppletImport *import)
-    : m_import(import)
+    : m_import(import),
+      m_button(nullptr)
 {
     static QTranslator translator;
     if (!translator.load(QLocale(), "showdesktop", ".", KS_INSTALL_TRANSLATIONDIR, ".qm"))
@@ -36,33 +38,52 @@ Showdesktop::Showdesktop(IAppletImport *import)
         QCoreApplication::installTranslator(&translator);
     }
 
-    connect(this, &QPushButton::clicked, this, [=]()
+    setRadius(0);
+
+    m_button = new StyledButton(this);
+
+    connect(m_button, &QAbstractButton::clicked, this, [=]()
             {
                 KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
             });
 
+    auto *layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight, this);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->addWidget(m_button);
+
     auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
     connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
 
-    setToolTip(tr("Show desktop"));
-    setCheckable(false);
+    m_button->setToolTip(tr("Show desktop"));
+    m_button->setCheckable(false);
 
     updateLayout();
 }
 
+// 根据 panel 尺寸和方向更新显示桌面按钮布局
+// 横向panel：按钮高度与panel一致，宽度为1/4，上下保留4px边距
+// 纵向panel：按钮宽度与panel一致，高度为1/4，左右保留4px边距
 void Showdesktop::updateLayout()
 {
+    KLOG_WARNING() << "updateLayout";
+
     int orientation = m_import->getPanel()->getOrientation();
     auto size = m_import->getPanel()->getSize();
+    auto *boxLayout = static_cast<QBoxLayout *>(layout());
 
     if (PanelOrientation::PANEL_ORIENTATION_BOTTOM == orientation ||
         PanelOrientation::PANEL_ORIENTATION_TOP == orientation)
     {
         setFixedSize(size / 4, size);
+        boxLayout->setContentsMargins(0, 4, 0, 4);
+        m_button->setFixedSize(size / 4, size - 8);
     }
     else
     {
         setFixedSize(size, size / 4);
+        boxLayout->setContentsMargins(4, 0, 4, 0);
+        m_button->setFixedSize(size - 8, size / 4);
     }
 }
 

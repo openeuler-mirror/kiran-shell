@@ -71,9 +71,11 @@ private:
     void calculateRowCol(const int &totalSize, int &row, int &col);
     void updateDragPos(const QPoint &pos);
 
+private slots:
     // 托盘项位置更新
     void updateItemLayout();
 
+private:
     // 添加托盘项
     TrayItem *itemAdd(QString serviceAndPath);
 

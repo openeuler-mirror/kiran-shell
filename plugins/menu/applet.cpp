@@ -85,7 +85,6 @@ void Applet::setupWindow()
 void Applet::setupAppletButton()
 {
     m_appletButton = new StyledButton(this);
-    m_appletButton->setIconSize(QSize(PANEL_APP_ICON_SIZE, PANEL_APP_ICON_SIZE));
     m_appletButton->setIcon(QIcon::fromTheme(KS_ICON_MENU));
     m_appletButton->setToolTip(tr("Start Menu"));
 
@@ -100,6 +99,21 @@ void Applet::setupLayout()
     layout->addWidget(m_appletButton);
 
     setRadius(0);
+
+
+    auto *panelObject = dynamic_cast<QObject *>(m_import->getPanel());
+    connect(panelObject, SIGNAL(panelProfileChanged()), this, SLOT(updateLayout()));
+    updateLayout();
+}
+
+void Applet::updateLayout()
+{
+    auto size = m_import->getPanel()->getSize();
+    setFixedSize(size, size);
+    int buttonSize = Utility::panelButtonSize(size);
+    int iconSize = Utility::panelIconSize(size);
+    m_appletButton->setFixedSize(buttonSize, buttonSize);
+    m_appletButton->setIconSize(QSize(iconSize, iconSize));
 }
 
 void Applet::setupDbus()

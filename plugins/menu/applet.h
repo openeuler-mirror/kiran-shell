@@ -49,6 +49,10 @@ private:
     void showMenu();
     void hideMenu();
 
+private slots:
+    // panel布局信息发生变化
+    void updateLayout();
+
 private:
     IAppletImport *m_import;
     Window *m_window;

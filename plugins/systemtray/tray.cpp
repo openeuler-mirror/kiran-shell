@@ -39,7 +39,9 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
     setAcceptDrops(true);
     setRadius(0);
 
-    auto size = m_import->getPanel()->getSize() / 40 * 32;
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
 
     auto direction = getLayoutDirection();
     m_layoutBase = new QBoxLayout(direction, this);
@@ -47,14 +49,14 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
 
     m_indicatorWidget = new StyledButton(this);
     m_indicatorWidget->setChecked(true);  // 显示不一样的样式
-    m_indicatorWidget->setFixedSize(size, size);
+    m_indicatorWidget->setFixedSize(buttonSize, buttonSize);
     m_indicatorWidget->hide();
 
-    // 托盘弹出窗口按钮
+    // 托盘弹出窗口按钮（使用紧凑图标尺寸）
     m_windowPopupButton = new StyledButton(this);
     m_windowPopupButton->setIcon(QIcon::fromTheme(KS_ICON_TRAY_BOX));
-
-    m_windowPopupButton->setFixedSize(size, size);
+    m_windowPopupButton->setFixedSize(buttonSize, buttonSize);
+    m_windowPopupButton->setIconSize(QSize(iconSize, iconSize));
     m_layoutBase->addWidget(m_windowPopupButton);
 
     m_layout = new QBoxLayout(direction);
@@ -205,12 +207,16 @@ TrayItem *Tray::itemAdd(QString serviceAndPath)
     QString service = serviceAndPath.left(index);
     QString path = serviceAndPath.mid(index);
     auto item = new TrayItem(service, path, this);
-    auto size = m_import->getPanel()->getSize() / 40 * 32;
-    item->setFixedSize(size, size);
 
     // 当StatusNotifierWatcher服务异常退出，不会发出StatusNotifierItemUnregistered
     // 此时只能通过TrayItem中监控客户端服务itemInvalidated信号，主动注销托盘项
     connect(item, &TrayItem::itemInvalidated, this, &Tray::onItemInvalidated);
+
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
+    item->setFixedSize(buttonSize, buttonSize);
+    item->setIconSize(QSize(iconSize, iconSize));
     connect(item, &TrayItem::startDrag, this, [this](TrayItem *dragItem)
             {
                 m_trayExtendedWindow->show();
@@ -295,13 +301,17 @@ int Tray::getInsertedIndex(const QPoint &pos)
     return col;
 }
 
+// 根据 panel 尺寸更新托盘项布局
+// 所有托盘项使用 panelButtonSize 作为按钮尺寸，panelCompactIconSize 作为图标尺寸
 void Tray::updateItemLayout()
 {
     Utility::clearLayout(m_layout);
 
-    // 大小增加一个size，用于托盘弹出窗口按钮
-    auto itemWidth = m_import->getPanel()->getSize() / 40 * 32;
-    auto height = m_import->getPanel()->getSize();
+    // 计算整体尺寸：为每个托盘项分配空间，额外预留一个按钮位置给托盘弹出窗口按钮
+    auto panelSize = m_import->getPanel()->getSize();
+    int itemWidth = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
+    auto height = panelSize;
     if (QBoxLayout::Direction::LeftToRight == getLayoutDirection())
     {
         setFixedSize(m_items.size() * itemWidth + itemWidth + LAYOUT_MARGIN * 2,
@@ -314,6 +324,11 @@ void Tray::updateItemLayout()
     }
     for (auto item : m_items)
     {
+        item->setFixedSize(itemWidth, itemWidth);
+        if (auto *trayItem = qobject_cast<TrayItem *>(item))
+        {
+            trayItem->setIconSize(QSize(iconSize, iconSize));
+        }
         m_layout->addWidget(item);
     }
 
@@ -415,6 +430,12 @@ void Tray::updateLayout()
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
     m_layoutBase->setAlignment(alignment);
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelCompactIconSize(panelSize);
+    m_indicatorWidget->setFixedSize(buttonSize, buttonSize);
+    m_windowPopupButton->setFixedSize(buttonSize, buttonSize);
+    m_windowPopupButton->setIconSize(QSize(iconSize, iconSize));
     updateItemLayout();
 
     if (QBoxLayout::Direction::LeftToRight == direction)
