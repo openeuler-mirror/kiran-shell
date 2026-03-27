@@ -71,6 +71,7 @@ Window::Window(IAppletImport *import, Applet *parent)
 
     volumButton->init();
     powerButton->init();
+    updateLayout();
 }
 
 void Window::enterEvent(QEvent *event)
@@ -153,6 +154,13 @@ void Window::updateLayout()
     m_layout->setAlignment(alignment);
 
     auto size = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(size);
+    int iconSize = Utility::panelCompactIconSize(size);
+    for (auto *button : hwConfButtons)
+    {
+        button->setFixedSize(buttonSize, buttonSize);
+        button->setIconSize(QSize(iconSize, iconSize));
+    }
 
     if (QBoxLayout::Direction::LeftToRight == direction)
     {

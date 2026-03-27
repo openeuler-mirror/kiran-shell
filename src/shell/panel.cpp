@@ -25,6 +25,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QTimer>
+#include <QWindow>
 
 #include "applet.h"
 #include "ks-config.h"
@@ -187,6 +188,7 @@ void Panel::init()
             {
                 // 尝试重新连接到新的当前屏幕
                 connectToCurrentScreen();
+                // 更新布局和几何位置
                 updateLayout();
             });
 
@@ -412,11 +414,23 @@ void Panel::updateGeometry(int size)
                      showingScreen->geometry().width(), panelSize);
     }
 
-    KLOG_INFO(LCShell) << "panel geometry:" << rect;
-    //    setGeometry(rect);
-    move(rect.topLeft());
+    KLOG_INFO(LCShell) << "panel geometry:" << rect << "screen:" << showingScreen->name() << "dpr:" << showingScreen->devicePixelRatio();
+
+    // 在HiDPI多屏幕环境下，确保窗口关联到正确的屏幕
+    QWindow *window = windowHandle();
+    if (window && window->screen() != showingScreen)
+    {
+        KLOG_INFO(LCShell) << "Screen changed from" << window->screen()->name() << "to" << showingScreen->name();
+        window->setScreen(showingScreen);
+    }
+
+    // 设置窗口几何属性
+    // 先设置固定大小防止布局撑大窗口，再设置几何属性
     setMinimumSize(rect.size());
     setMaximumSize(rect.size());
+    setGeometry(rect);
+    
+    KLOG_INFO(LCShell) << "Applied geometry:" << geometry();
 
     // 计算放置的位置，并且确保该区域不被其他窗口覆盖
     switch (orientation)

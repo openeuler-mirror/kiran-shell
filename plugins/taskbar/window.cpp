@@ -80,13 +80,20 @@ void Window::initUI()
     setRadius(0);
     setAcceptDrops(true);
 
-    // 翻页按钮
+    // 翻页按钮（根据 panel 尺寸初始化按钮和图标大小）
     m_upPageBtn = new StyledButton(this);
     m_upPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_UP_PAGE_SYMBOLIC));
     m_upPageBtn->hide();
     m_downPageBtn = new StyledButton(this);
     m_downPageBtn->setIcon(QIcon::fromTheme(KS_ICON_TASKLIST_DOWN_PAGE_SYMBOLIC));
     m_downPageBtn->hide();
+    auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelIconSize(panelSize);
+    m_upPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_downPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_upPageBtn->setIconSize(QSize(iconSize, iconSize));
+    m_downPageBtn->setIconSize(QSize(iconSize, iconSize));
     connect(m_upPageBtn, &QAbstractButton::clicked, [this]()
             {
                 int showPageIndex = m_curPageIndex - 1;
@@ -343,11 +350,22 @@ void Window::updateLayoutByProfile()
     Qt::AlignmentFlag alignment = getLayoutAlignment();
     m_layout->setAlignment(alignment);
 
+    // 根据 panel 尺寸更新翻页按钮和图标大小
     auto panelSize = m_import->getPanel()->getSize();
+    int buttonSize = Utility::panelButtonSize(panelSize);
+    int iconSize = Utility::panelIconSize(panelSize);
     setFixedDimensions(panelSize, direction);
+    m_upPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_downPageBtn->setFixedSize(buttonSize, buttonSize);
+    m_upPageBtn->setIconSize(QSize(iconSize, iconSize));
+    m_downPageBtn->setIconSize(QSize(iconSize, iconSize));
 
-    for (auto *appGroup : m_listAppGroupShow)
+    // 通知所有应用组更新布局（使用局部副本，避免遍历过程中被删除）
+    auto appGroupsShow = m_listAppGroupShow;
+    for (auto *appGroup : appGroupsShow)
     {
+        if (!appGroup)
+            continue;
         appGroup->updateLayout();
     }
     updateLayout();
@@ -556,8 +574,14 @@ void Window::updateLayout(int showPageIndex)
     m_appPage.clear();
     m_appPage.push_back(QList<AppGroup *>());  // 新建空页
 
-    for (auto *appGroup : m_listAppGroupShow)
+    // 创建局部副本，避免遍历过程中列表被修改导致野指针
+    auto appGroupsShow = m_listAppGroupShow;
+
+    for (auto *appGroup : appGroupsShow)
     {
+        if (!appGroup)
+            continue;
+
         // 不是当前工作区的不显示
         if (!appGroup->hasWidOnCurrentDesktop() && !appGroup->isLocked())
         {
@@ -581,18 +605,24 @@ void Window::updateLayout(int showPageIndex)
 
     calculateCurrentPageIndex(showPageIndex);
 
-    // 显示对应页
-    for (auto *appGroup : m_appPage[m_curPageIndex])
+    // 显示对应页（使用局部副本）
+    auto currentPage = m_appPage.value(m_curPageIndex);
+    for (auto *appGroup : currentPage)
     {
+        if (!appGroup)
+            continue;
         appGroup->updateLayout();
         appGroup->show();
         m_layout->addWidget(appGroup);
     }
 
-    // 其他应用隐藏
-    for (auto *appGroup : m_listAppGroupShow)
+    // 其他应用隐藏（使用局部副本）
+    appGroupsShow = m_listAppGroupShow;
+    for (auto *appGroup : appGroupsShow)
     {
-        if (!m_appPage[m_curPageIndex].contains(appGroup))
+        if (!appGroup)
+            continue;
+        if (!m_appPage.value(m_curPageIndex).contains(appGroup))
         {
             appGroup->hide();
         }
@@ -660,7 +690,7 @@ void Window::calculateCurrentPageIndex(int showPageIndex)
     // 计算当前页面序号
     // 获取当前激活窗口信息
     // 判断位于哪页，就是当前页面序号
-    if (showPageIndex < 0 || showPageIndex > m_appPage.size())
+    if (showPageIndex < 0 || showPageIndex >= static_cast<int>(m_appPage.size()))
     {
         // 未指定显示哪页,按照窗口激活情况进行显示
         if (1 == m_appPage.size())
@@ -686,11 +716,16 @@ void Window::calculateCurrentPageIndex(int showPageIndex)
         else
         {
             auto *appGroup = m_mapAppGroupOpened[info].first;
-            for (m_curPageIndex = 0; m_curPageIndex < m_appPage.size(); ++m_curPageIndex)
+            m_curPageIndex = 0;  // 默认第一页
+            if (appGroup)  // 检查野指针
             {
-                if (m_appPage[m_curPageIndex].contains(appGroup))
+                for (int i = 0; i < m_appPage.size(); ++i)
                 {
-                    break;
+                    if (m_appPage[i].contains(appGroup))
+                    {
+                        m_curPageIndex = i;
+                        break;
+                    }
                 }
             }
         }
@@ -1003,6 +1038,12 @@ void Window::setFixedApps(QList<QUrl> urls)
 
 void Window::removeGroup(AppGroup *group)
 {
+    // 从所有页面中移除该应用组指针（避免野指针）
+    for (auto &page : m_appPage)
+    {
+        page.removeAll(group);
+    }
+
     // 移除应用组
     auto iter = m_mapAppGroupOpened.begin();
     while (iter != m_mapAppGroupOpened.end())
