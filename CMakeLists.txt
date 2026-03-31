@@ -21,6 +21,7 @@ find_package(KF5Service REQUIRED)
 find_package(KF5KIO REQUIRED)
 find_package(KF5Activities REQUIRED)
 find_package(KF5ActivitiesStats REQUIRED)
+find_package(KF5IconThemes REQUIRED)
 find_package(KF5NetworkManagerQt REQUIRED)
 
 pkg_search_module(KLOG_QT5 REQUIRED klog-qt5)
