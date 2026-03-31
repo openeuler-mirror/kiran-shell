@@ -18,10 +18,13 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+#include "lib/common/app-utils.h"
+#include "lib/common/icon-utils.h"
+#include "lib/common/desktop-helper.h"
 #include "lib/common/utility.h"
 #include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
-#include "lib/common/desktop-helper.h"
+
 #include "ui_window-thumbnail.h"
 #include "window-thumbnail.h"
 
@@ -39,7 +42,7 @@ WindowThumbnail::WindowThumbnail(WId wid, QWidget *parent)
     setAttribute(Qt::WA_Hover);
 
     // 标题栏图标
-    QPixmap icon = KWindowSystem::icon(m_wid, 25, 25, true);
+    QPixmap icon = getWindowAppIcon(m_wid, QSize(25, 25));
     m_ui->labelAppIcon->setPixmap(icon);
     updateVisualName();
 
@@ -76,7 +79,7 @@ void WindowThumbnail::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
-        if( !WindowInfoHelper::isOnCurrentDesktop(m_wid) )
+        if (!WindowInfoHelper::isOnCurrentDesktop(m_wid))
         {
             // 切换到当前窗口所在的工作区并激活该窗口
             int desktop = WindowInfoHelper::getDesktopOfWindow(m_wid);
@@ -132,7 +135,7 @@ void WindowThumbnail::refresh()
     QPixmap pix = WindowManagerInstance.getPixPreviewr(m_wid);
     if (pix.isNull())
     {
-        m_ui->labelGrabWindow->setPixmap(KWindowSystem::icon(m_wid, 60, 60, true));
+        m_ui->labelGrabWindow->setPixmap(getWindowAppIcon(m_wid, QSize(60, 60)));
     }
     else if (pix.size() != m_ui->labelGrabWindow->size())
     {

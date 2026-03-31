@@ -26,6 +26,7 @@ target_link_libraries(
          Qt5::Widgets
          Qt5::DBus
          KF5::WindowSystem
+         KF5::KIOCore
          ${KLOG_QT5_LIBRARIES}
          kiran-integration-theme
          ${PROJECT_NAME}-common)

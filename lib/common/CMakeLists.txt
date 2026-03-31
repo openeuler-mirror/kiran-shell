@@ -36,6 +36,7 @@ target_link_libraries(
           KF5::WindowSystem
           KF5::Service
           KF5::KIOWidgets
+          KF5::IconThemes
           KF5::Activities
           ${KLOG_QT5_LIBRARIES}
           ${LIBPINYIN_LIBRARIES}

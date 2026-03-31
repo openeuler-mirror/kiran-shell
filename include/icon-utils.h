@@ -21,17 +21,13 @@
 
 namespace Kiran
 {
-namespace Menu
-{
 
-inline QIcon iconFromKIconLoader(const QString &name)
+inline QIcon loadIconByKIconLoader(const QString &name)
 {
     if (name.isEmpty())
     {
         return QIcon();
     }
-    // KIconLoader 解决 QIcon::fromTheme 无法命中新安装的主题图标的问题。
-    // 做为补充，优先使用 QIcon::fromTheme
     QPixmap pixmap = KIconLoader::global()->loadIcon(name,
                                                      KIconLoader::Desktop,
                                                      0,
@@ -46,27 +42,25 @@ inline QIcon iconFromKIconLoader(const QString &name)
     return QIcon(pixmap);
 }
 
-inline QIcon loadAppIcon(const QString &iconName)
+inline QIcon loadIcon(const QString &iconName)
 {
     if (iconName.isEmpty())
     {
         return QIcon();
     }
 
-    // 先按主题名解析（标准 desktop Icon=xxx 场景）。
     QIcon icon = QIcon::fromTheme(iconName);
     if (!icon.isNull())
     {
         return icon;
     }
 
-    icon = iconFromKIconLoader(iconName);
+    icon = loadIconByKIconLoader(iconName);
     if (!icon.isNull())
     {
         return icon;
     }
 
-    // 兼容 icon=xxx.png / icon=/path/to/xxx.png 的 basename 退化匹配。
     const QString baseName = QFileInfo(iconName).baseName();
     icon = QIcon::fromTheme(baseName);
     if (!icon.isNull())
@@ -76,14 +70,13 @@ inline QIcon loadAppIcon(const QString &iconName)
 
     if (baseName != iconName)
     {
-        icon = iconFromKIconLoader(baseName);
+        icon = loadIconByKIconLoader(baseName);
         if (!icon.isNull())
         {
             return icon;
         }
     }
 
-    // 最后兼容 Icon 字段直接给绝对路径的场景。
     QFileInfo iconFile(iconName);
     if (iconFile.exists() && iconFile.isFile())
     {
@@ -92,5 +85,4 @@ inline QIcon loadAppIcon(const QString &iconName)
 
     return icon;
 }
-}  // namespace Menu
 }  // namespace Kiran

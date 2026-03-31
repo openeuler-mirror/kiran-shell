@@ -14,6 +14,7 @@
 
 #include <qt5-log-i.h>
 #include <KWindowSystem>
+#include <KX11Extras>
 #include <QGuiApplication>
 #include <QPainter>
 #include <QScreen>
@@ -25,6 +26,7 @@
 #include <QX11Info>
 #endif
 
+#include "lib/common/app-utils.h"
 #include "window-info-helper.h"
 #include "window-manager.h"
 
@@ -160,7 +162,7 @@ void Window::updatePreviewerByIcon()
     painter.setBrush(QBrush(semiTransparentColor));
     painter.drawRect(m_pixPreviewer.rect());
 
-    QPixmap iconPix = KWindowSystem::icon(m_wid);
+    QPixmap iconPix = getWindowAppIcon(m_wid, QSize(100, 100));
     QSize smallSize(100, 100);  // 设置小图片的尺寸
     iconPix = iconPix.scaled(smallSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 

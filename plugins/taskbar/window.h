@@ -20,6 +20,7 @@
 #include <KWindowSystem>
 #include <QBoxLayout>
 #include <QFileSystemWatcher>
+#include "lib/common/app-utils.h"
 
 class QGSettings;
 class StyledButton;
@@ -32,7 +33,6 @@ namespace Taskbar
 {
 class Applet;
 class AppGroup;
-class AppInfo;
 class AppPreviewer;
 class Window : public KiranColorBlock
 {
@@ -65,7 +65,6 @@ private:
     //  打开或关闭窗口软件
     void addWindow(WId wid);
     void removeWindow(WId wid);
-    static bool getAppInfo(WId wid, AppInfo &appInfo);
 
     // 刷新app显示
     void updateLayout(int showPageIndex = -1);
