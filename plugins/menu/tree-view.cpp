@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 
 #include "apps-model.h"
+#include "lib/common/icon-utils.h"
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
@@ -253,7 +254,7 @@ void AppsView::contextMenuEvent(QContextMenuEvent *event)
             menu.addSeparator();
             firstAdd = false;
         }
-        QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
+        QAction *action = menu.addAction(Kiran::loadIcon(serviceAction.icon()), serviceAction.text(), this, [=]()
                                          {
                                              Common::appLauncher(serviceAction, s->storageId());
                                          });

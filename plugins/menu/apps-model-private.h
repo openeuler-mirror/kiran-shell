@@ -20,7 +20,7 @@
 #include <QIcon>
 #include <QThread>
 #include "apps-model.h"
-#include "icon-utils.h"
+#include "lib/common/icon-utils.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 
@@ -236,7 +236,7 @@ private:
                 if (kiranNoDisplay.isValid() && kiranNoDisplay.toBool())
                     continue;
 
-                auto icon = loadAppIcon(service->icon());
+                auto icon = Kiran::loadIcon(service->icon());
                 // 记录是否命中默认回退图标，供 AppsModel 后续决定是否触发重试刷新。
                 bool fallbackIcon = false;
                 if (icon.isNull())

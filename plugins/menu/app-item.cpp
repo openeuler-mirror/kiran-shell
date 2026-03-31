@@ -23,7 +23,7 @@
 #include <QMouseEvent>
 
 #include "app-item.h"
-#include "icon-utils.h"
+#include "lib/common/icon-utils.h"
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 
@@ -48,7 +48,7 @@ void AppItem::setAppId(const QString &appId)
     KService::Ptr s = KService::serviceByMenuId(m_appId);
     if (s)
     {
-        QIcon icon = loadAppIcon(s->icon());
+        QIcon icon = Kiran::loadIcon(s->icon());
         if (icon.isNull())
         {
             icon = QIcon::fromTheme("application-x-executable");
@@ -139,7 +139,7 @@ void AppItem::contextMenuEvent(QContextMenuEvent *event)
             menu.addSeparator();
             firstAdd = false;
         }
-        QAction *action = menu.addAction(QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this, [=]()
+        QAction *action = menu.addAction(Kiran::loadIcon(serviceAction.icon()), serviceAction.text(), this, [=]()
                                          {
                                              Common::appLauncher(serviceAction, s->storageId());
                                          });
