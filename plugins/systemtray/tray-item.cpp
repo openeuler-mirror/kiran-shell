@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QTextCodec>
 
+#include "lib/common/icon-utils.h"
 #include "ks-config.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/tray-data-types.h"
@@ -311,7 +312,7 @@ void TrayItem::getIcon(IconType iconType)
     {
         if (QIcon::hasThemeIcon(iconName))
         {
-            *icon = QIcon::fromTheme(iconName);
+            *icon = Kiran::loadIcon(iconName);
         }
         else if (QDir(m_iconThemePath).exists())
         {

@@ -80,6 +80,7 @@ target_link_libraries(
           KF5::KIOWidgets
           KF5::Activities
           KF5::ActivitiesStats
+          KF5::IconThemes
           kiran-integration-theme
           ${PROJECT_NAME}-common
           widgets)

@@ -18,11 +18,12 @@
 #include <KActivities/Stats/ResultWatcher>
 #include <KService/KService>
 #include <QFile>
+#include <QFileInfo>
 #include <QIcon>
+#include <QMimeDatabase>
 #include <QThread>
 #include <QTimer>
-#include <QFileInfo>
-#include <QMimeDatabase>
+#include "lib/common/icon-utils.h"
 #include "lib/common/logging-category.h"
 
 namespace KAStats = KActivities::Stats;
@@ -74,11 +75,11 @@ void RecentFilesLoader::loadData()
 
         // 查询文件MimeType，根据MimeType尝试加载Freedesktop图标名
         auto mimeType = QMimeDatabase().mimeTypeForFile(fileInfo);
-        auto icon = QIcon::fromTheme(mimeType.iconName());
-        if( icon.isNull() )
+        auto icon = Kiran::loadIcon(mimeType.iconName());
+        if (icon.isNull())
         {
             // fallback 通用类型图标名
-            icon = QIcon::fromTheme(mimeType.genericIconName());
+            icon = Kiran::loadIcon(mimeType.genericIconName());
         }
 
         QMap<int, QVariant> fileData;
