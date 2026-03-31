@@ -47,6 +47,8 @@ namespace KAStats = KActivities::Stats;
 using namespace KAStats;
 using namespace KAStats::Terms;
 
+using namespace Kiran;
+
 static const int appMargin = 4;
 static const int appSpacing = 8;
 
@@ -426,8 +428,8 @@ AppGroup *Window::genAppGroup(const AppInfo &appInfo)
 
 void Window::addWindow(WId wid)
 {
-    AppInfo appInfo;
-    if (!getAppInfo(wid, appInfo))
+    Kiran::AppInfo appInfo;
+    if (!Kiran::getAppInfo(wid, appInfo))
     {
         return;
     }
@@ -541,20 +543,6 @@ void Window::removeWindow(WId wid)
             }
         }
     }
-}
-
-bool Window::getAppInfo(WId wid, AppInfo &info)
-{
-    QUrl url = WindowInfoHelper::getUrlByWId(wid);
-    QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
-    if (url.isEmpty() && wmClass.isEmpty())
-    {
-        KLOG_WARNING(LCTaskbar) << "can't find url and wmclass by wid:" << wid;
-        return false;
-    }
-
-    info = AppInfo(url, wmClass);
-    return true;
 }
 
 void Window::updateLayout(int showPageIndex)
@@ -717,7 +705,7 @@ void Window::calculateCurrentPageIndex(int showPageIndex)
         {
             auto *appGroup = m_mapAppGroupOpened[info].first;
             m_curPageIndex = 0;  // 默认第一页
-            if (appGroup)  // 检查野指针
+            if (appGroup)        // 检查野指针
             {
                 for (int i = 0; i < m_appPage.size(); ++i)
                 {
@@ -1020,7 +1008,8 @@ QList<QUrl> Window::getFixedApps()
     if (validUrls.size() != urls.size())
     {
         m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, validUrls);
-        KLOG_INFO(LCTaskbar) << "Removed invalid fixed apps from gsettings:" << ", original urls:" << urls << ", valid urls:" << validUrls;
+        KLOG_INFO(LCTaskbar) << "Removed invalid fixed apps from gsettings:"
+                             << ", original urls:" << urls << ", valid urls:" << validUrls;
     }
 
     return fixedApps;

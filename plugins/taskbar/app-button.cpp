@@ -18,6 +18,7 @@
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <KWindowSystem>
+#include <KX11Extras>
 #include <QColor>
 #include <QDesktopServices>
 #include <QFileInfo>
@@ -28,6 +29,7 @@
 
 #include "app-button.h"
 #include "app-group.h"
+#include "lib/common/icon-utils.h"
 #include "ks-i.h"
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
@@ -67,7 +69,7 @@ void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
     {
         // 找不到 desktop file 的app
         // 使用默认图标
-        QPixmap icon = KWindowSystem::icon(wid, 25, 25, true);
+        QPixmap icon = KX11Extras::icon(wid, 25, 25, true);
         setIcon(QIcon(icon));
 
         // 获取名称
@@ -96,12 +98,7 @@ void AppButton::getInfoFromUrl()
 
     KLOG_INFO() << "AppButton getInfoFromUrl" << fileItem.iconName() << fileItem.mimeComment() << fileItem.name();
 
-    QIcon icon = QIcon::fromTheme(fileItem.iconName());
-    if (icon.isNull())
-    {
-        // 支持某些desktop文件不规范的情况，如 icon=xx.png
-        icon = QIcon::fromTheme(QFileInfo(fileItem.iconName()).baseName());
-    }
+    QIcon icon = Kiran::loadIcon(fileItem.iconName());
 
     setIcon(icon);  // 图标正确，除了桌面的计算机、主文件夹、回收站等
     if (fileItem.isDesktopFile())
@@ -261,7 +258,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
                 firstAdd = false;
             }
             QAction *action = menu.addAction(
-                QIcon::fromTheme(serviceAction.icon()), serviceAction.text(), this,
+                Kiran::loadIcon(serviceAction.icon()), serviceAction.text(), this,
                 [=]()
                 {
                     Common::appLauncher(serviceAction, service->storageId());
