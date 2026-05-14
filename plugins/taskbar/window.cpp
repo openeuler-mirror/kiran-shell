@@ -418,7 +418,6 @@ AppGroup *Window::genAppGroup(const AppInfo &appInfo)
     appGroup = new AppGroup(m_import, appInfo, this);
 
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
-    connect(appGroup, &AppGroup::isInFixedApps, this, &Window::isInFixedApps, Qt::DirectConnection);
     connect(appGroup, &AppGroup::addToFavorite, this, &Window::addToFavorite);
     connect(appGroup, &AppGroup::removeFromFavorite, this, &Window::removeFromFavorite);
     connect(appGroup, &AppGroup::addToFixedApps, this, &Window::addToFixedApps);
@@ -881,12 +880,6 @@ void Window::removeFromFavorite(const QString &appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void Window::isInFixedApps(const QUrl &url, bool &checkResult)
-{
-    auto fixedApps = getFixedApps();
-    checkResult = fixedApps.contains(url);
-}
-
 void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
 {
     auto fixedApps = getFixedApps();
@@ -1029,6 +1022,27 @@ void Window::setFixedApps(QList<QUrl> urls)
         fixedApps.append(url.toString());
     }
     m_gsettings->set(TASKBAR_SCHEMA_KEY_FIXED_APPS, fixedApps);
+}
+
+void Window::updateLockedFromShow()
+{
+    QList<AppGroup *> lockedOrder;
+    QList<QUrl> urls;
+    for (AppGroup *g : m_listAppGroupShow)
+    {
+        if (!g || g == m_indicatorWidget || !g->isLocked())
+        {
+            continue;
+        }
+        lockedOrder.append(g);
+        urls.append(g->getAppInfo().m_url);
+    }
+    if (urls.isEmpty() || urls == getFixedApps())
+    {
+        return;
+    }
+    m_listAppGroupLocked = lockedOrder;
+    setFixedApps(urls);
 }
 
 void Window::removeGroup(AppGroup *group)
@@ -1280,6 +1294,7 @@ void Window::endMoveGroup(AppGroup *appGroup)
     m_indicatorWidget->hide();
     auto size = m_import->getPanel()->getSize();
     m_indicatorWidget->setFixedSize(size, size);
+    updateLockedFromShow();
     updateLayout(m_curPageIndex);
 }
 
