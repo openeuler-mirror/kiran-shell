@@ -455,7 +455,6 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::windowCloseAll, this, &AppGroup::windowCloseAll);
 
     connect(appButton, &AppButton::isInFavorite, this, &AppGroup::isInFavorite, Qt::DirectConnection);
-    connect(appButton, &AppButton::isInFixedApps, this, &AppGroup::isInFixedApps, Qt::DirectConnection);
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
     connect(appButton, &AppButton::addToFixedApps, this, [this](const QUrl &url)

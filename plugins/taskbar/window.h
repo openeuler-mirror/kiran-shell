@@ -84,8 +84,7 @@ private:
     void isInFavorite(const QString &appId, bool &checkResult);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    // 固定到任务栏信息 查询、增加、删除
-    void isInFixedApps(const QUrl &url, bool &checkResult);
+    // 固定到任务栏信息 增加、删除
     void addToFixedApps(const QUrl &url, AppGroup *appGroup);
     void removeFromFixedApps(const QUrl &url);
 
@@ -101,6 +100,8 @@ private:
 
     QList<QUrl> getFixedApps();
     void setFixedApps(QList<QUrl> urls);
+    // 按任务栏显示顺序更新 m_listAppGroupLocked 并写回固定项配置
+    void updateLockedFromShow();
 
     // 窗口关闭
     void removeGroup(AppGroup *group);
