@@ -13,13 +13,13 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem>
 #include <QKeyEvent>
 #include <QProcess>
 #include <QTimer>
 
 #include "brightness/brightness.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/window-manager.h"
 #include "net/net-conf-item.h"
 #include "setting-window.h"
 #include "theme/theme-conf-item.h"
@@ -202,7 +202,7 @@ void SettingWindow::keyPressEvent(QKeyEvent *event)
 void SettingWindow::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     exitOnlyShow();
 

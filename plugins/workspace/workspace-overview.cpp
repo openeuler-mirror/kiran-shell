@@ -18,7 +18,6 @@
 #include <QScrollBar>
 #include <QVBoxLayout>
 
-#include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "window-previewer.h"
 #include "workspace-overview.h"

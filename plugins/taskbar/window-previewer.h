@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowInfo>
 #include <QWidget>
 
 #include "lib/widgets/window-thumbnail.h"

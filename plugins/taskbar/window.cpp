@@ -35,10 +35,9 @@
 #include "applet.h"
 #include "ks-i.h"
 #include "lib/common/app-launcher.h"
-#include "lib/common/desktop-helper.h"
+#include "lib/common/desktop-file-cache.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "plugin-i.h"
 #include "window.h"
@@ -119,14 +118,21 @@ void Window::initWindowManager()
 {
     connect((Applet *)parent(), &Applet::windowAdded, this, &Window::addWindow);
     connect((Applet *)parent(), &Applet::windowRemoved, this, &Window::removeWindow);
-    connect((Applet *)parent(), &Applet::windowChanged, this, [this](WId wid, NET::Properties properties, NET::Properties2 properties2)
+    connect((Applet *)parent(), &Applet::windowChanged, this, [this](WId wid)
+    {
+        for (auto it = m_mapAppGroupOpened.begin(); it != m_mapAppGroupOpened.end(); ++it)
+        {
+            if (it.value().second.contains(wid))
             {
-                if (properties.testFlag(NET::WMDesktop))
-                {
-                    updateLayout();
-                }
-                emit windowChanged(wid, properties, properties2);
-            });
+                emit windowChanged(wid);
+                break;
+            }
+        }
+    });
+    connect(&WindowManagerInstance, &Common::WindowManager::windowDesktopChanged, this, [this](WId wid)
+    {
+        updateLayout();
+    });
     connect((Applet *)parent(), &Applet::activeWindowChanged, [this](WId wid)
             {
                 static WId lastWid = 0;
@@ -143,7 +149,7 @@ void Window::initWindowManager()
         addWindow(wid);
     }
 
-    WId wid = WindowInfoHelper::activeWindow();
+    WId wid = WindowManagerInstance.activeWindow();
     emit activeWindowChanged(wid);
 }
 
@@ -687,15 +693,15 @@ void Window::calculateCurrentPageIndex(int showPageIndex)
             return;
         }
 
-        auto wid = WindowInfoHelper::activeWindow();
+        auto wid = WindowManagerInstance.activeWindow();
         if (0 == wid)
         {
             m_curPageIndex = 0;
             return;
         }
 
-        auto url = WindowInfoHelper::getUrlByWId(wid);
-        auto wmClass = WindowInfoHelper::getWmClassByWId(wid);
+        auto url = QUrl::fromLocalFile(DesktopFileCache::instance().findByAppId(WindowManagerInstance.getWindowAppId(wid)));
+        auto wmClass = WindowManagerInstance.getWindowAppId(wid);
         AppInfo info = AppInfo(url, wmClass);
         if (!m_mapAppGroupOpened.contains(info))
         {

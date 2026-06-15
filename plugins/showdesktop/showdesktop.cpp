@@ -13,13 +13,13 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem/KWindowSystem>
 #include <QBoxLayout>
 #include <QCoreApplication>
 #include <QTranslator>
 
 #include "ks-config.h"
 #include "ks-i.h"
+#include "lib/common/window-manager.h"
 #include "showdesktop.h"
 
 namespace Kiran
@@ -44,7 +44,7 @@ Showdesktop::Showdesktop(IAppletImport *import)
 
     connect(m_button, &QAbstractButton::clicked, this, [=]()
             {
-                KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
+                WindowManagerInstance.setShowingDesktop(!WindowManagerInstance.isShowingDesktop());
             });
 
     auto *layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight, this);

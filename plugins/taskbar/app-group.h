@@ -13,7 +13,6 @@
  */
 #pragma once
 
-#include <KWindowInfo>
 #include <QBoxLayout>
 #include <QDebug>
 #include <QFileSystemWatcher>
@@ -92,7 +91,7 @@ private:
 
 signals:
     // 窗口属性变化
-    void windowChanged(WId, NET::Properties, NET::Properties2);
+    void windowChanged(WId wid);
     void activeWindowChanged(WId);
 
     // 预览显示/隐藏

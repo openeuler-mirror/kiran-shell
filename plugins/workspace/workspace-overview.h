@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowInfo>
 #include <QMap>
 #include <QWidget>
 

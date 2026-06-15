@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowInfo>
 #include <QBoxLayout>
 #include <QMap>
 #include <QWidget>
@@ -66,7 +65,7 @@ protected:
 
 signals:
     // 窗口属性变化
-    void windowChanged(WId, NET::Properties, NET::Properties2);
+    void windowChanged(WId wid);
     // 激活状态
     void activeWindowChanged(WId wid);
 

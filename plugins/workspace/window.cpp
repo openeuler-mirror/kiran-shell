@@ -14,7 +14,6 @@
 
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
-#include <KWindowSystem>
 #include <QCursor>
 #include <QGSettings>
 #include <QKeyEvent>
@@ -22,7 +21,6 @@
 #include <QScreen>
 
 #include "ks-i.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/window-manager.h"
 #include "ui_window.h"
@@ -97,7 +95,7 @@ void Window::paintEvent(QPaintEvent *event)
 void Window::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
 #if 0  // 调试用,将显示画面缩小
     // 鼠标所在的屏幕
@@ -142,14 +140,14 @@ bool Window::eventFilter(QObject *object, QEvent *event)
 
 void Window::init()
 {
-    int numOfDesk = DesktopHelper::numberOfDesktops();
+    int numOfDesk = WindowManagerInstance.numberOfDesktops();
     changeNumberOfDesktops(numOfDesk);
 
-    connect(&DesktopHelperInstance, &DesktopHelper::currentDesktopChanged, this, &Window::changeCurrentDesktop);
-    connect(&DesktopHelperInstance, &DesktopHelper::numberOfDesktopsChanged, this, &Window::changeNumberOfDesktops);
-    connect(&WindowManagerInstance, &Common::WindowManager::windowChanged, this, &Window::changedWindow);
+    connect(&WindowManagerInstance, &Common::WindowManager::currentDesktopChanged, this, &Window::changeCurrentDesktop);
+    connect(&WindowManagerInstance, &Common::WindowManager::numberOfDesktopsChanged, this, &Window::changeNumberOfDesktops);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowDesktopChanged, this, &Window::changedWindow);
 
-    changeCurrentDesktop(DesktopHelper::currentDesktop());
+    changeCurrentDesktop(WindowManagerInstance.currentDesktop());
 
     // 事件过滤器
     installEventFilter(this);
@@ -157,14 +155,14 @@ void Window::init()
 
 void Window::createDesktop()
 {
-    DesktopHelper::createDesktop();
+    WindowManagerInstance.createDesktop();
     // KWindowSystem 没有提供工作区删除或创建的信号
     // KWindowSystem::numberOfDesktopsChanged 是异步信号,所以这里不需要添加界面元素,等信号来了再添加
 }
 
 void Window::removeDesktop(int desktop)
 {
-    DesktopHelper::removeDesktop(desktop);
+    WindowManagerInstance.removeDesktop(desktop);
 }
 
 void Window::addWorkspace(int desktop)
@@ -237,16 +235,13 @@ void Window::changeNumberOfDesktops(int numOfDesk)
         addWorkspace(i);
     }
 
-    changeCurrentDesktop(DesktopHelper::currentDesktop());
+    changeCurrentDesktop(WindowManagerInstance.currentDesktop());
 }
 
-void Window::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+void Window::changedWindow(WId wid)
 {
-    // 窗口所属工作区变动
-    if (properties.testFlag(NET::WMDesktop))
-    {
-        emit windowDesktopChanged();
-    }
+    Q_UNUSED(wid);
+    emit windowDesktopChanged();
 }
 
 void Window::on_btnAddWorkspace_clicked()
@@ -259,13 +254,13 @@ void Window::on_listWidgetThumbnail_itemDoubleClicked(QListWidgetItem *item)
     auto dstIndex = m_ui->listWidgetThumbnail->row(item) + 1;
     // 双击当前工作区时，由于桌面一致，KWin不会切换桌面
     // ，也就不会触发QEvent::WindowDeactivate事件，窗口就不会隐藏。
-    if (DesktopHelper::currentDesktop() == dstIndex)
+    if (WindowManagerInstance.currentDesktop() == dstIndex)
     {
         emit windowDeactivated();
     }
     else 
     {
-        DesktopHelper::setCurrentDesktop(dstIndex);
+        WindowManagerInstance.setCurrentDesktop(dstIndex);
     }
 }
 

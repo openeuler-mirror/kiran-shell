@@ -12,13 +12,13 @@
 
 #pragma once
 
-#include <KWindowSystem>
 #include <QByteArray>
 #include <QDebug>
 #include <QPixmap>
 #include <QSize>
 #include <QString>
 #include <QUrl>
+#include <QWidgetList>
 
 namespace Kiran
 {
@@ -35,16 +35,14 @@ public:
     QString m_id;
     AppIdType m_idType;
 
-    QByteArray m_wmClass;
+    QString m_appId;
     QUrl m_url;
 
     AppInfo() = default;
 
-    AppInfo(QUrl url, QByteArray wmClass)
-        : m_wmClass(std::move(wmClass)), m_url(std::move(url))
+    AppInfo(QUrl url, QString appId)
+        : m_appId(std::move(appId)), m_url(std::move(url))
     {
-        // 如果desktop文件存在，则使用desktop文件作为id
-        // 否则使用wmclass作为id
         if (!m_url.isEmpty() && m_url.isValid())
         {
             m_idType = APP_ID_TYPE_DESKTOP;
@@ -53,20 +51,20 @@ public:
         else
         {
             m_idType = APP_ID_TYPE_WMCLASS;
-            m_id = m_wmClass;
+            m_id = m_appId;
         }
     }
 
     AppInfo &operator=(const AppInfo &other) = default;
 
     AppInfo(const AppInfo &other)
-        : m_id(other.m_id), m_idType(other.m_idType), m_wmClass(other.m_wmClass), m_url(other.m_url) {}
+        : m_id(other.m_id), m_idType(other.m_idType), m_appId(other.m_appId), m_url(other.m_url) {}
 
     friend QDebug operator<<(QDebug dbg, const AppInfo &other)
     {
         QDebugStateSaver saver(dbg);
 
-        dbg.nospace() << "AppInfo(" << other.m_id << other.m_wmClass << "," << other.m_url.toString() << ")";
+        dbg.nospace() << "AppInfo(" << other.m_id << other.m_appId << "," << other.m_url.toString() << ")";
         return dbg.space();
     }
 

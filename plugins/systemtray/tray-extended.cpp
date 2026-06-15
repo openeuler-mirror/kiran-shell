@@ -13,12 +13,12 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem>
 #include <QDragEnterEvent>
 #include <QGSettings>
 
 #include "ks-i.h"
 #include "lib/common/utility.h"
+#include "lib/common/window-manager.h"
 #include "status_notifier_item_interface.h"
 #include "tray-extended.h"
 #include "tray-settings.h"
@@ -179,7 +179,7 @@ void TrayExtended::hideEvent(QHideEvent *event)
 void TrayExtended::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     QDialog::showEvent(event);
 }

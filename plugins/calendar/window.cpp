@@ -13,13 +13,13 @@
  */
 
 #include <kiran-integration/theme/palette.h>
-#include <KWindowSystem>
 #include <QDate>
 #include <QPainter>
 #include <QProcess>
 #include <QWheelEvent>
 
 #include "ks-i.h"
+#include "lib/common/window-manager.h"
 #include "lunar.h"
 #include "ui_window.h"
 #include "window.h"
@@ -104,7 +104,7 @@ void Window::wheelEvent(QWheelEvent *event)
 void Window::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     gotoToday();
 }

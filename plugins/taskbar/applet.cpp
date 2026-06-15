@@ -22,7 +22,6 @@
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "plugin-i.h"
 namespace Kiran

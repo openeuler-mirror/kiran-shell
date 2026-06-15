@@ -15,9 +15,7 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <KActivities/Stats/ResultSet>
 #include <KActivities/Stats/ResultWatcher>
-#include <KWindowSystem>
 #include <QBoxLayout>
 #include <QFileSystemWatcher>
 #include "lib/common/app-utils.h"
@@ -125,7 +123,7 @@ signals:
     //  打开或关闭窗口软件
     void windowRemoved(WId wid);
     // 窗口属性变化
-    void windowChanged(WId, NET::Properties, NET::Properties2);
+    void windowChanged(WId wid);
     // 激活状态
     void activeWindowChanged(WId wid);
     // 预览显示/隐藏

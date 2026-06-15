@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowSystem>
 #include <QFileSystemWatcher>
 #include <QUrl>
 
@@ -57,7 +56,7 @@ private:
     void buttonClicked();
 
     // 监测窗口变化
-    void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
+    void changedWindow(WId wid);
     void updateShowName();
 
     void getInfoFromUrl();

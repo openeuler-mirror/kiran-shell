@@ -19,9 +19,10 @@
 #include <KActivities/Stats/ResultWatcher>
 #include <KIO/OpenUrlJob>
 #include <KService/KService>
-#include <KWindowSystem>
 #include <QApplication>
 #include <QButtonGroup>
+
+#include "lib/common/window-manager.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QKeyEvent>
@@ -589,7 +590,7 @@ void Window::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     // 更新常用应用列表
     updatePopular();

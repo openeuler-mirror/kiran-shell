@@ -14,18 +14,14 @@
 
 #include <kiran-integration/theme/palette.h>
 #include <qt5-log-i.h>
-#include <KWindowSystem/NETWM>
 #include <QDropEvent>
 #include <QGSettings>
 #include <QMimeData>
 #include <QPainter>
 #include <QScreen>
-#include <QtX11Extras/QX11Info>
 
 #include "ks-i.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
-#include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 #include "ui_workspace-thumbnail.h"
 #include "workspace-thumbnail.h"
@@ -119,7 +115,7 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
     getDesktopBackground();
     QPixmap pixBg = m_desktopBackground.copy();  // 桌面背景
 
-    auto workAreaRect = KWindowSystem::workArea(m_workspaceIndex);
+    auto workAreaRect = WindowManagerInstance.workArea(m_workspaceIndex);
     pixBg = pixBg.scaled(workAreaRect.width(), workAreaRect.height());
 
     painter.begin(&pixBg);
@@ -143,7 +139,7 @@ void WorkspaceThumbnail::paintEvent(QPaintEvent* event)
 
     auto palette = Kiran::Theme::Palette::getDefault();
 
-    if (m_workspaceIndex == DesktopHelper::currentDesktop())
+    if (m_workspaceIndex == WindowManagerInstance.currentDesktop())
     {
         painter.begin(this);
         QPen pen;
@@ -199,7 +195,7 @@ void WorkspaceThumbnail::dropEvent(QDropEvent* event)
                                   << "mimedata:" << mimeData;
     }
 
-    DesktopHelper::moveToDesktop(wid, m_workspaceIndex);
+    WindowManagerInstance.moveWindowToDesktop(wid, m_workspaceIndex);
 }
 
 void WorkspaceThumbnail::getDesktopBackground()

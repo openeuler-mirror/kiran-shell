@@ -17,9 +17,8 @@
 #include <QMouseEvent>
 
 #include "app-previewer.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "plugin-i.h"
 #include "window-previewer.h"
 
@@ -60,7 +59,7 @@ void WindowPreviewer::changedActiveWindow(WId wid)
 
 void WindowPreviewer::on_btnClose_clicked()
 {
-    WindowInfoHelper::closeWindow(m_wid);
+    WindowManagerInstance.closeWindow(m_wid);
     setVisible(false);
 }
 void WindowPreviewer::mouseReleaseEvent(QMouseEvent *event)
@@ -72,11 +71,11 @@ void WindowPreviewer::mouseReleaseEvent(QMouseEvent *event)
 
         if (m_widLastActive != m_wid)
         {
-            WindowInfoHelper::activateWindow(m_wid);
+            WindowManagerInstance.activateWindow(m_wid);
         }
         else
         {
-            WindowInfoHelper::minimizeWindow(m_wid);
+            WindowManagerInstance.minimizeWindow(m_wid);
             m_widLastActive = 0;
         }
     }
@@ -91,46 +90,46 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
                           on_btnClose_clicked();
                       });
 
-    if (WindowInfoHelper::isMaximized(m_wid))
+    if (WindowManagerInstance.isMaximized(m_wid))
     {
         m_menu->addAction(tr("Restore"), this, [=]()
                           {
-                              WindowInfoHelper::maximizeWindow(m_wid, false);
+                              WindowManagerInstance.maximizeWindow(m_wid, false);
                           });
     }
     else
     {
         m_menu->addAction(tr("Maximize"), this, [=]()
                           {
-                              WindowInfoHelper::maximizeWindow(m_wid, true);
+                              WindowManagerInstance.maximizeWindow(m_wid, true);
                           });
     }
 
-    if (!WindowInfoHelper::isMinimized(m_wid))
+    if (!WindowManagerInstance.isMinimized(m_wid))
     {
         m_menu->addAction(tr("Minimize"), this, [=]()
                           {
-                              WindowInfoHelper::minimizeWindow(m_wid);
+                              WindowManagerInstance.minimizeWindow(m_wid);
                           });
     }
 
-    if (WindowInfoHelper::isKeepAboved(m_wid))
+    if (WindowManagerInstance.isKeepAbove(m_wid))
     {
         m_menu->addAction(tr("Do not keep above"), this, [=]()
                           {
-                              WindowInfoHelper::setKeepAbove(m_wid, false);
+                              WindowManagerInstance.setKeepAbove(m_wid, false);
                           });
     }
     else
     {
         m_menu->addAction(tr("Keep above"), this, [=]()
                           {
-                              WindowInfoHelper::setKeepAbove(m_wid, true);
+                              WindowManagerInstance.setKeepAbove(m_wid, true);
                           });
     }
 
     // 获取当前有多少个桌面
-    int desktopCount = DesktopHelper::numberOfDesktops();
+    int desktopCount = WindowManagerInstance.numberOfDesktops();
     if (desktopCount > 1)
     {
         auto *menuDesktop = m_menu->addMenu(tr("Move to other desktop"));
@@ -138,20 +137,20 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
         {
             auto action = menuDesktop->addAction(tr("workspace") + QString::number(i), this, [this, i]()
                                                  {
-                                                     DesktopHelper::moveToDesktop(m_wid, i);
-                                                 });
-            if (WindowInfoHelper::getDesktopOfWindow(m_wid) == i)
+                                                      WindowManagerInstance.moveWindowToDesktop(m_wid, i);
+                                                  });
+            if (WindowManagerInstance.getDesktopOfWindow(m_wid) == i)
             {
                 action->setEnabled(false);
             }
         }
     }
 
-    if (!WindowInfoHelper::isMinimized(m_wid))
+    if (!WindowManagerInstance.isMinimized(m_wid))
     {
         m_menu->addAction(tr("move"), this, [=]()
                           {
-                              WindowInfoHelper::moveResize(m_wid);
+                              WindowManagerInstance.moveResizeWindow(m_wid);
                           });
     }
 

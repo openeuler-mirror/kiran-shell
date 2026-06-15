@@ -30,10 +30,9 @@
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "line-frame.h"
 #include "panel.h"
 #include "profile/profile.h"
@@ -211,8 +210,8 @@ void Panel::init()
                 updateLayout();
             });
 
-    connect(&DesktopHelperInstance, &DesktopHelper::currentDesktopChanged, this, &Panel::updateLayout);
-    connect(&DesktopHelperInstance, &DesktopHelper::numberOfDesktopsChanged, this, &Panel::updateLayout);
+    connect(&WindowManagerInstance, &Common::WindowManager::currentDesktopChanged, this, &Panel::updateLayout);
+    connect(&WindowManagerInstance, &Common::WindowManager::numberOfDesktopsChanged, this, &Panel::updateLayout);
 
     m_gsettings = new QGSettings(SHELL_SCHEMA_ID, "", this);
     connect(m_gsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
@@ -387,7 +386,7 @@ void Panel::updateGeometry(int size)
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
-    KLOG_INFO(LCShell) << "desktop:" << DesktopHelper::currentDesktop() << "orientation: " << orientation
+    KLOG_INFO(LCShell) << "desktop:" << WindowManagerInstance.currentDesktop() << "orientation: " << orientation
                        << "screen geometry: " << showingScreen->geometry()
                        << "panel size: " << getSize();
 
@@ -587,7 +586,7 @@ bool Panel::isMouseInsideWidgetTree(QWidget *widget)
     // 判断当前控件的几何范围是否包含鼠标位置
     if ((widget->isVisible() && globalRect.contains(QCursor::pos())) ||
         // 激活了子窗口
-        (widget != this && WindowInfoHelper::isActived(widget->winId())))
+        (widget != this && WindowManagerInstance.isActive(widget->winId())))
     {
         return true;  // 如果当前控件包含鼠标位置，则返回 true
     }

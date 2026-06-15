@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowInfo>
 #include <QWidget>
 
 namespace Ui
@@ -40,7 +39,7 @@ private slots:
 
 protected:
     // 监测窗口变化
-    void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
+    void changedWindow(WId wid);
 
     void showEvent(QShowEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;

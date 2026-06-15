@@ -20,9 +20,7 @@
 
 #include "lib/common/app-utils.h"
 #include "lib/common/icon-utils.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
 #include "lib/common/window-manager.h"
 
 #include "ui_window-thumbnail.h"
@@ -79,13 +77,13 @@ void WindowThumbnail::mouseReleaseEvent(QMouseEvent *event)
 {
     if (Qt::LeftButton == event->button())
     {
-        if (!WindowInfoHelper::isOnCurrentDesktop(m_wid))
+        if (!WindowManagerInstance.isOnCurrentDesktop(m_wid))
         {
             // 切换到当前窗口所在的工作区并激活该窗口
-            int desktop = WindowInfoHelper::getDesktopOfWindow(m_wid);
-            DesktopHelper::setCurrentDesktop(desktop);
+            int desktop = WindowManagerInstance.getDesktopOfWindow(m_wid);
+            WindowManagerInstance.setCurrentDesktop(desktop);
         }
-        WindowInfoHelper::activateWindow(m_wid);
+        WindowManagerInstance.activateWindow(m_wid);
     }
 
     QWidget::mouseReleaseEvent(event);
@@ -132,7 +130,7 @@ void WindowThumbnail::refresh()
     {
         return;
     }
-    QPixmap pix = WindowManagerInstance.getPixPreviewr(m_wid);
+    QPixmap pix = WindowManagerInstance.getWindowPreview(m_wid);
     if (pix.isNull())
     {
         m_ui->labelGrabWindow->setPixmap(getWindowAppIcon(m_wid, QSize(60, 60)));
@@ -146,7 +144,7 @@ void WindowThumbnail::refresh()
 
 void WindowThumbnail::updateVisualName()
 {
-    QString visibleName = WindowInfoHelper::getAppNameByWId(m_wid);
+    QString visibleName = WindowManagerInstance.getWindowTitle(m_wid);
     QFontMetrics fontMetrics = m_ui->labelAppName->fontMetrics();
     int elidedTextLen = m_ui->labelAppName->width();
     QString elideText = Utility::getElidedText(fontMetrics, visibleName, elidedTextLen);
@@ -173,20 +171,17 @@ void WindowThumbnail::getOriginalSize(int &scaleWidth, int &scaleHeight, int &ex
 
 void WindowThumbnail::on_btnClose_clicked()
 {
-    WindowInfoHelper::closeWindow(m_wid);
+    WindowManagerInstance.closeWindow(m_wid);
 }
 
-void WindowThumbnail::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+void WindowThumbnail::changedWindow(WId wid)
 {
     if (m_wid != wid)
     {
         return;
     }
 
-    if (properties.testFlag(NET::WMName))
-    {
-        updateVisualName();
-    }
+    updateVisualName();
 }
 
 }  // namespace Kiran
