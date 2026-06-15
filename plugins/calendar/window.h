@@ -13,7 +13,7 @@
  */
 #pragma once
 
-#include <QDialog>
+#include "lib/common/shell-window.h"
 
 namespace Ui
 {
@@ -24,7 +24,7 @@ namespace Kiran
 {
 namespace Calendar
 {
-class Window : public QDialog
+class Window : public ShellWindow
 {
     Q_OBJECT
 
@@ -35,6 +35,7 @@ public:
 protected:
     void wheelEvent(QWheelEvent *event) override;
     void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
     bool eventFilter(QObject *object, QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 

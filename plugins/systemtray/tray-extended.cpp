@@ -28,7 +28,7 @@ namespace Kiran
 namespace Systemtray
 {
 TrayExtended::TrayExtended(IAppletImport *import, QWidget *parent)
-    : QDialog(parent, Qt::WindowFlags() | Qt::FramelessWindowHint),
+    : ShellWindow(ShellWindowRole::AppletPopup, parent),
       m_import(import),
       m_currentDropIndex(0)
 {
@@ -97,7 +97,7 @@ bool TrayExtended::eventFilter(QObject *object, QEvent *event)
     {
         emit hideTrayExtended();
     }
-    return QWidget::eventFilter(object, event);
+    return ShellWindow::eventFilter(object, event);
 }
 
 void TrayExtended::dragEnterEvent(QDragEnterEvent *event)
@@ -174,6 +174,8 @@ void TrayExtended::hideEvent(QHideEvent *event)
     m_indicatorWidget->hide();
 
     updateItemLayout();
+    emit hideTrayExtended();
+    ShellWindow::hideEvent(event);
 }
 
 void TrayExtended::showEvent(QShowEvent *event)
@@ -181,7 +183,7 @@ void TrayExtended::showEvent(QShowEvent *event)
     // 任务栏不显示
     WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
-    QDialog::showEvent(event);
+    ShellWindow::showEvent(event);
 }
 
 int TrayExtended::getInsertIndex(const QPoint &pos)

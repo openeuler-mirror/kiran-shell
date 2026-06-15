@@ -23,6 +23,8 @@ find_package(KF5Activities REQUIRED)
 find_package(KF5ActivitiesStats REQUIRED)
 find_package(KF5IconThemes REQUIRED)
 find_package(KF5NetworkManagerQt REQUIRED)
+find_package(KF5Wayland REQUIRED)
+pkg_search_module(WAYLAND_CLIENT REQUIRED wayland-client)
 
 pkg_search_module(KLOG_QT5 REQUIRED klog-qt5)
 pkg_search_module(KIRAN_WIDGETS_QT5 REQUIRED kiranwidgets-qt5)

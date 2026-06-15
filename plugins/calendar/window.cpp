@@ -29,7 +29,7 @@ namespace Kiran
 namespace Calendar
 {
 Window::Window(QWidget *parent)
-    : QDialog(parent, Qt::WindowFlags() | Qt::FramelessWindowHint),
+    : ShellWindow(ShellWindowRole::AppletPopup, parent),
       m_ui(new Ui::Window)
 {
     m_ui->setupUi(this);
@@ -103,10 +103,20 @@ void Window::wheelEvent(QWheelEvent *event)
 
 void Window::showEvent(QShowEvent *event)
 {
+    ShellWindow::showEvent(event);
+
     // 任务栏不显示
     WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     gotoToday();
+}
+
+void Window::hideEvent(QHideEvent *event)
+{
+    // Qt::Popup 自动隐藏时不保证触发 WindowDeactivate，
+    // 在此补发信号，确保 Applet::hideWindow() 执行按钮恢复。
+    emit windowDeactivated();
+    ShellWindow::hideEvent(event);
 }
 
 bool Window::eventFilter(QObject *object, QEvent *event)
@@ -115,7 +125,7 @@ bool Window::eventFilter(QObject *object, QEvent *event)
     {
         emit windowDeactivated();
     }
-    return QDialog::eventFilter(object, event);
+    return ShellWindow::eventFilter(object, event);
 }
 
 void Window::paintEvent(QPaintEvent *event)

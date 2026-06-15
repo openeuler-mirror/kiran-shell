@@ -44,14 +44,10 @@
 namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
-    : QWidget(nullptr),
+    : ShellWindow(ShellWindowRole::Panel, nullptr),
       m_profilePanel(profilePanel)
 {
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);  // 透明
-                                                 //    setAttribute(Qt::WA_X11NetWmWindowTypeDock);
-    KWindowSystem::setType(winId(), NET::Dock);
-    KWindowSystem::setOnAllDesktops(winId(), true);
 }
 
 QString Panel::getUID()
@@ -163,21 +159,15 @@ bool Panel::event(QEvent *event)
     {
     case QEvent::WinIdChange:
     {
-        // Sometimes Qt needs to re-create the underlying window of the widget and
-        // the winId() may be changed at runtime. So we need to reset all X11 properties
-        // when this happens.
         if (effectiveWinId() == 0)
             break;
-        KLOG_INFO() << "Panel::event QEvent::WinIdChange";
-        KWindowSystem::setType(effectiveWinId(), NET::Dock);
-        KWindowSystem::setOnAllDesktops(effectiveWinId(), true);
         updateLayout();
     }
     default:
         break;
     }
 
-    return QWidget::event(event);
+    return ShellWindow::event(event);
 }
 
 void Panel::init()
@@ -424,10 +414,11 @@ void Panel::updateGeometry(int size)
     }
 
     // 设置窗口几何属性
-    // 先设置固定大小防止布局撑大窗口，再设置几何属性
+    // 先设置固定大小防止布局撑大窗口，再设置位置和大小
     setMinimumSize(rect.size());
     setMaximumSize(rect.size());
-    setGeometry(rect);
+    resize(rect.size());
+    setPosition(rect.x(), rect.y());
     
     KLOG_INFO(LCShell) << "Applied geometry:" << geometry();
 

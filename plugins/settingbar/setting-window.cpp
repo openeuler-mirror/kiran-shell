@@ -30,7 +30,7 @@ namespace Kiran
 namespace SettingBar
 {
 SettingWindow::SettingWindow(QWidget *parent)
-    : QDialog(parent, Qt::FramelessWindowHint),
+    : ShellWindow(ShellWindowRole::AppletPopup, parent),
       m_ui(new Ui::SettingWindow),
       m_isBrightnessPressed(false)
 {
@@ -206,7 +206,15 @@ void SettingWindow::showEvent(QShowEvent *event)
 
     exitOnlyShow();
 
-    QDialog::showEvent(event);
+    ShellWindow::showEvent(event);
+}
+
+void SettingWindow::hideEvent(QHideEvent *event)
+{
+    // Qt::Popup 自动隐藏时不保证触发 WindowDeactivate，
+    // 在此补发信号，确保 Window::hideHwConfWindow() 执行按钮恢复。
+    emit windowDeactivated();
+    ShellWindow::hideEvent(event);
 }
 
 void SettingWindow::onlyShow(QWidget *widget)
