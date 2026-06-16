@@ -22,7 +22,7 @@
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "plugin-i.h"
 #include "window.h"
 
@@ -103,7 +103,7 @@ bool AppGroup::hasWidOnCurrentDesktop()
     bool hasWid = false;
     for (auto wid : m_mapWidButton.keys())
     {
-        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        if (WindowManagerInstance.isOnCurrentDesktop(wid))
         {
             hasWid = true;
             break;
@@ -118,7 +118,7 @@ void AppGroup::getRelationAppSize(int &size)
     int curDesktopWidSize = 0;
     for (auto wid : m_mapWidButton.keys())
     {
-        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        if (WindowManagerInstance.isOnCurrentDesktop(wid))
         {
             curDesktopWidSize++;
         }
@@ -139,7 +139,7 @@ bool AppGroup::isAlsoOpenedOnOtherDesktop()
     bool result = false;
     for (auto wid : m_mapWidButton.keys())
     {
-        if (!WindowInfoHelper::isOnCurrentDesktop(wid) && WindowInfoHelper::getDesktopOfWindow(wid) > 0)
+        if (!WindowManagerInstance.isOnCurrentDesktop(wid) && WindowManagerInstance.getDesktopOfWindow(wid) > 0)
         {
             result = true;
             break;
@@ -153,15 +153,15 @@ void AppGroup::activeRelationApp()
     // 当应用组在多个桌面分别打开了窗口，需要激活当前桌面的窗口
     for (auto wid : m_mapWidButton.keys())
     {
-        if (WindowInfoHelper::isOnCurrentDesktop(wid))
+        if (WindowManagerInstance.isOnCurrentDesktop(wid))
         {
-            if (WindowInfoHelper::isActived(wid))
+            if (WindowManagerInstance.isActive(wid))
             {
-                WindowInfoHelper::minimizeWindow(wid);
+                WindowManagerInstance.minimizeWindow(wid);
             }
             else
             {
-                WindowInfoHelper::activateWindow(wid);
+                WindowManagerInstance.activateWindow(wid);
             }
             break;
         }
@@ -202,7 +202,7 @@ void AppGroup::windowCloseAll()
 {
     for (auto wid : m_mapWidButton.keys())
     {
-        WindowInfoHelper::closeWindow(wid);
+        WindowManagerInstance.closeWindow(wid);
     }
 }
 
@@ -415,7 +415,7 @@ void AppGroup::updateLayout()
             while (iter != m_mapWidButton.end())
             {
                 auto wid = iter.key();
-                if (WindowInfoHelper::isOnCurrentDesktop(wid))
+                if (WindowManagerInstance.isOnCurrentDesktop(wid))
                 {
                     appButtons.append(iter.value());
                     iter.value()->setShowVisualName(true);

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <QDialog>
+#include "lib/common/shell-window.h"
 
 namespace Ui
 {
@@ -24,7 +24,7 @@ namespace Kiran
 {
 namespace SettingBar
 {
-class SettingWindow : public QDialog
+class SettingWindow : public ShellWindow
 {
     Q_OBJECT
 
@@ -44,6 +44,7 @@ protected:
     bool eventFilter(QObject* object, QEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
     void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
 
 private:
     void onlyShow(QWidget* widget);

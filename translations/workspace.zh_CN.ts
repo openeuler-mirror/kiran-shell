@@ -4,7 +4,7 @@
 <context>
     <name>Kiran::Workspace::Applet</name>
     <message>
-        <location filename="../plugins/workspace/applet.cpp" line="47"/>
+        <location filename="../plugins/workspace/applet.cpp" line="50"/>
         <source>Workspace switcher</source>
         <translation>工作区</translation>
     </message>
@@ -12,12 +12,12 @@
 <context>
     <name>Kiran::Workspace::WindowPreviewer</name>
     <message>
-        <location filename="../plugins/workspace/window-previewer.cpp" line="43"/>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="42"/>
         <source>Move to other desktop</source>
         <translation>移动到其他工作区</translation>
     </message>
     <message>
-        <location filename="../plugins/workspace/window-previewer.cpp" line="46"/>
+        <location filename="../plugins/workspace/window-previewer.cpp" line="45"/>
         <source>workspace</source>
         <translation>工作区</translation>
     </message>

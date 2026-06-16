@@ -13,14 +13,13 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem/NETWM>
 #include <QBoxLayout>
 #include <QTimer>
 
 #include "app-previewer.h"
 #include "ks-i.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "plugin-i.h"
 #include "window.h"
 
@@ -155,7 +154,7 @@ void AppPreviewer::showPreviewer(const QList<WId> &wids, QWidget *triggerWidget)
     for (auto wid : wids)
     {
         // 只显示当前桌面的窗口
-        if (m_mapWindowPreviewers.contains(wid) && WindowInfoHelper::isOnCurrentDesktop(wid))
+        if (m_mapWindowPreviewers.contains(wid) && WindowManagerInstance.isOnCurrentDesktop(wid))
         {
             windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
         }
@@ -219,7 +218,7 @@ void AppPreviewer::panelProfileChanged()
     QList<WindowPreviewer *> windowPreviewerShow;
     for (auto wid : m_widsCurrentShow)
     {
-        if (m_mapWindowPreviewers.contains(wid) && WindowInfoHelper::isOnCurrentDesktop(wid))
+        if (m_mapWindowPreviewers.contains(wid) && WindowManagerInstance.isOnCurrentDesktop(wid))
         {
             windowPreviewerShow.push_back(m_mapWindowPreviewers[wid]);
         }
@@ -261,7 +260,7 @@ void AppPreviewer::leaveEvent(QEvent *event)
 void AppPreviewer::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
     QWidget::showEvent(event);
 }
 

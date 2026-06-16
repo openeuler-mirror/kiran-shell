@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <KWindowInfo>
 #include <QMap>
 #include <QWidget>
 
@@ -79,7 +78,7 @@ private:
     void changeNumberOfDesktops(int numOfDesk);
 
     // 监测窗口变化
-    void changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2);
+    void changedWindow(WId wid);
 
 signals:
     void windowDeactivated();

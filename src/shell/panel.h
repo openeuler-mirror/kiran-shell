@@ -15,8 +15,8 @@
 #pragma once
 
 #include <QBoxLayout>
-#include <QWidget>
 
+#include "lib/common/shell-window.h"
 #include "plugin-i.h"
 
 class QFrame;
@@ -28,7 +28,7 @@ class ProfilePanel;
 class ProfileApplet;
 class Applet;
 class LineFrame;
-class Panel : public QWidget, public IPanel
+class Panel : public ShellWindow, public IPanel
 {
     Q_OBJECT
 

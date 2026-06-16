@@ -21,6 +21,7 @@
 #include "ks-config.h"
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/popup-positioner.h"
 #include "lib/common/utility.h"
 #include "shell_menu_adaptor.h"
 #include "window.h"
@@ -148,8 +149,7 @@ void Applet::showMenu()
     m_appletButton->setChecked(true);
 
     auto oriention = m_import->getPanel()->getOrientation();
-    auto *screen = m_import->getPanel()->getScreen();
-    Utility::updatePopWidgetPos(screen, oriention, this, m_window);
+    Kiran::positionAppletPopup(window()->pos(), oriention, this, m_window);
 
     // 激活开始菜单
     m_window->raise();

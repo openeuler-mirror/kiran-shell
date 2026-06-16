@@ -13,13 +13,13 @@
  */
 
 #include <qt5-log-i.h>
-#include <KWindowSystem>
 #include <QKeyEvent>
 #include <QProcess>
 #include <QTimer>
 
 #include "brightness/brightness.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/window-manager.h"
 #include "net/net-conf-item.h"
 #include "setting-window.h"
 #include "theme/theme-conf-item.h"
@@ -30,7 +30,7 @@ namespace Kiran
 namespace SettingBar
 {
 SettingWindow::SettingWindow(QWidget *parent)
-    : QDialog(parent, Qt::FramelessWindowHint),
+    : ShellWindow(ShellWindowRole::AppletPopup, parent),
       m_ui(new Ui::SettingWindow),
       m_isBrightnessPressed(false)
 {
@@ -202,11 +202,19 @@ void SettingWindow::keyPressEvent(QKeyEvent *event)
 void SettingWindow::showEvent(QShowEvent *event)
 {
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     exitOnlyShow();
 
-    QDialog::showEvent(event);
+    ShellWindow::showEvent(event);
+}
+
+void SettingWindow::hideEvent(QHideEvent *event)
+{
+    // Qt::Popup 自动隐藏时不保证触发 WindowDeactivate，
+    // 在此补发信号，确保 Window::hideHwConfWindow() 执行按钮恢复。
+    emit windowDeactivated();
+    ShellWindow::hideEvent(event);
 }
 
 void SettingWindow::onlyShow(QWidget *widget)

@@ -17,7 +17,8 @@
 #include <KActivities/KActivities/Consumer>
 #include <KActivities/Stats/ResultWatcher>
 #include <QDBusMessage>
-#include <QDialog>
+
+#include "lib/common/shell-window.h"
 
 namespace Ui
 {
@@ -37,7 +38,7 @@ namespace Kiran
 namespace Menu
 {
 class AppsOverview;
-class Window : public QDialog
+class Window : public ShellWindow
 {
     Q_OBJECT
 
@@ -92,6 +93,7 @@ protected:
     // 事件过滤器
     bool eventFilter(QObject* object, QEvent* event) override;
     void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
 signals:

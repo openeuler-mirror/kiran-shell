@@ -18,8 +18,7 @@
 #include <QMimeData>
 #include <QMouseEvent>
 
-#include "lib/common/desktop-helper.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "window-previewer.h"
 
 namespace Kiran
@@ -36,7 +35,7 @@ WindowPreviewer::~WindowPreviewer() = default;
 void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
 {
     // 获取当前有多少个桌面
-    int desktopCount = DesktopHelper::numberOfDesktops();
+    int desktopCount = WindowManagerInstance.numberOfDesktops();
     if (desktopCount > 1)
     {
         QMenu menu(this);
@@ -45,9 +44,9 @@ void WindowPreviewer::contextMenuEvent(QContextMenuEvent *event)
         {
             auto *action = menuDesktop->addAction(tr("workspace") + QString::number(i), this, [this, i]()
                                                   {
-                                                      DesktopHelper::moveToDesktop(m_wid, i);
-                                                  });
-            if (WindowInfoHelper::getDesktopOfWindow(m_wid) == i)
+                                                       WindowManagerInstance.moveWindowToDesktop(m_wid, i);
+                                                   });
+            if (WindowManagerInstance.getDesktopOfWindow(m_wid) == i)
             {
                 action->setEnabled(false);
             }

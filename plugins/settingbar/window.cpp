@@ -21,6 +21,7 @@
 #include "applet.h"
 #include "battery/bettery-button.h"
 #include "ks-i.h"
+#include "lib/common/popup-positioner.h"
 #include "lib/common/utility.h"
 #include "net/net-button.h"
 #include "setting-window.h"
@@ -205,6 +206,17 @@ void Window::clickHwConfButton(bool checked)
     }
 }
 
+void Window::hideHwConfWindow()
+{
+    m_hwConfWindow->setVisible(false);
+
+    for (auto *button : hwConfButtons)
+    {
+        button->setChecked(false);
+        button->setEnabled(true);
+    }
+}
+
 void Window::showHwConfWindow()
 {
     m_hwConfWindow->setVisible(true);
@@ -217,22 +229,10 @@ void Window::showHwConfWindow()
     updateWindowPosition();
 }
 
-void Window::hideHwConfWindow()
-{
-    m_hwConfWindow->setVisible(false);
-
-    for (auto *button : hwConfButtons)
-    {
-        button->setChecked(false);
-        button->setEnabled(true);
-    }
-}
-
 void Window::updateWindowPosition()
 {
     auto oriention = m_import->getPanel()->getOrientation();
-    auto *screen = m_import->getPanel()->getScreen();
-    Utility::updatePopWidgetPos(screen, oriention, this, m_hwConfWindow);
+    Kiran::positionAppletPopup(window()->pos(), oriention, this, m_hwConfWindow);
 }
 
 }  // namespace SettingBar

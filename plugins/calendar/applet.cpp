@@ -25,6 +25,7 @@
 #include "ks_timedate_interface.h"
 #include "lib/common/dbus-service-watcher.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/popup-positioner.h"
 #include "lib/common/utility.h"
 #include "window.h"
 
@@ -152,8 +153,7 @@ void Applet::clickButton()
     m_calendarButton->setEnabled(false);
 
     auto oriention = m_import->getPanel()->getOrientation();
-    auto *screen = m_import->getPanel()->getScreen();
-    Utility::updatePopWidgetPos(screen, oriention, this, m_window);
+    Kiran::positionAppletPopup(window()->pos(), oriention, this, m_window);
 }
 
 void Applet::hideWindow()

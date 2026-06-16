@@ -30,10 +30,9 @@
 #include "applet.h"
 #include "ks-config.h"
 #include "ks-i.h"
-#include "lib/common/desktop-helper.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "line-frame.h"
 #include "panel.h"
 #include "profile/profile.h"
@@ -45,14 +44,10 @@
 namespace Kiran
 {
 Panel::Panel(ProfilePanel *profilePanel)
-    : QWidget(nullptr),
+    : ShellWindow(ShellWindowRole::Panel, nullptr),
       m_profilePanel(profilePanel)
 {
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);  // 透明
-                                                 //    setAttribute(Qt::WA_X11NetWmWindowTypeDock);
-    KWindowSystem::setType(winId(), NET::Dock);
-    KWindowSystem::setOnAllDesktops(winId(), true);
 }
 
 QString Panel::getUID()
@@ -164,21 +159,15 @@ bool Panel::event(QEvent *event)
     {
     case QEvent::WinIdChange:
     {
-        // Sometimes Qt needs to re-create the underlying window of the widget and
-        // the winId() may be changed at runtime. So we need to reset all X11 properties
-        // when this happens.
         if (effectiveWinId() == 0)
             break;
-        KLOG_INFO() << "Panel::event QEvent::WinIdChange";
-        KWindowSystem::setType(effectiveWinId(), NET::Dock);
-        KWindowSystem::setOnAllDesktops(effectiveWinId(), true);
         updateLayout();
     }
     default:
         break;
     }
 
-    return QWidget::event(event);
+    return ShellWindow::event(event);
 }
 
 void Panel::init()
@@ -211,8 +200,8 @@ void Panel::init()
                 updateLayout();
             });
 
-    connect(&DesktopHelperInstance, &DesktopHelper::currentDesktopChanged, this, &Panel::updateLayout);
-    connect(&DesktopHelperInstance, &DesktopHelper::numberOfDesktopsChanged, this, &Panel::updateLayout);
+    connect(&WindowManagerInstance, &Common::WindowManager::currentDesktopChanged, this, &Panel::updateLayout);
+    connect(&WindowManagerInstance, &Common::WindowManager::numberOfDesktopsChanged, this, &Panel::updateLayout);
 
     m_gsettings = new QGSettings(SHELL_SCHEMA_ID, "", this);
     connect(m_gsettings, &QGSettings::changed, this, &Panel::shellSettingChanged);
@@ -387,7 +376,7 @@ void Panel::updateGeometry(int size)
     QScreen *showingScreen = getScreen();
     int orientation = getOrientation();
 
-    KLOG_INFO(LCShell) << "desktop:" << DesktopHelper::currentDesktop() << "orientation: " << orientation
+    KLOG_INFO(LCShell) << "desktop:" << WindowManagerInstance.currentDesktop() << "orientation: " << orientation
                        << "screen geometry: " << showingScreen->geometry()
                        << "panel size: " << getSize();
 
@@ -425,10 +414,11 @@ void Panel::updateGeometry(int size)
     }
 
     // 设置窗口几何属性
-    // 先设置固定大小防止布局撑大窗口，再设置几何属性
+    // 先设置固定大小防止布局撑大窗口，再设置位置和大小
     setMinimumSize(rect.size());
     setMaximumSize(rect.size());
-    setGeometry(rect);
+    resize(rect.size());
+    setPosition(rect.x(), rect.y());
     
     KLOG_INFO(LCShell) << "Applied geometry:" << geometry();
 
@@ -587,7 +577,7 @@ bool Panel::isMouseInsideWidgetTree(QWidget *widget)
     // 判断当前控件的几何范围是否包含鼠标位置
     if ((widget->isVisible() && globalRect.contains(QCursor::pos())) ||
         // 激活了子窗口
-        (widget != this && WindowInfoHelper::isActived(widget->winId())))
+        (widget != this && WindowManagerInstance.isActive(widget->winId())))
     {
         return true;  // 如果当前控件包含鼠标位置，则返回 true
     }

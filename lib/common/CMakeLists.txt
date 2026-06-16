@@ -26,6 +26,7 @@ target_include_directories(
           ${KLOG_QT5_INCLUDE_DIRS}
           ${LIBPINYIN_INCLUDE_DIRS}
           ${GSETTINGS_QT_INCLUDE_DIRS}
+          ${WAYLAND_CLIENT_INCLUDE_DIRS}
           ${X11_XCB_INCLUDE_DIRS})
 
 target_link_libraries(
@@ -34,6 +35,7 @@ target_link_libraries(
           Qt5::X11Extras
           Qt5::DBus
           KF5::WindowSystem
+          KF5::WaylandClient
           KF5::Service
           KF5::KIOWidgets
           KF5::IconThemes
@@ -41,6 +43,7 @@ target_link_libraries(
           ${KLOG_QT5_LIBRARIES}
           ${LIBPINYIN_LIBRARIES}
           ${GSETTINGS_QT_LIBRARIES}
+          ${WAYLAND_CLIENT_LIBRARIES}
           XCB::XCB
           XCB::IMAGE)
 

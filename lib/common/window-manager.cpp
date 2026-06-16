@@ -12,179 +12,40 @@
  * Author:     yangfeng <yangfeng@kylinsec.com.cn>
  */
 
-#include <qt5-log-i.h>
 #include <KWindowSystem>
-#include <KX11Extras>
-#include <QGuiApplication>
-#include <QPainter>
-#include <QScreen>
-#include <QTimer>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#include <private/qtx11extras_p.h>
-#else
-#include <QX11Info>
-#endif
-
-#include "lib/common/app-utils.h"
-#include "window-info-helper.h"
+#include "lib/common/wayland-window-backend.h"
+#include "lib/common/x11-window-backend.h"
 #include "window-manager.h"
 
 namespace Kiran
 {
 namespace Common
 {
-Window::Window(WId wid, QObject* parent)
-    : QObject(parent), m_wid(wid)
-{
-}
-
-Window::~Window() = default;
-
-QRect Window::getWindowGeometry() const
-{
-    KWindowInfo info(m_wid, NET::WMGeometry);
-    if (info.valid())
-    {
-        return info.geometry();
-    }
-
-    return {};
-}
-
-QPixmap Window::getPixPreviewr()
-{
-    updatePreviewer();
-
-    return m_pixPreviewer;
-}
-
-static void cleanupXcbImage(void* data)
-{
-    xcb_image_destroy(static_cast<xcb_image_t*>(data));
-}
-
-void Window::updatePreviewer()
-{
-    QRect rect = getWindowGeometry();
-    if (rect.width() <= 0 || rect.height() <= 0)
-    {
-        return;
-    }
-
-    // TODO: wayland 窗口截图
-
-    // X11 窗口截图
-    xcb_image_t* image = xcb_image_get(QX11Info::connection(), m_wid, 0, 0, rect.width(), rect.height(), ~0, XCB_IMAGE_FORMAT_Z_PIXMAP);
-    if (image)
-    {
-        QImage normalImage = x11ImageToQimage(image);
-        m_pixPreviewer = QPixmap::fromImage(normalImage);
-    }
-
-    if (m_pixPreviewer.isNull())
-    {
-        updatePreviewerByIcon();
-    }
-}
-
-QImage Window::x11ImageToQimage(xcb_image_t* xcbImage)
-{
-    QImage::Format format = QImage::Format_Invalid;
-
-    switch (xcbImage->depth)
-    {
-    case 1:
-        format = QImage::Format_MonoLSB;
-        break;
-    case 16:
-        format = QImage::Format_RGB16;
-        break;
-    case 24:
-        format = QImage::Format_RGB32;
-        break;
-    case 30:
-    {
-        // Qt doesn't have a matching image format. We need to convert manually
-        auto* pixels = reinterpret_cast<quint32*>(xcbImage->data);
-        for (uint i = 0; i < (xcbImage->size / 4); i++)
-        {
-            int r = (pixels[i] >> 22) & 0xff;
-            int g = (pixels[i] >> 12) & 0xff;
-            int b = (pixels[i] >> 2) & 0xff;
-
-            pixels[i] = qRgba(r, g, b, 0xff);
-        }
-        // fall through, Qt format is still Format_ARGB32_Premultiplied
-        Q_FALLTHROUGH();
-    }
-    case 32:
-        format = QImage::Format_ARGB32_Premultiplied;
-        break;
-    default:
-        return {};
-    }
-
-    QImage image(xcbImage->data, xcbImage->width, xcbImage->height, xcbImage->stride, format, cleanupXcbImage, xcbImage);
-
-    if (image.isNull())
-    {
-        return {};
-    }
-
-    // 黑白图
-    // work around an abort in QImage::color
-    if (image.format() == QImage::Format_MonoLSB)
-    {
-        image.setColorCount(2);
-        image.setColor(0, QColor(Qt::white).rgb());
-        image.setColor(1, QColor(Qt::black).rgb());
-    }
-
-    return image;
-}
-
-void Window::updatePreviewerByIcon()
-{
-    QRect rect = getWindowGeometry();
-    if (rect.width() <= 0 || rect.height() <= 0)
-    {
-        return;
-    }
-
-    m_pixPreviewer = QPixmap(rect.size());
-
-    m_pixPreviewer.fill(Qt::transparent);  // 初始化为透明背景
-
-    // 使用 QPainter 在 QPixmap 上绘制
-    QPainter painter(&m_pixPreviewer);
-    QColor semiTransparentColor(0, 0, 0, 128);  // 50% 透明
-    painter.setBrush(QBrush(semiTransparentColor));
-    painter.drawRect(m_pixPreviewer.rect());
-
-    QPixmap iconPix = getWindowAppIcon(m_wid, QSize(100, 100));
-    QSize smallSize(100, 100);  // 设置小图片的尺寸
-    iconPix = iconPix.scaled(smallSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    // 计算中心位置
-    int centerX = (m_pixPreviewer.width() - iconPix.width()) / 2;
-    int centerY = (m_pixPreviewer.height() - iconPix.height()) / 2;
-    // 在中心位置绘制icon
-    painter.drawPixmap(centerX, centerY, iconPix);
-
-    painter.end();
-}
-
 WindowManager::WindowManager()
 {
-    connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &WindowManager::addWindow);
-    connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &WindowManager::removeWindow);
-    connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &WindowManager::changedActiveWindow);
-    connect(KWindowSystem::self(),
-            QOverload<WId, NET::Properties, NET::Properties2>::of(
-                &KWindowSystem::windowChanged),
-            this,
-            &WindowManager::changedWindow);
+    if (KWindowSystem::isPlatformX11())
+    {
+        m_backend.reset(new X11WindowBackend());
+    }
+    else
+    {
+        m_backend.reset(new WaylandWindowBackend());
+    }
+
+    connect(m_backend.data(), &WindowManagerBackend::windowAdded, this, &WindowManager::windowAdded);
+    connect(m_backend.data(), &WindowManagerBackend::windowRemoved, this, &WindowManager::windowRemoved);
+    connect(m_backend.data(), &WindowManagerBackend::activeWindowChanged, this, &WindowManager::activeWindowChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowTitleChanged, this, &WindowManager::windowTitleChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowIconChanged, this, &WindowManager::windowIconChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowStateChanged, this, &WindowManager::windowStateChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowGeometryChanged, this, &WindowManager::windowGeometryChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowChanged,
+            this, &WindowManager::windowChanged);
+    connect(m_backend.data(), &WindowManagerBackend::windowDesktopChanged,
+            this, &WindowManager::windowDesktopChanged);
+    connect(m_backend.data(), &WindowManagerBackend::currentDesktopChanged, this, &WindowManager::currentDesktopChanged);
+    connect(m_backend.data(), &WindowManagerBackend::numberOfDesktopsChanged, this, &WindowManager::numberOfDesktopsChanged);
 }
 
 WindowManager::~WindowManager() = default;
@@ -197,106 +58,167 @@ WindowManager& WindowManager::getInstance()
 
 QList<WId> WindowManager::getAllWindow()
 {
-    return m_windows.keys();
+    return m_backend->getAllWindows();
 }
 
 QList<WId> WindowManager::getAllWindow(int desktop)
 {
-    // 通过desktop获取窗口列表,提供排序过的窗口列表
-    QList<WId> windows;
-    for (auto window : KWindowSystem::stackingOrder())
-    {
-        KWindowInfo windowInfo(window, NET::WMDesktop);
-        if (windowInfo.valid() &&
-            windowInfo.desktop() == desktop &&
-            !WindowInfoHelper::isSkipTaskbar(window))
-        {
-            windows.append(window);
-        }
-    }
-
-    return windows;
+    return m_backend->getAllWindows(desktop);
 }
 
 QRect WindowManager::getWindowGeometry(WId wid)
 {
-    if (m_windows.contains(wid))
-    {
-        return m_windows[wid]->getWindowGeometry();
-    }
-
-    return {};
+    return m_backend->getWindowGeometry(wid);
 }
 
 QPixmap WindowManager::getPixPreviewr(WId wid)
 {
-    if (m_windows.contains(wid))
-    {
-        return m_windows[wid]->getPixPreviewr();
-    }
-
-    return {};
+    return m_backend->getWindowPreview(wid);
 }
-void WindowManager::addWindow(WId wid)
+
+QString WindowManager::getWindowAppId(WId wid) const
 {
-    if (m_windows.contains(wid))
-    {
-        return;
-    }
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        auto* window = new Window(wid, this);
-        m_windows[wid] = window;
-        emit windowAdded(wid);
-    }
+    return m_backend->getWindowAppId(wid);
 }
 
-void WindowManager::removeWindow(WId wid)
+QString WindowManager::getWindowTitle(WId wid) const
 {
-    if (m_windows.contains(wid))
-    {
-        auto* window = m_windows.take(wid);
-        if (window)
-        {
-            delete window;
-            window = nullptr;
-        }
-        emit windowRemoved(wid);
-    }
+    return m_backend->getWindowTitle(wid);
 }
 
-void WindowManager::changedActiveWindow(WId wid)
+QString WindowManager::getWindowIconName(WId wid) const
 {
-    if (!WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        if (m_windows.contains(wid))
-        {
-            emit activeWindowChanged(wid);
-        }
-    }
+    return m_backend->getWindowIconName(wid);
 }
 
-void WindowManager::changedWindow(WId wid, NET::Properties properties, NET::Properties2 properties2)
+QByteArray WindowManager::getWindowDesktopFileName(WId wid) const
 {
-    if (WindowInfoHelper::isSkipTaskbar(wid))
-    {
-        if (m_windows.contains(wid))
-        {
-            removeWindow(wid);
-        }
-    }
-    else
-    {
-        if (!m_windows.contains(wid))
-        {
-            addWindow(wid);
-        }
-    }
-
-    if (m_windows.contains(wid))
-    {
-        emit windowChanged(wid, properties, properties2);
-    }
+    return m_backend->getWindowDesktopFileName(wid);
 }
+
+int WindowManager::getWindowPid(WId wid) const
+{
+    return m_backend->getWindowPid(wid);
+}
+
+bool WindowManager::isSkipTaskbar(WId wid) const
+{
+    return m_backend->isSkipTaskbar(wid);
+}
+
+bool WindowManager::isMinimized(WId wid) const
+{
+    return m_backend->isMinimized(wid);
+}
+
+bool WindowManager::isMaximized(WId wid) const
+{
+    return m_backend->isMaximized(wid);
+}
+
+bool WindowManager::isKeepAbove(WId wid) const
+{
+    return m_backend->isKeepAbove(wid);
+}
+
+bool WindowManager::isActive(WId wid) const
+{
+    return m_backend->isActive(wid);
+}
+
+WId WindowManager::activeWindow() const
+{
+    return m_backend->activeWindow();
+}
+
+void WindowManager::closeWindow(WId wid)
+{
+    m_backend->closeWindow(wid);
+}
+
+void WindowManager::activateWindow(WId wid)
+{
+    m_backend->activateWindow(wid);
+}
+
+void WindowManager::minimizeWindow(WId wid)
+{
+    m_backend->minimizeWindow(wid);
+}
+
+void WindowManager::maximizeWindow(WId wid, bool set)
+{
+    m_backend->maximizeWindow(wid, set);
+}
+
+void WindowManager::restoreWindow(WId wid)
+{
+    m_backend->restoreWindow(wid);
+}
+
+void WindowManager::setKeepAbove(WId wid, bool set)
+{
+    m_backend->setKeepAbove(wid, set);
+}
+
+void WindowManager::moveResizeWindow(WId wid)
+{
+    m_backend->moveResizeWindow(wid);
+}
+
+int WindowManager::numberOfDesktops() const
+{
+    return m_backend->numberOfDesktops();
+}
+
+int WindowManager::currentDesktop() const
+{
+    return m_backend->currentDesktop();
+}
+
+void WindowManager::setCurrentDesktop(int desktop)
+{
+    m_backend->setCurrentDesktop(desktop);
+}
+
+int WindowManager::getDesktopOfWindow(WId wid) const
+{
+    return m_backend->getDesktopOfWindow(wid);
+}
+
+bool WindowManager::isOnCurrentDesktop(WId wid) const
+{
+    return m_backend->isOnCurrentDesktop(wid);
+}
+
+void WindowManager::moveWindowToDesktop(WId wid, int desktop)
+{
+    m_backend->moveWindowToDesktop(wid, desktop);
+}
+
+void WindowManager::createDesktop()
+{
+    m_backend->createDesktop();
+}
+
+void WindowManager::removeDesktop(int deskToRemove)
+{
+    m_backend->removeDesktop(deskToRemove);
+}
+
+QPixmap WindowManager::getWindowPreview(WId wid)
+{
+    return m_backend->getWindowPreview(wid);
+}
+
+QPixmap WindowManager::getWindowIcon(WId wid, const QSize &size)
+{
+    return m_backend->getWindowIcon(wid, size);
+}
+
+void WindowManager::setWindowSkipTaskbar(WId wid, bool set) { m_backend->setWindowSkipTaskbar(wid, set); }
+QRect WindowManager::workArea(int desktop) const { return m_backend->workArea(desktop); }
+bool WindowManager::isShowingDesktop() const { return m_backend->isShowingDesktop(); }
+void WindowManager::setShowingDesktop(bool show) { m_backend->setShowingDesktop(show); }
 }  // namespace Common
 }  // namespace Kiran

@@ -4,7 +4,7 @@
 <context>
     <name>Kiran::Calendar::Window</name>
     <message>
-        <location filename="../plugins/calendar/window.cpp" line="134"/>
+        <location filename="../plugins/calendar/window.cpp" line="138"/>
         <source>Today</source>
         <translatorcomment>今天</translatorcomment>
         <translation>今天</translation>

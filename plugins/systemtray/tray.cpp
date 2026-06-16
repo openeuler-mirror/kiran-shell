@@ -17,6 +17,7 @@
 
 #include "ks-i.h"
 #include "lib/common/logging-category.h"
+#include "lib/common/popup-positioner.h"
 #include "lib/common/utility.h"
 #include "tray-item.h"
 #include "tray.h"
@@ -74,7 +75,7 @@ Tray::Tray(IAppletImport *import, QWidget *parent)
     connect(m_windowPopupButton, &QToolButton::clicked, this,
             [this](bool checked)
             {
-                if (m_trayExtendedWindow->isHidden())
+                if (!m_trayExtendedWindow->isVisible())
                 {
                     m_trayExtendedWindow->show();
                     m_windowPopupButton->setEnabled(false);
@@ -266,15 +267,13 @@ void Tray::startUpdateTrayExtendedPos()
 void Tray::updateTrayExtendedPos()
 {
     auto oriention = m_import->getPanel()->getOrientation();
-    auto *screen = m_import->getPanel()->getScreen();
-    Utility::updatePopWidgetPos(screen, oriention, m_windowPopupButton, m_trayExtendedWindow);
+    Kiran::positionAppletPopup(window()->pos(), oriention, m_windowPopupButton, m_trayExtendedWindow);
 
     m_updateWindowPopupPosInProgress = false;
 }
 
 void Tray::hideTrayExtended()
 {
-    // KLOG_INFO(LCSystemtray) << "Window::hideTrayBox";
     m_trayExtendedWindow->hide();
     m_windowPopupButton->setEnabled(true);
     m_windowPopupButton->setChecked(false);

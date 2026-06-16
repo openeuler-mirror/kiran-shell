@@ -19,9 +19,10 @@
 #include <KActivities/Stats/ResultWatcher>
 #include <KIO/OpenUrlJob>
 #include <KService/KService>
-#include <KWindowSystem>
 #include <QApplication>
 #include <QButtonGroup>
+
+#include "lib/common/window-manager.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QKeyEvent>
@@ -61,7 +62,7 @@ namespace Kiran
 namespace Menu
 {
 Window::Window(QWidget *parent)
-    : QDialog(parent, Qt::FramelessWindowHint),
+    : ShellWindow(ShellWindowRole::AppletPopup, parent),
       m_ui(new Ui::Window)
 {
     m_ui->setupUi(this);
@@ -582,14 +583,14 @@ bool Window::eventFilter(QObject *object, QEvent *event)
         }
     }
 
-    return QDialog::eventFilter(object, event);
+    return ShellWindow::eventFilter(object, event);
 }
 
 void Window::showEvent(QShowEvent *event)
 {
-    QDialog::showEvent(event);
+    ShellWindow::showEvent(event);
     // 任务栏不显示
-    KWindowSystem::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);
+    WindowManagerInstance.setWindowSkipTaskbar(winId(), true);
 
     // 更新常用应用列表
     updatePopular();
@@ -598,6 +599,14 @@ void Window::showEvent(QShowEvent *event)
     {
         first->setFocus();
     }
+}
+
+void Window::hideEvent(QHideEvent *event)
+{
+    // Qt::Popup 自动隐藏时不保证触发 WindowDeactivate，
+    // 在此补发信号，确保 Applet::hideMenu() 执行按钮恢复。
+    emit windowDeactivated();
+    ShellWindow::hideEvent(event);
 }
 
 void Window::keyPressEvent(QKeyEvent *event)

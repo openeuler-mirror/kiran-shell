@@ -14,24 +14,47 @@
 
 #include "lib/common/app-utils.h"
 #include <KIOCore/KFileItem>
-#include <KX11Extras>
+#include "lib/common/desktop-file-cache.h"
 #include "lib/common/icon-utils.h"
 #include "lib/common/logging-category.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 
 namespace Kiran
 {
 bool getAppInfo(WId wid, AppInfo &info)
 {
-    QUrl url = WindowInfoHelper::getUrlByWId(wid);
-    QByteArray wmClass = WindowInfoHelper::getWmClassByWId(wid);
-    if (url.isEmpty() && wmClass.isEmpty())
+    QByteArray desktopFile;
+
+    // 1. 窗口属性直接提供 desktop file
+    desktopFile = WindowManagerInstance.getWindowDesktopFileName(wid);
+
+    // 2. 通过 appId 查 KService 缓存
+    if (desktopFile.isEmpty())
     {
-        KLOG_WARNING() << "can't find url and wmclass by wid:" << wid;
+        QString appId = WindowManagerInstance.getWindowAppId(wid);
+        desktopFile = DesktopFileCache::instance().findByAppId(appId);
+    }
+
+    // 3. 通过 PID 查 cmdline/environ
+    if (desktopFile.isEmpty())
+    {
+        int pid = WindowManagerInstance.getWindowPid(wid);
+        if (pid > 0)
+        {
+            desktopFile = DesktopFileCache::instance().findByPid(pid);
+        }
+    }
+
+    QString appId = WindowManagerInstance.getWindowAppId(wid);
+    QUrl url = QUrl::fromLocalFile(desktopFile);
+
+    if (url.isEmpty() && appId.isEmpty())
+    {
+        KLOG_WARNING() << "can't find url and appId by wid:" << wid;
         return false;
     }
 
-    info = AppInfo(url, wmClass);
+    info = AppInfo(url, appId);
     return true;
 }
 
@@ -51,7 +74,7 @@ QPixmap getWindowAppIcon(WId wid, const QSize &size)
         }
     }
 
-    const QString iconName = WindowInfoHelper::getAppIconByWId(wid);
+    const QString iconName = WindowManagerInstance.getWindowIconName(wid);
     if (!iconName.isEmpty())
     {
         const QIcon icon = loadIcon(iconName);
@@ -61,6 +84,6 @@ QPixmap getWindowAppIcon(WId wid, const QSize &size)
         }
     }
 
-    return KX11Extras::icon(wid, size.width(), size.height(), true);
+    return WindowManagerInstance.getWindowIcon(wid, size);
 }
 }  // namespace Kiran

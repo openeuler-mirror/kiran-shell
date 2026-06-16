@@ -17,8 +17,6 @@
 #include <KActivities/KActivities/ResourceInstance>
 #include <KIOCore/KFileItem>
 #include <KService/KService>
-#include <KWindowSystem>
-#include <KX11Extras>
 #include <QColor>
 #include <QDesktopServices>
 #include <QFileInfo>
@@ -34,7 +32,7 @@
 #include "lib/common/app-launcher.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/utility.h"
-#include "lib/common/window-info-helper.h"
+#include "lib/common/window-manager.h"
 #include "plugin-i.h"
 
 namespace Kiran
@@ -46,7 +44,8 @@ AppButton::AppButton(IAppletImport *import, QWidget *parent)
       m_import(import)
 {
     auto *appGroup = (AppGroup *)parent;
-    connect(appGroup, &AppGroup::windowChanged, this, &AppButton::changedWindow);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowStateChanged, this, &AppButton::changedWindow);
+    connect(&WindowManagerInstance, &Common::WindowManager::windowTitleChanged, this, &AppButton::changedWindow);
     connect(appGroup, &AppGroup::moveGroupStarted, this, &AppButton::setDragFlag);
 
     connect(this, &QAbstractButton::clicked, this, &AppButton::buttonClicked);
@@ -69,11 +68,27 @@ void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
     {
         // 找不到 desktop file 的app
         // 使用默认图标
-        QPixmap icon = KX11Extras::icon(wid, 25, 25, true);
-        setIcon(QIcon(icon));
+        QString iconName = WindowManagerInstance.getWindowIconName(wid);
+        if (!iconName.isEmpty())
+        {
+            QIcon themeIcon = QIcon::fromTheme(iconName);
+            if (!themeIcon.isNull())
+            {
+                setIcon(themeIcon);
+            }
+        }
+
+        if (icon().isNull())
+        {
+            QPixmap pix = WindowManagerInstance.getWindowIcon(wid, iconSize());
+            if (!pix.isNull())
+            {
+                setIcon(QIcon(pix));
+            }
+        }
 
         // 获取名称
-        QString visibleName = WindowInfoHelper::getAppNameByWId(wid);
+        QString visibleName = WindowManagerInstance.getWindowTitle(wid);
         setToolTip(visibleName);
     }
     else
@@ -471,30 +486,10 @@ void AppButton::updateLayout()
     //    updateName();
 }
 
-void AppButton::changedWindow(WId wid, NET::Properties properties,
-                              NET::Properties2 properties2)
+void AppButton::changedWindow(WId wid)
 {
-    if (m_wid != wid)
-    {
-        return;
-    }
-
-    if (properties.testFlag(NET::WMState))
-    {
-        if (WindowInfoHelper::hasState(wid, NET::DemandsAttention))
-        {
-            // TODO: 提醒 需要样式支持
-        }
-        else if (WindowInfoHelper::hasState(wid, NET::Focused))
-        {
-            // TODO: 已聚焦窗口，清除提醒 需要样式支持
-        }
-    }
-
-    if (properties.testFlag(NET::WMName))
-    {
-        updateShowName();
-    }
+    if (m_wid != wid) return;
+    updateShowName();
 }
 
 // 根据 panel 尺寸和窗口状态更新按钮显示：
@@ -509,7 +504,7 @@ void AppButton::updateShowName()
 
     if (0 != m_wid)
     {
-        m_visualName = WindowInfoHelper::getAppNameByWId(m_wid);
+        m_visualName = WindowManagerInstance.getWindowTitle(m_wid);
         setToolTip(m_visualName);
 
         int orientation = m_import->getPanel()->getOrientation();

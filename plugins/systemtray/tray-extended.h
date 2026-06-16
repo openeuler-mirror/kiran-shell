@@ -15,9 +15,10 @@
 #pragma once
 
 #include <kiran-color-block.h>
-#include <QDialog>
 #include <QGridLayout>
 #include <QList>
+
+#include "lib/common/shell-window.h"
 
 #include "plugin-i.h"
 #include "tray-item.h"
@@ -30,7 +31,7 @@ namespace Kiran
 namespace Systemtray
 {
 class TraySettings;
-class TrayExtended : public QDialog
+class TrayExtended : public ShellWindow
 {
     Q_OBJECT
 
