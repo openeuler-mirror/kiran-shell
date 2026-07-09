@@ -62,7 +62,7 @@ Window::Window(IAppletImport *import, Applet *parent)
     initUI();
     initConfig();
 
-    updateLockApp();
+    updateLockedApp();
     updateFavorite();
 
     initWindowManager();
@@ -316,7 +316,7 @@ void Window::dropEvent(QDropEvent *event)
                 }
             }
             m_listAppGroupLocked = listAppGroupLocked;
-            addToFixedApps(appUrl, appGroup);
+            addToLockedApps(appUrl, appGroup);
         }
     }
     else
@@ -331,7 +331,7 @@ void Window::dropEvent(QDropEvent *event)
             m_listAppGroupShow.insert(m_currentDropIndex, appGroup);
         }
 
-        addToFixedApps(appUrl, appGroup);
+        addToLockedApps(appUrl, appGroup);
     }
 
     updateLayout();
@@ -420,8 +420,8 @@ AppGroup *Window::genAppGroup(const AppInfo &appInfo)
     connect(appGroup, &AppGroup::isInFavorite, this, &Window::isInFavorite, Qt::DirectConnection);
     connect(appGroup, &AppGroup::addToFavorite, this, &Window::addToFavorite);
     connect(appGroup, &AppGroup::removeFromFavorite, this, &Window::removeFromFavorite);
-    connect(appGroup, &AppGroup::addToFixedApps, this, &Window::addToFixedApps);
-    connect(appGroup, &AppGroup::removeFromFixedApps, this, &Window::removeFromFixedApps);
+    connect(appGroup, &AppGroup::addToLockedApps, this, &Window::addToLockedApps);
+    connect(appGroup, &AppGroup::removeFromLockedApps, this, &Window::removeFromLockedApps);
     connect(appGroup, &AppGroup::emptyGroup, this, &Window::removeGroup);
 
     connect(appGroup, &AppGroup::moveGroupStarted, this, &Window::startMoveGroup, Qt::QueuedConnection);
@@ -753,24 +753,24 @@ void Window::updatePageButtons(QBoxLayout::Direction direction, Qt::AlignmentFla
     }
 }
 
-void Window::updateLockApp()
+void Window::updateLockedApp()
 {
-    auto appUrls = getFixedApps();
+    auto appUrls = lockedAppsFromGSettings();
     for (auto *appGroup : m_listAppGroupLocked)
     {
         auto info = appGroup->getAppInfo();
         if (!appUrls.contains(info.m_url))
         {
-            removeLockApp(info);
+            removeLockedApp(info);
         }
     }
     for (const auto &url : appUrls)
     {
-        addLockApp(url);
+        addLockedApp(url);
     }
 }
 
-void Window::addLockApp(const QUrl &url)
+void Window::addLockedApp(const QUrl &url)
 {
     AppInfo info(url, {});
     AppGroup *appGroup = genAppGroup(info);
@@ -805,7 +805,7 @@ void Window::addLockApp(const QUrl &url)
     }
 }
 
-void Window::removeLockApp(const AppInfo &info)
+void Window::removeLockedApp(const AppInfo &info)
 {
     AppGroup *appGroup = nullptr;
     for (auto *app : m_listAppGroupLocked)
@@ -880,9 +880,9 @@ void Window::removeFromFavorite(const QString &appId)
     m_actStatsLinkedWatcher->unlinkFromActivity(QUrl(appIdReal), Activity::global(), Agent::global());
 }
 
-void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
+void Window::addToLockedApps(const QUrl &url, AppGroup *appGroup)
 {
-    auto fixedApps = getFixedApps();
+    auto fixedApps = lockedAppsFromGSettings();
 
     int inserIndex = 0;
     int indexShow = m_listAppGroupShow.indexOf(appGroup);
@@ -895,8 +895,8 @@ void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
         int newIndex = m_listAppGroupLocked.indexOf(appGroup);
         int oldIndex = fixedApps.indexOf(url);
         fixedApps.move(oldIndex, newIndex);
-        KLOG_INFO(LCTaskbar) << "addToFixedApps move" << oldIndex << newIndex;
-        setFixedApps(fixedApps);
+        KLOG_INFO(LCTaskbar) << "addToLockedApps move" << oldIndex << newIndex;
+        lockedAppsToGSettings(fixedApps);
 
         return;
     }
@@ -927,8 +927,8 @@ void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
         fixedApps.insert(inserIndex, url.toString());
         m_listAppGroupLocked.insert(inserIndex, appGroup);
     }
-    KLOG_INFO(LCTaskbar) << "addToFixedApps" << inserIndex << fixedApps.size();
-    setFixedApps(fixedApps);
+    KLOG_INFO(LCTaskbar) << "addToLockedApps" << inserIndex << fixedApps.size();
+    lockedAppsToGSettings(fixedApps);
 
     // 如果是普通文件，添加文件监控
     if (isRegularFile(url))
@@ -937,7 +937,7 @@ void Window::addToFixedApps(const QUrl &url, AppGroup *appGroup)
     }
 }
 
-void Window::removeFromFixedApps(const QUrl &url)
+void Window::removeFromLockedApps(const QUrl &url)
 {
     // 如果是普通文件，移除文件监控
     if (isRegularFile(url))
@@ -945,12 +945,12 @@ void Window::removeFromFixedApps(const QUrl &url)
         removeFileWatcher(url);
     }
 
-    auto fixedApps = getFixedApps();
+    auto fixedApps = lockedAppsFromGSettings();
     fixedApps.removeAll(url);
-    setFixedApps(fixedApps);
+    lockedAppsToGSettings(fixedApps);
 }
 
-QList<QUrl> Window::getFixedApps()
+QList<QUrl> Window::lockedAppsFromGSettings()
 {
     QList<QUrl> fixedApps;
     QVariantList urls = m_gsettings->get(TASKBAR_SCHEMA_KEY_FIXED_APPS).toList();
@@ -1014,7 +1014,7 @@ QList<QUrl> Window::getFixedApps()
     return fixedApps;
 }
 
-void Window::setFixedApps(QList<QUrl> urls)
+void Window::lockedAppsToGSettings(QList<QUrl> urls)
 {
     QStringList fixedApps;
     for (auto url : urls)
@@ -1037,12 +1037,12 @@ void Window::updateLockedFromShow()
         lockedOrder.append(g);
         urls.append(g->getAppInfo().m_url);
     }
-    if (urls.isEmpty() || urls == getFixedApps())
+    if (urls.isEmpty() || urls == lockedAppsFromGSettings())
     {
         return;
     }
     m_listAppGroupLocked = lockedOrder;
-    setFixedApps(urls);
+    lockedAppsToGSettings(urls);
 }
 
 void Window::removeGroup(AppGroup *group)
@@ -1318,7 +1318,7 @@ void Window::settingChanged(const QString &key)
         {
             appGroup->updateLayout();
         }
-        updateLockApp();
+        updateLockedApp();
         updateLayout();
     }
 
@@ -1558,11 +1558,11 @@ void Window::fileChangedCheck(QString path)
             QUrl url = m_filePathToUrlMap[path];
             AppInfo info(url, {});
             // 需要同时从内存和gsettings中移除
-            // removeFromFixedApps 会更新gsettings并移除文件监控
-            removeFromFixedApps(url);
-            // removeLockApp 会从内存中移除AppGroup
-            removeLockApp(info);
-            // removeFileWatcher 已经在 removeFromFixedApps 中调用，但 removeLockApp 中也会调用
+            // removeFromLockedApps 会更新gsettings并移除文件监控
+            removeFromLockedApps(url);
+            // removeLockedApp 会从内存中移除AppGroup
+            removeLockedApp(info);
+            // removeFileWatcher 已经在 removeFromLockedApps 中调用，但 removeLockedApp 中也会调用
             // 由于 removeFileWatcher 内部有检查，重复调用是安全的
         }
     }

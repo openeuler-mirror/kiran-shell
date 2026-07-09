@@ -80,8 +80,8 @@ signals:
     // 添加到×/从×移除 x:桌面、收藏夹、任务栏
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    void addToFixedApps(const QUrl &url, AppButton *appButton);
-    void removeFromFixedApps(const QUrl &url);
+    void addToLockedApps(const QUrl &url, AppButton *appButton);
+    void removeFromLockedApps(const QUrl &url);
 
     // 确认是否单个按钮关联了多个窗口
     void getRelationAppSize(int &result);
