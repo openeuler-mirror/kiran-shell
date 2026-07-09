@@ -227,7 +227,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
         menu.addAction(tr("Add to tasklist"), this,
                        [=]()
                        {
-                           emit addToFixedApps(m_appInfo.m_url, this);
+                           emit addToLockedApps(m_appInfo.m_url, this);
                        });
     }
     else
@@ -235,7 +235,7 @@ void AppButton::contextMenuEvent(QContextMenuEvent *event)
         menu.addAction(tr("Remove from tasklist"), this,
                        [=]()
                        {
-                           emit removeFromFixedApps(m_appInfo.m_url);
+                           emit removeFromLockedApps(m_appInfo.m_url);
                        });
     }
 
