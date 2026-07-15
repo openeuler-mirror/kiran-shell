@@ -38,6 +38,7 @@ public:
 
 private:
     Shell();
+    ~Shell();
     void init();
     void initChildren();
 

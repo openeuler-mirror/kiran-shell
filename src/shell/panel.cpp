@@ -26,6 +26,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <QWindow>
+#include <utility>
 
 #include "applet.h"
 #include "ks-config.h"
@@ -43,11 +44,19 @@
 
 namespace Kiran
 {
-Panel::Panel(ProfilePanel *profilePanel)
+Panel::Panel(QSharedPointer<ProfilePanel> profilePanel)
     : ShellWindow(ShellWindowRole::Panel, nullptr),
-      m_profilePanel(profilePanel)
+      m_profilePanel(std::move(profilePanel))
 {
     setAttribute(Qt::WA_TranslucentBackground);  // 透明
+}
+
+Panel::~Panel()
+{
+    // Applet 析构时可能通过 getPanel() 访问 m_profilePanel，
+    // 因此需在 m_profilePanel 销毁前先删除所有 Applet。
+    qDeleteAll(m_applets);
+    m_applets.clear();
 }
 
 QString Panel::getUID()
@@ -185,16 +194,20 @@ void Panel::init()
     connectToCurrentScreen();
 
     // 布局方向变化
-    connect(m_profilePanel, &ProfilePanel::monitorChanged, this, [this]()
+    connect(m_profilePanel.data(), &ProfilePanel::monitorChanged, this, [this]()
             {
                 connectToCurrentScreen();  // 面板中显示器配置变化时重新连接
                 updateLayout();
             });
-    connect(m_profilePanel, &ProfilePanel::sizeChanged, this,
-            &Panel::updateLayout);
-    connect(m_profilePanel, &ProfilePanel::orientationChanged, this,
-            &Panel::updateLayout);
-    connect(Profile::getInstance(), &Profile::appletUIDsChanged, [this]()
+    connect(m_profilePanel.data(), &ProfilePanel::sizeChanged, this, [this]()
+            {
+                updateLayout();
+            });
+    connect(m_profilePanel.data(), &ProfilePanel::orientationChanged, this, [this]()
+            {
+                updateLayout();
+            });
+    connect(Profile::getInstance(), &Profile::appletUIDsChanged, this, [this]()
             {
                 initChildren();
                 updateLayout();
@@ -252,8 +265,8 @@ void Panel::initChildren()
     // 新插件
     auto profileApplets =
         Profile::getInstance()->getAppletsOnPanel(m_profilePanel->getUID());
-    QMap<QString, ProfileApplet *> profileAppletsWithID;
-    for (auto profileApplet : profileApplets)
+    QMap<QString, QSharedPointer<ProfileApplet>> profileAppletsWithID;
+    for (const auto& profileApplet : profileApplets)
     {
         profileAppletsWithID.insert(profileApplet->getUID(), profileApplet);
     }
@@ -419,7 +432,7 @@ void Panel::updateGeometry(int size)
     setMaximumSize(rect.size());
     resize(rect.size());
     setPosition(rect.x(), rect.y());
-    
+
     KLOG_INFO(LCShell) << "Applied geometry:" << geometry();
 
     // 计算放置的位置，并且确保该区域不被其他窗口覆盖
