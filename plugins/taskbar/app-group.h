@@ -103,13 +103,11 @@ signals:
 
     // 查询是否在收藏夹中
     void isInFavorite(const QString &appId, bool &checkResult);
-    // 查询是否已固定到任务栏
-    void isInFixedApps(const QUrl &url, bool &checkResult);
     // 添加到×/从×移除 桌面、收藏夹、任务栏
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    void addToFixedApps(const QUrl &url, AppGroup *appGroup);
-    void removeFromFixedApps(const QUrl &url);
+    void addToLockedApps(const QUrl &url, AppGroup *appGroup);
+    void removeFromLockedApps(const QUrl &url);
 
     // 拖拽移动
     void moveGroupStarted(AppGroup *);

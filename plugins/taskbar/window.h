@@ -73,19 +73,18 @@ private:
     void updatePageButtons(QBoxLayout::Direction direction, Qt::AlignmentFlag alignment);
 
     // 固定到任务栏操作
-    void updateLockApp();
-    void addLockApp(const QUrl &url);
-    void removeLockApp(const AppInfo &info);
+    void updateLockedApp();
+    void addLockedApp(const QUrl &url);
+    void removeLockedApp(const AppInfo &info);
 
     // 收藏夹关联
     void updateFavorite();
     void isInFavorite(const QString &appId, bool &checkResult);
     void addToFavorite(const QString &appId);
     void removeFromFavorite(const QString &appId);
-    // 固定到任务栏信息 查询、增加、删除
-    void isInFixedApps(const QUrl &url, bool &checkResult);
-    void addToFixedApps(const QUrl &url, AppGroup *appGroup);
-    void removeFromFixedApps(const QUrl &url);
+    // 固定到任务栏信息 增加、删除
+    void addToLockedApps(const QUrl &url, AppGroup *appGroup);
+    void removeFromLockedApps(const QUrl &url);
 
     // 文件监控相关
     void addFileWatcher(const QUrl &url);
@@ -97,8 +96,10 @@ private:
     bool isSupportedFile(const QUrl &url);
     bool hasSupportedFiles(const QMimeData *mimeData);
 
-    QList<QUrl> getFixedApps();
-    void setFixedApps(QList<QUrl> urls);
+    QList<QUrl> lockedAppsFromGSettings();
+    void lockedAppsToGSettings(QList<QUrl> urls);
+    // 按任务栏显示顺序更新 m_listAppGroupLocked 并写回固定项配置
+    void updateLockedFromShow();
 
     // 窗口关闭
     void removeGroup(AppGroup *group);
