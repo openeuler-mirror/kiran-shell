@@ -15,6 +15,7 @@
 #pragma once
 
 #include <QMap>
+#include <QSharedPointer>
 #include "profile-applet.h"
 #include "profile-panel.h"
 
@@ -22,17 +23,12 @@ class QGSettings;
 
 namespace Kiran
 {
-class LayoutPanel;
-class LayoutApplet;
+using ProfilePanelPtr = QSharedPointer<ProfilePanel>;
+using ProfileAppletPtr = QSharedPointer<ProfileApplet>;
 
 class Profile : public QObject
 {
     Q_OBJECT
-
-    GSETTINGS_PROPERTY_STRING_DECLARATION(defaultLayout, DefaultLayout)
-    GSETTINGS_PROPERTY_STRINGLIST_DECLARATION(panelUIDs, PanelUIDs)
-    GSETTINGS_PROPERTY_STRINGLIST_DECLARATION(appletUIDs, AppletUIDs)
-
 public:
     static Profile* getInstance()
     {
@@ -42,32 +38,56 @@ public:
     static void globalInit();
     static void globalDeinit();
 
-    QList<ProfilePanel*> getPanels();
-    QList<ProfileApplet*> getApplets();
-    QList<ProfileApplet*> getAppletsOnPanel(const QString& panelUID);
+    QString getDefaultLayout() const
+    {
+        return m_defaultLayout;
+    }
+    QStringList getPanelUIDs() const
+    {
+        return m_panelUIDs;
+    }
+    QStringList getAppletUIDs() const
+    {
+        return m_appletUIDs;
+    }
+    QList<ProfilePanelPtr> getPanels() const;
+    QList<ProfileAppletPtr> getApplets() const;
+    QList<ProfileAppletPtr> getAppletsOnPanel(const QString& panelUID) const;
+
+    void setDefaultLayout(const QString& value);
+    void setPanelUIDs(const QStringList& value);
+    void setAppletUIDs(const QStringList& value);
+
+Q_SIGNALS:
+    void defaultLayoutChanged(const QString& value);
+    void panelUIDsChanged(const QStringList& value);
+    void appletUIDsChanged(const QStringList& value);
 
 private:
     Profile();
 
     void init();
-    void initSettings();
-    // 从默认布局中加载信息
+    // 仅把默认布局翻译成 GSettings 键值对, 不创建/持有任何 ProfilePanel/ProfileApplet。
+    // 对象创建完全交给 GSettings changed 响应路径, 与"外部 dconf 写入"同一路径。
     void loadFromLayout();
-    void loadPanelFromLayout(LayoutPanel* layoutPanel);
-    void loadAppletFromLayout(LayoutApplet* layoutApplet);
-    // 从gsettings中加载信息
-    void loadFromSettings();
+
+    void handleDefaultLayoutChanged();
+    void handlePanelUIDsChanged();
+    void handleAppletUIDsChanged();
+
+    void syncPanelObjects();
+    void syncAppletObjects();
 
 private slots:
     void updateSettings(const QString& key);
 
 private:
     static Profile* m_instance;
-    // 全局配置
+    QString m_defaultLayout;
+    QStringList m_panelUIDs;
+    QStringList m_appletUIDs;
     QGSettings* m_settings;
-    // <面板UID， 面板配置>
-    QMap<QString, ProfilePanel*> m_panels;
-    // <AppletUID， Applet配置>
-    QMap<QString, ProfileApplet*> m_applets;
+    QMap<QString, ProfilePanelPtr> m_panels;
+    QMap<QString, ProfileAppletPtr> m_applets;
 };
 }  // namespace Kiran

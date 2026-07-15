@@ -14,6 +14,7 @@
 
 #include <qt5-log-i.h>
 #include <QHBoxLayout>
+#include <utility>
 
 #include "applet.h"
 #include "lib/common/logging-category.h"
@@ -39,10 +40,10 @@ IApplet *AppletImport::getApplet()
     return m_applet;
 }
 
-Applet::Applet(ProfileApplet *profileApplet,
+Applet::Applet(QSharedPointer<ProfileApplet> profileApplet,
                Panel *panel)
     : QWidget(panel),
-      m_profileApplet(profileApplet),
+      m_profileApplet(std::move(profileApplet)),
       m_panel(panel)
 {
     m_appletImport = new AppletImport(this, this);

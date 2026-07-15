@@ -14,7 +14,7 @@
 
 #include "lib/common/app-utils.h"
 #include <KIOCore/KFileItem>
-#include <KX11Extras>
+#include <KWindowSystem>
 #include "lib/common/icon-utils.h"
 #include "lib/common/logging-category.h"
 #include "lib/common/window-info-helper.h"
@@ -61,6 +61,6 @@ QPixmap getWindowAppIcon(WId wid, const QSize &size)
         }
     }
 
-    return KX11Extras::icon(wid, size.width(), size.height(), true);
+    return KWindowSystem::icon(wid, size.width(), size.height(), true);
 }
 }  // namespace Kiran

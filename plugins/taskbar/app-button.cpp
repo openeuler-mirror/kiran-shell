@@ -18,7 +18,6 @@
 #include <KIOCore/KFileItem>
 #include <KService/KService>
 #include <KWindowSystem>
-#include <KX11Extras>
 #include <QColor>
 #include <QDesktopServices>
 #include <QFileInfo>
@@ -69,7 +68,7 @@ void AppButton::setAppInfo(const AppInfo &appInfo, const WId &wid)
     {
         // 找不到 desktop file 的app
         // 使用默认图标
-        QPixmap icon = KX11Extras::icon(wid, 25, 25, true);
+        QPixmap icon = KWindowSystem::icon(wid, 25, 25, true);
         setIcon(QIcon(icon));
 
         // 获取名称
