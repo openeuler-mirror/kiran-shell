@@ -455,14 +455,13 @@ AppButton *AppGroup::newAppBtn()
     connect(appButton, &AppButton::windowCloseAll, this, &AppGroup::windowCloseAll);
 
     connect(appButton, &AppButton::isInFavorite, this, &AppGroup::isInFavorite, Qt::DirectConnection);
-    connect(appButton, &AppButton::isInFixedApps, this, &AppGroup::isInFixedApps, Qt::DirectConnection);
     connect(appButton, &AppButton::addToFavorite, this, &AppGroup::addToFavorite);
     connect(appButton, &AppButton::removeFromFavorite, this, &AppGroup::removeFromFavorite);
-    connect(appButton, &AppButton::addToFixedApps, this, [this](const QUrl &url)
+    connect(appButton, &AppButton::addToLockedApps, this, [this](const QUrl &url)
             {
-                emit addToFixedApps(url, this);
+                emit addToLockedApps(url, this);
             });
-    connect(appButton, &AppButton::removeFromFixedApps, this, &AppGroup::removeFromFixedApps);
+    connect(appButton, &AppButton::removeFromLockedApps, this, &AppGroup::removeFromLockedApps);
     connect(appButton, &AppButton::getRelationAppSize, this, &AppGroup::getRelationAppSize, Qt::DirectConnection);
     connect(appButton, &AppButton::activeRelationApp, this, &AppGroup::activeRelationApp);
 
