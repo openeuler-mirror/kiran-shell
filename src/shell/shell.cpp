@@ -29,6 +29,7 @@ void Shell::globalInit()
 void Shell::globalDeinit()
 {
     delete m_instance;
+    m_instance = nullptr;
 }
 
 Panel* Shell::getPanel(const QString& uid)
@@ -37,6 +38,12 @@ Panel* Shell::getPanel(const QString& uid)
 }
 
 Shell::Shell() = default;
+
+Shell::~Shell()
+{
+    qDeleteAll(m_panels);
+    m_panels.clear();
+}
 
 void Shell::init()
 {

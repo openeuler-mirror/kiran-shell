@@ -14,7 +14,6 @@
 
 #include <qt5-log-i.h>
 #include <KWindowSystem>
-#include <KX11Extras>
 #include <QGuiApplication>
 #include <QPainter>
 #include <QScreen>

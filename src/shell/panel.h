@@ -15,6 +15,7 @@
 #pragma once
 
 #include <QBoxLayout>
+#include <QSharedPointer>
 #include <QWidget>
 
 #include "plugin-i.h"
@@ -35,7 +36,8 @@ class Panel : public QWidget, public IPanel
     Q_PROPERTY(QString uid READ getUID)
 
 public:
-    Panel(ProfilePanel* profilePanel);
+    Panel(QSharedPointer<ProfilePanel> profilePanel);
+    ~Panel() override;
 
     void init();
 
@@ -74,7 +76,7 @@ signals:
     void panelProfileChanged() override;
 
 private:
-    ProfilePanel* m_profilePanel;  // 面板配置
+    QSharedPointer<ProfilePanel> m_profilePanel;
     QBoxLayout* m_appletsLayout = nullptr;
     QGSettings* m_gsettings = nullptr;
 

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <QSharedPointer>
 #include <QWidget>
 
 #include "plugin-i.h"
@@ -43,7 +44,7 @@ class Applet : public QWidget, public IApplet
     Q_OBJECT
 
 public:
-    Applet(ProfileApplet *profileApplet, Panel *panel);
+    Applet(QSharedPointer<ProfileApplet> profileApplet, Panel *panel);
 
 public:
     Panel *getPanel();
@@ -53,7 +54,7 @@ private:
     void init();
 
 private:
-    ProfileApplet *m_profileApplet = nullptr;
+    QSharedPointer<ProfileApplet> m_profileApplet = nullptr;
     Panel *m_panel = nullptr;
     // 提供给插件的输入对象
     AppletImport *m_appletImport = nullptr;

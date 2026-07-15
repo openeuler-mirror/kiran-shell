@@ -25,10 +25,6 @@
 #include "profile.h"
 namespace Kiran
 {
-GSETTINGS_PROPERTY_STRING_DEFINITION(Profile, defaultLayout, DefaultLayout, SHELL_SCHEMA_KEY_DEFAULT_LAYOUT)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, panelUIDs, PanelUIDs, SHELL_SCHEMA_KEY_PANEL_UIDS)
-GSETTINGS_PROPERTY_STRINGLIST_DEFINITION(Profile, appletUIDs, AppletUIDs, SHELL_SCHEMA_KEY_APPLET_UIDS)
-
 Profile* Profile::m_instance = nullptr;
 void Profile::globalInit()
 {
@@ -39,40 +35,33 @@ void Profile::globalInit()
 void Profile::globalDeinit()
 {
     delete m_instance;
+    m_instance = nullptr;
 }
 
 Profile::Profile()
 {
     m_settings = new QGSettings(SHELL_SCHEMA_ID, "", this);
-
-    connect(m_settings, SIGNAL(changed(const QString&)), this, SLOT(updateSettings(const QString&)));
+    connect(m_settings, &QGSettings::changed, this, &Profile::updateSettings, Qt::QueuedConnection);
 }
 
 void Profile::init()
 {
-    initSettings();
+    // 事件循环尚未启动,手动同步建立对象表。
+    // 此时无消费者连接信号, 无需 blockSignals。
+    handleDefaultLayoutChanged();
+    handlePanelUIDsChanged();
 
-    auto panelUIDs = getPanelUIDs();
-    // 如果面板数为0，则需要使用布局中的面板配置
-
-    if (panelUIDs.empty())
+    if (m_panelUIDs.empty())
     {
+        // 首次启动
+        // panel-uids 为空, 从默认布局文件写入 per-panel/per-applet 配置与 UID 列表。
+        // setter 仅写 GSettings; changed 因事件循环未启动无法异步到达, 手动调 handle* 同步生效, 幂等。
         loadFromLayout();
+        handlePanelUIDsChanged();
     }
-    else
-    {
-        loadFromSettings();
-    }
-}
 
-void Profile::initSettings()
-{
-    // 初始化阶段不发送信号，避免其他模块重复处理
-    blockSignals(true);
-    updateSettings(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT);
-    updateSettings(SHELL_SCHEMA_KEY_PANEL_UIDS);
-    updateSettings(SHELL_SCHEMA_KEY_APPLET_UIDS);
-    blockSignals(false);
+    // 先等待loadFromLayout读取默认布局写入gsettings, 再创建ProfileApplet对象, 避免读到空配置。
+    handleAppletUIDsChanged();
 }
 
 void Profile::loadFromLayout()
@@ -81,119 +70,142 @@ void Profile::loadFromLayout()
 
     KLOG_DEBUG(LCShell) << "Load from layout " << getDefaultLayout();
 
+    // per-panel/per-applet 属性必须先于 UID 列表写入 dconf, 否则 UID 列表
+    // 一旦触发 ProfilePanel/ProfileApplet 创建, initSettings() 读到的仍是默认空值。
+    QStringList panelUIDs;
+    QStringList appletUIDs;
+
     auto layoutPanels = layout->getPanels();
     for (auto* layoutPanel : layoutPanels)
     {
-        loadPanelFromLayout(layoutPanel);
+        const QString& uid = layoutPanel->getUID();
+        const QByteArray path = QString("%1/%2/").arg(PANEL_SCHEMA_PATH).arg(uid).toUtf8();
+        QGSettings panelSettings(PANEL_SCHEMA_ID, path);
+        panelSettings.set(PANEL_SCHEMA_KEY_SIZE, QVariant::fromValue(layoutPanel->getSize()));
+        panelSettings.set(PANEL_SCHEMA_KEY_ORIENTATION, QVariant::fromValue(layoutPanel->getOrientation()));
+        panelSettings.set(PANEL_SCHEMA_KEY_MONITOR, QVariant::fromValue(layoutPanel->getMonitor()));
+        panelUIDs.append(uid);
     }
 
     auto layoutApplets = layout->getApplets();
     for (auto* layoutApplet : layoutApplets)
     {
-        loadAppletFromLayout(layoutApplet);
+        const QString& uid = layoutApplet->getUID();
+        const QByteArray path = QString("%1/%2/").arg(APPLET_SCHEMA_PATH).arg(uid).toUtf8();
+        QGSettings appletSettings(APPLET_SCHEMA_ID, path);
+        appletSettings.set(APPLET_SCHEMA_KEY_ID, QVariant::fromValue(layoutApplet->getID()));
+        appletSettings.set(APPLET_SCHEMA_KEY_PANEL, QVariant::fromValue(layoutApplet->getPanel()));
+        appletSettings.set(APPLET_SCHEMA_KEY_POSITION, QVariant::fromValue(layoutApplet->getPosition()));
+        appletSettings.set(APPLET_SCHEMA_KEY_PRS, QVariant::fromValue(layoutApplet->getPanelRightStick()));
+        appletUIDs.append(uid);
     }
+
+    setPanelUIDs(panelUIDs);
+    setAppletUIDs(appletUIDs);
 }
 
-void Profile::loadPanelFromLayout(LayoutPanel* layoutPanel)
+void Profile::setDefaultLayout(const QString& value)
 {
-    auto* panel = new ProfilePanel(layoutPanel->getUID());
-    // TODO: 将layoutPanel中的属性设置到panel
-    // TODO： size需要限制一个最小值
-    panel->setSize(layoutPanel->getSize());
-    panel->setOrientation(layoutPanel->getOrientation());
-    panel->setMonitor(layoutPanel->getMonitor());
-    m_panels.insert(panel->getUID(), panel);
-
-    // 更新panel-uids属性
-    auto panelUIDs = getPanelUIDs();
-    if (!panelUIDs.contains(panel->getUID()))
-    {
-        panelUIDs.push_back(panel->getUID());
-        setPanelUIDs(panelUIDs);
-    }
+    if (value == m_settings->get(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT).toString())
+        return;
+    m_settings->set(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT, QVariant::fromValue(value));
 }
 
-void Profile::loadAppletFromLayout(LayoutApplet* layoutApplet)
+void Profile::handleDefaultLayoutChanged()
 {
-    auto* applet = new ProfileApplet(layoutApplet->getUID());
-    // TODO: 将layoutApplet中的属性设置到applet
-    applet->setID(layoutApplet->getID());
-    applet->setPanel(layoutApplet->getPanel());
-    applet->setPosition(layoutApplet->getPosition());
-    applet->setPanelRightStick(layoutApplet->getPanelRightStick());
-    m_applets.insert(applet->getUID(), applet);
-
-    auto appletUIDs = getAppletUIDs();
-    if (!appletUIDs.contains(applet->getUID()))
-    {
-        appletUIDs.push_back(applet->getUID());
-        setAppletUIDs(appletUIDs);
-    }
+    QString newValue = m_settings->get(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT).toString();
+    if (newValue == m_defaultLayout)
+        return;
+    m_defaultLayout = newValue;
+    Q_EMIT defaultLayoutChanged(newValue);
 }
 
-void Profile::loadFromSettings()
+void Profile::setPanelUIDs(const QStringList& value)
 {
-    auto panelUIDs = getPanelUIDs();
-    KLOG_INFO(LCShell) << "load panel:" << panelUIDs;
+    if (value == m_settings->get(SHELL_SCHEMA_KEY_PANEL_UIDS).toStringList())
+        return;
+    m_settings->set(SHELL_SCHEMA_KEY_PANEL_UIDS, QVariant::fromValue(value));
+}
 
-    for (auto& panelUID : panelUIDs)
+void Profile::setAppletUIDs(const QStringList& value)
+{
+    if (value == m_settings->get(SHELL_SCHEMA_KEY_APPLET_UIDS).toStringList())
+        return;
+    m_settings->set(SHELL_SCHEMA_KEY_APPLET_UIDS, QVariant::fromValue(value));
+}
+
+void Profile::handlePanelUIDsChanged()
+{
+    QStringList newValue = m_settings->get(SHELL_SCHEMA_KEY_PANEL_UIDS).toStringList();
+    if (newValue == m_panelUIDs)
+        return;
+    m_panelUIDs = newValue;
+    syncPanelObjects();
+    Q_EMIT panelUIDsChanged(newValue);
+}
+
+void Profile::handleAppletUIDsChanged()
+{
+    QStringList newValue = m_settings->get(SHELL_SCHEMA_KEY_APPLET_UIDS).toStringList();
+    if (newValue == m_appletUIDs)
+        return;
+    m_appletUIDs = newValue;
+    syncAppletObjects();
+    Q_EMIT appletUIDsChanged(newValue);
+}
+
+void Profile::syncPanelObjects()
+{
+    for (const QString& uid : m_panelUIDs)
     {
-        if (!m_panels.contains(panelUID))
+        if (!m_panels.contains(uid))
         {
-            auto* panel = new ProfilePanel(panelUID);
-            m_panels.insert(panel->getUID(), panel);
+            m_panels.insert(uid, QSharedPointer<ProfilePanel>::create(uid));
         }
     }
-
-    auto appletUIDs = getAppletUIDs();
-    KLOG_INFO(LCShell) << "load applets:" << appletUIDs;
-
-    for (auto& appletUID : appletUIDs)
+    for (const QString& uid : m_panels.keys())
     {
-        if (!m_applets.contains(appletUID))
+        if (!m_panelUIDs.contains(uid))
         {
-            auto* applet = new ProfileApplet(appletUID);
-            m_applets.insert(applet->getUID(), applet);
-        }
-    }
-    // 清理不存在的插件
-    for (auto appletUID : m_applets.keys())
-    {
-        if (!appletUIDs.contains(appletUID))
-        {
-            delete m_applets[appletUID];
-            m_applets.remove(appletUID);
-        }
-    }
-    // 清理不存在的面板
-    for (auto panelUID : m_panels.keys())
-    {
-        if (!panelUIDs.contains(panelUID))
-        {
-            delete m_panels[panelUID];
-            m_panels.remove(panelUID);
+            m_panels.remove(uid);
         }
     }
 }
 
-QList<ProfilePanel*> Profile::getPanels()
+void Profile::syncAppletObjects()
+{
+    for (const QString& uid : m_appletUIDs)
+    {
+        if (!m_applets.contains(uid))
+        {
+            m_applets.insert(uid, QSharedPointer<ProfileApplet>::create(uid));
+        }
+    }
+    for (const QString& uid : m_applets.keys())
+    {
+        if (!m_appletUIDs.contains(uid))
+        {
+            m_applets.remove(uid);
+        }
+    }
+}
+
+QList<ProfilePanelPtr> Profile::getPanels() const
 {
     return m_panels.values();
 }
 
-QList<ProfileApplet*> Profile::getApplets()
+QList<ProfileAppletPtr> Profile::getApplets() const
 {
     return m_applets.values();
 }
 
-QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
+QList<ProfileAppletPtr> Profile::getAppletsOnPanel(const QString& panelUID) const
 {
-    loadFromSettings();
+    QList<ProfileAppletPtr> applets;
+    QList<ProfileAppletPtr> applets_right;
 
-    QList<ProfileApplet*> applets;
-    QList<ProfileApplet*> applets_right;
-
-    for (auto& applet : m_applets)
+    for (const auto& applet : m_applets)
     {
         if (applet->getPanel() == panelUID)
         {
@@ -208,13 +220,13 @@ QList<ProfileApplet*> Profile::getAppletsOnPanel(const QString& panelUID)
         }
     }
 
-    // 各插件按gsettings中的顺序排列
-    std::sort(applets.begin(), applets.end(), [](ProfileApplet* a, ProfileApplet* b)
+    std::sort(applets.begin(), applets.end(), [](const ProfileAppletPtr& a, const ProfileAppletPtr& b)
               {
                   return a->getPosition() < b->getPosition();
               });
 
-    std::sort(applets_right.begin(), applets_right.end(), [](ProfileApplet* a, ProfileApplet* b)
+    // 右贴靠 applet 的 position 从右边缘起算, 数值大的离右边缘更近, 排序方向与左侧相反。
+    std::sort(applets_right.begin(), applets_right.end(), [](const ProfileAppletPtr& a, const ProfileAppletPtr& b)
               {
                   return a->getPosition() > b->getPosition();
               });
@@ -227,9 +239,15 @@ void Profile::updateSettings(const QString& key)
 {
     switch (shash(key.toUtf8().data()))
     {
-        GSETTINGS_CASE_STRING_CHANGE(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT, DefaultLayout)
-        GSETTINGS_CASE_STRINGLIST_CHANGE(SHELL_SCHEMA_KEY_PANEL_UIDS, PanelUIDs)
-        GSETTINGS_CASE_STRINGLIST_CHANGE(SHELL_SCHEMA_KEY_APPLET_UIDS, AppletUIDs)
+    case CONNECT(SHELL_SCHEMA_KEY_DEFAULT_LAYOUT, _hash):
+        handleDefaultLayoutChanged();
+        break;
+    case CONNECT(SHELL_SCHEMA_KEY_PANEL_UIDS, _hash):
+        handlePanelUIDsChanged();
+        break;
+    case CONNECT(SHELL_SCHEMA_KEY_APPLET_UIDS, _hash):
+        handleAppletUIDsChanged();
+        break;
         GSETTINGS_CASE_DEFAULT
     }
 }
